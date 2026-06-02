@@ -1,8 +1,8 @@
 ### DotnetCore ###
 # .NET Core build folders
-bin/
-obj/
+Backend/src/bin/
+Backend/src/obj/
 
 # Common node modules locations
-/node_modules
-/wwwroot/node_modules
+/Backend/src/node_modules
+/Backend/src/wwwroot/node_modules
