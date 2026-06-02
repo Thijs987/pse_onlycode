@@ -42,4 +42,16 @@ public class ConnectionManager
             Console.WriteLine($"Socket Disconnected: {connectionId}");
         }
     }
+
+    public async Task SendMessageAsync(string connectionId, string message)
+    {
+        if (_sockets.TryGetValue(connectionId, out var socket))
+        {
+            if (socket.State == WebSocketState.Open)
+            {
+                var bytes = Encoding.UTF8.GetBytes(message);
+                await socket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+        }
+    }
 }
