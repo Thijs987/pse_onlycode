@@ -13,6 +13,7 @@ public class AuthService
     private readonly AppDbContext _db;
     private readonly IAuditService _auditService;
     private readonly IRateLimitService _rateLimitService;
+    private readonly IEmailService _emailService;
     private static readonly string _dummyHash = PasswordHasher.Hash("__dummy_password_for_timing__");
 
     // Configuration
@@ -20,12 +21,14 @@ public class AuthService
     private const int LockoutDurationMinutes = 15;
     private const int LoginAttemptWindowMinutes = 15;
     private const int RegisterAttemptWindowMinutes = 30;
+    private const int EmailVerificationTokenExpiryHours = 24;
 
-    public AuthService(AppDbContext db, IAuditService auditService, IRateLimitService rateLimitService)
+    public AuthService(AppDbContext db, IAuditService auditService, IRateLimitService rateLimitService, IEmailService emailService)
     {
         _db = db;
         _auditService = auditService;
         _rateLimitService = rateLimitService;
+        _emailService = emailService;
     }
 
 
@@ -170,18 +173,31 @@ public class AuthService
 
         // checks if email or username is already taken
         if (await _db.Users.AnyAsync(u => u.Email == email))
+        {
+            await _auditService.LogAuthEventAsync("register_attempt", email, false, "Email already in use", ipAddress);
             throw new InvalidOperationException("Email is already in use.");
+        }
 
         if (await _db.Users.AnyAsync(u => u.Username == username))
+        {
+            await _auditService.LogAuthEventAsync("register_attempt", email, false, "Username already in use", ipAddress);
             throw new InvalidOperationException("Username is already in use.");
+        }
 
-        // create user
+        // generate email verification token (valid for 24 hours)
+        var verificationToken = GenerateVerificationToken();
+        var verificationExpiry = DateTime.UtcNow.AddHours(EmailVerificationTokenExpiryHours);
+
+        // create user (email not verified yet)
         var user = new AppUser
         {
             Id = Guid.NewGuid(),
             Email = email,
             Username = username,
-            PasswordHash = PasswordHasher.Hash(password)
+            PasswordHash = PasswordHasher.Hash(password),
+            IsEmailVerified = false,
+            VerificationToken = verificationToken,
+            VerificationTokenExpiry = verificationExpiry
         };
 
         _db.Users.Add(user);
@@ -199,11 +215,29 @@ public class AuthService
                 || inner.Contains("duplicate", StringComparison.OrdinalIgnoreCase)
                 || inner.Contains("constraint", StringComparison.OrdinalIgnoreCase)))
             {
+                await _auditService.LogAuthEventAsync("register_attempt", email, false, "Duplicate key (race condition)", ipAddress);
                 throw new InvalidOperationException("Email or username already exists.", ex);
             }
 
+            await _auditService.LogAuthEventAsync("register_attempt", email, false, $"DB error: {ex.Message}", ipAddress);
             throw new InvalidOperationException("Failed to create user.", ex);
         }
+
+        // send verification email
+        // TODO: replace with your actual domain/baseurl from configuration
+        var verificationLink = $"https://yourdomain.com/api/auth/verify-email?token={Uri.EscapeDataString(verificationToken)}&email={Uri.EscapeDataString(email)}";
+        try
+        {
+            await _emailService.SendVerificationEmailAsync(email, username, verificationToken, verificationLink);
+        }
+        catch (Exception ex)
+        {
+            // log but don't fail registration; user can request resend
+            await _auditService.LogAuthEventAsync("register_attempt", email, true, $"Email send failed: {ex.Message}", ipAddress);
+        }
+
+        await _auditService.LogAuthEventAsync("register_attempt", email, true, "User created, email verification required", ipAddress);
+        await _rateLimitService.RecordAttemptAsync(rateLimitKey);
 
         return new UserDto { Id = user.Id, Email = user.Email, Username = user.Username };
     }
@@ -223,5 +257,89 @@ public class AuthService
         var hasSpecial = Regex.IsMatch(password, "[^a-zA-Z0-9]");
 
         return hasUpper && hasLower && hasDigit && hasSpecial;
+    }
+
+    public async Task<bool> VerifyEmailAsync(string email, string token)
+    {
+        // basic validation
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
+        {
+            await _auditService.LogAuthEventAsync("email_verify_attempt", email ?? "unknown", false, "Empty email or token", null);
+            return false;
+        }
+
+        // normalize email + find user by email
+        email = email.Trim().ToLowerInvariant();
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null)
+        {
+            await _auditService.LogAuthEventAsync("email_verify_attempt", email, false, "User not found", null);
+            return false;
+        }
+
+        // check if already verified
+        if (user.IsEmailVerified)
+        {
+            await _auditService.LogAuthEventAsync("email_verify_attempt", email, false, "Email already verified", null);
+            return false;
+        }
+
+        // check token and expiry
+        if (user.VerificationToken != token || !user.VerificationTokenExpiry.HasValue || user.VerificationTokenExpiry < DateTime.UtcNow)
+        {
+            await _auditService.LogAuthEventAsync("email_verify_attempt", email, false, "Invalid or expired token", null);
+            return false;
+        }
+
+        // mark email as verified and clear token
+        user.IsEmailVerified = true;
+        user.VerificationToken = null;
+        user.VerificationTokenExpiry = null;
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            await _auditService.LogAuthEventAsync("email_verify_attempt", email, false, $"DB error: {ex.Message}", null);
+            throw;
+        }
+
+        await _auditService.LogAuthEventAsync("email_verify_attempt", email, true, null, null);
+        return true;
+    }
+
+    public async Task<bool> ResendVerificationEmailAsync(string email)
+    {
+        // basic validation
+        if (string.IsNullOrWhiteSpace(email))
+            return false;
+
+        // normalize email + find user by email
+        email = email.Trim().ToLowerInvariant();
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null || user.IsEmailVerified)
+            return false;
+
+        // generate new token and expiry
+        user.VerificationToken = GenerateVerificationToken();
+        user.VerificationTokenExpiry = DateTime.UtcNow.AddHours(EmailVerificationTokenExpiryHours);
+        await _db.SaveChangesAsync();
+
+        // send verification email
+        var verificationLink = $"https://yourdomain.com/api/auth/verify-email?token={Uri.EscapeDataString(user.VerificationToken)}&email={Uri.EscapeDataString(email)}";
+        await _emailService.SendVerificationEmailAsync(email, user.Username, user.VerificationToken, verificationLink);
+        await _auditService.LogAuthEventAsync("resend_verification", email, true, null, null);
+        return true;
+    }
+
+    private static string GenerateVerificationToken()
+    {
+        // generate a secure random token (32 bytes, base64url encoded)
+        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        var tokenData = new byte[32];
+        rng.GetBytes(tokenData);
+        return Convert.ToBase64String(tokenData).Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
 }
