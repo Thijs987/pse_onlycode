@@ -23,6 +23,10 @@ public class MessageRouter
                     Console.WriteLine($"Player {message.PlayerId} played a card: {message.Data}");
                     break;
 
+                case "END_TURN":
+                    Console.WriteLine("End turn");
+                    break;
+
                 default:
                     Console.WriteLine($"Unknown action: {message.Action}");
                     break;
