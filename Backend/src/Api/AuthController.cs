@@ -5,7 +5,7 @@ using Domain;
 using Application;
 
 [ApiController]
-[Route("api/test")]
+[Route("api/auth")]
 public class UserController : ControllerBase
 {
     private readonly AuthService _auth;
