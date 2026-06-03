@@ -75,16 +75,10 @@ public class MatchManager
             // Refill deck
         }
 
-
-        Console.WriteLine(match.PlayerIds);
         // Advance the turn to the next player
         int currentIndex = match.PlayerIds.IndexOf(playerId);
-        Console.WriteLine(currentIndex);
         int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
-        Console.WriteLine(nextIndex);
-        Console.WriteLine($"Old {match.CurrentTurnPlayerId}");
         match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
-        Console.WriteLine($"New {match.CurrentTurnPlayerId}");
 
         return card;
     }
