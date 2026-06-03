@@ -17,7 +17,7 @@ public class AuthService
         _db = db;
     }
 
-    public async Task<AppUser?> Login(string email, string password)
+    public async Task<UserDto?> Login(string email, string password)
     {
         // basic validation
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
@@ -43,7 +43,7 @@ public class AuthService
         AppUser? user;
         try
         {
-            user = await _db.Users.FirstOrDefaultAsync(x => x.Email == email);
+            user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Email == email);
         }
         catch (Exception ex)
         {
@@ -64,10 +64,10 @@ public class AuthService
         if (!PasswordHasher.Verify(password, user.PasswordHash))
             return null;
 
-        return user;
+        return new UserDto { Id = user.Id, Email = user.Email, Username = user.Username };
     }
 
-    public async Task<AppUser> Register(string email, string username, string password)
+    public async Task<UserDto> Register(string email, string username, string password)
     {
         // basic validation
         if (string.IsNullOrWhiteSpace(email)) throw new ArgumentException("Email is required.", nameof(email));
@@ -118,17 +118,27 @@ public class AuthService
         }
         catch (DbUpdateException ex)
         {
+            // Try to detect common unique constraint violations and return a helpful message.
+            var inner = ex.InnerException?.Message ?? string.Empty;
+            if (!string.IsNullOrEmpty(inner) && (inner.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase)
+                || inner.Contains("unique", StringComparison.OrdinalIgnoreCase)
+                || inner.Contains("duplicate", StringComparison.OrdinalIgnoreCase)
+                || inner.Contains("constraint", StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException("Email or username already exists.", ex);
+            }
+
             throw new InvalidOperationException("Failed to create user.", ex);
         }
 
-        return user;
+        return new UserDto { Id = user.Id, Email = user.Email, Username = user.Username };
     }
 
     private static bool IsPasswordValid(string password)
     {
         /* Checks if password has the following requirements:
             - at least 8 characters long
-            - contain upper, lower, digi
+            - contain upper, lower, digit
             - contain special character 
             Returns true if valid, false otherwise */
         if (password.Length < 8) return false;
