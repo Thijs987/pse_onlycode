@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="Frontend"
-run/main_scene="uid://dv7yfv31haafa"
+run/main_scene="uid://2rclrrsuh5tp"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
 [display]
 
 window/stretch/aspect="expand"
+window/vsync/vsync_mode=0
 
 [dotnet]
 

@@ -1,10 +1,18 @@
 [gd_scene format=3 uid="uid://dlb3crw3qdkv2"]
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_db7xr"]
+[ext_resource type="Texture2D" uid="uid://dd8ml1fc20d6c" path="res://CardIcons/Defuse.png" id="1_kikvd"]
 
-[node name="Button" type="Button" unique_id=831130601]
-custom_minimum_size = Vector2(120, 180)
-tooltip_text = "asdf"
-icon = SubResource("PlaceholderTexture2D_db7xr")
-icon_alignment = 1
-expand_icon = true
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_glv2v"]
+size = Vector2(192, 288)
+
+[node name="Card" type="Node2D" unique_id=725212101]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1466347072]
+position = Vector2(0, -5.9604645e-08)
+scale = Vector2(0.38599998, 0.386)
+texture = ExtResource("1_kikvd")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1563980410]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1272633219]
+shape = SubResource("RectangleShape2D_glv2v")
