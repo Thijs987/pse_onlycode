@@ -77,9 +77,9 @@ public class MatchManager
 
 
         // Advance the turn to the next player
-        // int currentIndex = match.PlayerIds.IndexOf(playerId);
-        // int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
-        // match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
+        int currentIndex = match.PlayerIds.IndexOf(playerId);
+        int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
+        match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
 
         return card;
     }
