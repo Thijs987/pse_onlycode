@@ -55,31 +55,54 @@ public class MatchManager
 
         if (match.CurrentTurnPlayerId != playerId)
         {
-            Console.WriteLine($"{playerId} tried to end turn, but not their turn!");
+            Console.WriteLine($"{playerId} tried to draw, but not their turn!");
             return "";
         }
 
         var deck = match.Deck;
         var firstNode = deck.First;
 
+        // No top card, not possible
         if (firstNode == null)
         {
-            return "";
+            throw new Exception("No top card");
         }
 
         string card = firstNode.Value;
+        deck.RemoveFirst();
         Console.WriteLine($"The first card is {card}");
 
         if (deck.Count <= 0)
         {
             // Refill deck
+            Console.WriteLine("Deck empty");
         }
 
-        // Advance the turn to the next player
-        int currentIndex = match.PlayerIds.IndexOf(playerId);
-        int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
-        match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
-
         return card;
+    }
+
+    public (string, int) NextTurn(string matchId, string playerId)
+    {
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            Console.WriteLine($"Cannot find match {matchId}");
+            return ("", -1);
+        }
+
+        match.NTurns--;
+
+        // Attack card can cause NTurns > 1
+        if (match.NTurns <= 0)
+        {
+            // Advance the turn to the next player if current has none
+            int currentIndex = match.PlayerIds.IndexOf(playerId);
+            int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
+            match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
+
+            // Set NTrns to 1
+            match.NTurns = 1;
+        }
+
+        return (match.CurrentTurnPlayerId, match.NTurns);
     }
 }

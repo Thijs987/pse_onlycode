@@ -50,17 +50,36 @@ public class MessageRouter
                     string card = matchManager.GetFirstCard(lobbyId, message.PlayerId);
                     // Get the connection Id of all player to send this to.
                     // Get player that gets card
-                    if (card != "")
-                    {
-                        // If the move was valid, broadcast the result to EVERYONE in the game
-                        // (You will need to add a Broadcast method to your ConnectionManager)
-                        Console.WriteLine("First Card Gotten successfully.");
-                        // connectionManager.BroadcastToLobbyAsync(lobbyId)
-                    }
-                    else
+                    if (card == "")
                     {
                         await connectionManager.SendMessageAsync(playerId, "First Card Error");
+                        break;
                     }
+
+                    Console.WriteLine($"Gotten top card {card} succesfully!");
+
+                    // Check for Improved Hardware
+                    if (card == "Improved Hardware")
+                    {
+                        // Not handling that shit yet
+                    }
+
+                    // Send card to player.
+                    await connectionManager.SendMessageAsync(playerId, $"Got {card}");
+
+                    // next turn
+                    (string nextPlayer, int nTurns) = matchManager.NextTurn(lobbyId, playerId);
+
+                    var endTurnMessage = new NetworkMessage
+                    {
+                        Action = "CARD_DRAWN",
+                        PlayerId = playerId,
+                        Data = $"{nextPlayer},{nTurns}"
+                    };
+
+                    // Broadcast next player and NTurns
+                    await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(endTurnMessage));
+
                     break;
             }
         }
