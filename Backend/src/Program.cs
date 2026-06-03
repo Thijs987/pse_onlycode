@@ -44,7 +44,7 @@ app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManage
 
         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
-        await connectionManager.HandleConnectionAsync(playerId, lobbyId, webSocket, router);
+        await connectionManager.HandleConnectionAsync(playerId, lobbyId, webSocket, router, context.RequestAborted);
     }
     else
     {

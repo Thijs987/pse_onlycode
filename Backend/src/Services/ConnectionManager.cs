@@ -15,7 +15,8 @@ public class ConnectionManager
     // Tracks which lobby a connection is currently in (ConnectionId -> LobbyId) for cleanup
     private readonly ConcurrentDictionary<string, string> _connectionToLobby = new();
 
-    public async Task HandleConnectionAsync(string playerId, string lobbyId, WebSocket socket, MessageRouter router)
+    // 1. Add CancellationToken to the parameter list
+    public async Task HandleConnectionAsync(string playerId, string lobbyId, WebSocket socket, MessageRouter router, CancellationToken cancellationToken)
     {
         _sockets.TryAdd(playerId, socket);
         AddToLobby(playerId, lobbyId);
@@ -28,23 +29,38 @@ public class ConnectionManager
             Data = $"{playerId} has joined the game!"
         };
 
-        string jsonBroadcast = System.Text.Json.JsonSerializer.Serialize(joinMessage);
-        await BroadcastToLobbyAsync(lobbyId, jsonBroadcast);
+        await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(joinMessage));
 
         var buffer = new byte[1024 * 4];
 
         try
         {
-            var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
 
-            while (!result.CloseStatus.HasValue)
+            while (!result.CloseStatus.HasValue && !cancellationToken.IsCancellationRequested)
             {
                 string rawMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
                 await router.RouteMessageAsync(playerId, rawMessage, this);
-                result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
             }
 
-            await socket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+            if (socket.State == WebSocketState.Open)
+            {
+                await socket.CloseAsync(
+                    result.CloseStatus ?? WebSocketCloseStatus.NormalClosure,
+                    result.CloseStatusDescription ?? "Normal closure",
+                    CancellationToken.None);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // For when we shut the server down manually with ctrl+c
+            Console.WriteLine($"Server shutting down, forcing disconnect for {playerId}...");
+
+            if (socket.State == WebSocketState.Open || socket.State == WebSocketState.CloseReceived)
+            {
+                await socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "Server shutting down", CancellationToken.None);
+            }
         }
         catch (Exception ex)
         {
@@ -61,8 +77,8 @@ public class ConnectionManager
                 PlayerId = playerId,
                 Data = $"{playerId} disconnected."
             };
-            await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
 
+            await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
             Console.WriteLine($"Socket Disconnected: {playerId}");
         }
     }
@@ -142,10 +158,14 @@ public class ConnectionManager
     }
 
     // Only returns lobbies with less than 4 players like this
-    public IEnumerable<string> GetActiveLobbies()
+    public IEnumerable<object> GetActiveLobbies()
     {
         return _lobbies
             .Where(lobby => lobby.Value.Count < MaxPlayersPerLobby)
-            .Select(lobby => lobby.Key);
+            .Select(lobby => new
+            {
+                LobbyId = lobby.Key,
+                PlayerCount = lobby.Value.Count
+            });
     }
 }
