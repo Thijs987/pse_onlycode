@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Frontend"
+run/main_scene="uid://2rclrrsuh5tp"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
