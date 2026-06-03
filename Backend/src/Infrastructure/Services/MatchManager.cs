@@ -18,7 +18,9 @@ public class MatchManager
             CurrentTurnPlayerId = players[0]
         };
 
-        newState.Deck.AddLast("Test");
+        newState.Deck.AddLast("1");
+        newState.Deck.AddLast("2");
+        newState.Deck.AddLast("3");
 
         // TODO: Give initial hands to players
 
@@ -43,25 +45,30 @@ public class MatchManager
         return true;
     }
 
-    public bool GetFirstCard(string matchId, string playerId)
+    public string GetFirstCard(string matchId, string playerId)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
-            return false;
+        {
+            Console.WriteLine($"Cannot find match {matchId}");
+            return "";
+        }
 
         if (match.CurrentTurnPlayerId != playerId)
         {
             Console.WriteLine($"{playerId} tried to end turn, but not their turn!");
-            return false;
+            return "";
         }
 
         var deck = match.Deck;
         var firstNode = deck.First;
 
-        if (firstNode != null)
+        if (firstNode == null)
         {
-            string card = firstNode.Value;
-            Console.WriteLine($"The first card is {card}");
+            return "";
         }
+
+        string card = firstNode.Value;
+        Console.WriteLine($"The first card is {card}");
 
         if (deck.Count <= 0)
         {
@@ -70,10 +77,10 @@ public class MatchManager
 
 
         // Advance the turn to the next player
-        int currentIndex = match.PlayerIds.IndexOf(playerId);
-        int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
-        match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
+        // int currentIndex = match.PlayerIds.IndexOf(playerId);
+        // int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
+        // match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
 
-        return true;
+        return card;
     }
 }

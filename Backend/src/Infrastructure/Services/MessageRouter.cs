@@ -21,7 +21,9 @@ public class MessageRouter
             switch (message.Action)
             {
                 case "START_GAME":
-                    matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
+                    // matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
+                    // Changed matchId to lobbyId
+                    matchManager.StartNewMatch(lobbyId, new List<string> { message.PlayerId });
                     await connectionManager.SendMessageAsync(playerId, "Game Started!");
                     break;
 
@@ -44,21 +46,20 @@ public class MessageRouter
 
                 case "END_TURN":
                     // Normal end to a turn. Grab card (check IH) and broadcast action to lobby.
-                    success = matchManager.GetFirstCard(lobbyId, message.PlayerId);
+                    string card = matchManager.GetFirstCard(lobbyId, message.PlayerId);
                     // Get the connection Id of all player to send this to.
                     // Get player that gets card
-                    if (success)
+                    if (card != "")
                     {
                         // If the move was valid, broadcast the result to EVERYONE in the game
                         // (You will need to add a Broadcast method to your ConnectionManager)
                         Console.WriteLine("First Card Gotten successfully.");
+                        // connectionManager.BroadcastToLobbyAsync(lobbyId)
                     }
                     else
                     {
                         await connectionManager.SendMessageAsync(playerId, "First Card Error");
                     }
-
-                    // connectionManager.BroadcastToLobbyAsync(lobbyId)
                     break;
             }
         }
