@@ -7,7 +7,6 @@ public class MessageRouter
         try
         {
             var message = JsonSerializer.Deserialize<NetworkMessage>(rawJson);
-
             if (message == null) return;
 
             Console.WriteLine($"Received {message.Action} from {connectionId}");
@@ -15,12 +14,13 @@ public class MessageRouter
             // TODO: add actual logic
             switch (message.Action)
             {
-                case "JOIN_LOBBY":
-                    await connectionManager.SendMessageAsync(connectionId, "Welcome to the lobby!");
+                // Game actions
+                case "START_GAME":
+                    await connectionManager.SendMessageAsync(connectionId, "Game Started!");
                     break;
 
                 case "PLAY_CARD":
-                    Console.WriteLine($"Player {message.PlayerId} played a card: {message.Data}");
+                    await connectionManager.SendMessageAsync(connectionId, "ILLEGAL_MOVE");
                     break;
 
                 default:
