@@ -15,7 +15,6 @@ public class ConnectionManager
     // Tracks which lobby a connection is currently in (ConnectionId -> LobbyId) for cleanup
     private readonly ConcurrentDictionary<string, string> _connectionToLobby = new();
 
-    // 1. Add CancellationToken to the parameter list
     public async Task HandleConnectionAsync(string playerId, string lobbyId, WebSocket socket, MessageRouter router, MatchManager matchManager, CancellationToken cancellationToken)
     {
         _sockets.TryAdd(playerId, socket);
