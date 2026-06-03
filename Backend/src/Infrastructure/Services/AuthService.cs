@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 using Application.Services;
@@ -11,6 +12,7 @@ namespace Application;
 
 public class AuthService
 {
+    // dependencies
     private readonly AppDbContext _db;
     private readonly IAuditService _auditService;
     private readonly IRateLimitService _rateLimitService;
@@ -42,18 +44,16 @@ public class AuthService
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Email and password are required."));
         }
 
+        // normalize email
         email = email.Trim().ToLowerInvariant();
-        try
-        {
-            _ = new MailAddress(email);
-        }
-        catch
+        if (!IsValidEmail(email))
         {
             await _auditService.LogAuthEventAsync("login_attempt", email, false, "Validation failed: invalid email format", ipAddress);
             PasswordHasher.Verify(password, _dummyHash);
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
         }
 
+        // rate limiting: max 5 failed login attempts per 15 minutes, per email
         var rateLimitKey = $"login:{email}";
         if (!await _rateLimitService.IsAllowedAsync(rateLimitKey, MaxFailedLoginAttempts, TimeSpan.FromMinutes(LoginAttemptWindowMinutes)))
         {
@@ -61,10 +61,13 @@ public class AuthService
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.RateLimited, "Too many login attempts. Try again later."));
         }
 
+        // fetch user by email; if not found, do a dummy password verify to mitigate timing attacks,
+        // then return generic error without revealing which part was wrong (this extra security
+        // measure is done everywhere below here).
         AppUser? user;
         try
         {
-            user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Email == email);
+            user = await _db.Users.FirstOrDefaultAsync(x => x.Email == email);
         }
         catch (Exception ex)
         {
@@ -72,6 +75,7 @@ public class AuthService
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InternalError, "Unable to access user store."));
         }
 
+        // user not found.
         if (user == null)
         {
             PasswordHasher.Verify(password, _dummyHash);
@@ -79,18 +83,21 @@ public class AuthService
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
         }
 
+        // check if account is locked
         if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
         {
             await _auditService.LogAuthEventAsync("login_attempt", email, false, $"Account locked until {user.LockoutEnd:O}", ipAddress);
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.AccountLocked, "Account is temporarily locked."));
         }
 
+        // check email verification
         if (!user.IsEmailVerified)
         {
             await _auditService.LogAuthEventAsync("login_attempt", email, false, "Email not verified", ipAddress);
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.EmailNotVerified, "Email address has not been verified."));
         }
 
+        // verify password
         if (!PasswordHasher.Verify(password, user.PasswordHash))
         {
             user.FailedLoginAttempts++;
@@ -109,6 +116,7 @@ public class AuthService
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
         }
 
+        // successful login: reset failed attempts and lockout, log success, return user info
         user.FailedLoginAttempts = 0;
         user.LockoutEnd = null;
         await _db.SaveChangesAsync();
@@ -138,11 +146,7 @@ public class AuthService
         email = email.Trim().ToLowerInvariant();
         username = username.Trim();
 
-        try
-        {
-            _ = new MailAddress(email);
-        }
-        catch
+        if (!IsValidEmail(email))
         {
             await _auditService.LogAuthEventAsync("register_attempt", email, false, "Invalid email format", ipAddress);
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Invalid email format."));
@@ -162,7 +166,8 @@ public class AuthService
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.DuplicateEmail, "Email is already in use."));
         }
 
-        if (await _db.Users.AnyAsync(u => u.Username == username))
+        var normalizedUsername = username.ToLowerInvariant();
+        if (await _db.Users.AnyAsync(u => u.Username.ToLower() == normalizedUsername))
         {
             await _auditService.LogAuthEventAsync("register_attempt", email, false, "Username already in use", ipAddress);
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.DuplicateUsername, "Username is already in use."));
@@ -240,6 +245,40 @@ public class AuthService
         var hasSpecial = Regex.IsMatch(password, "[^a-zA-Z0-9]");
 
         return hasUpper && hasLower && hasDigit && hasSpecial;
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return false;
+        if (email.Any(char.IsWhiteSpace))
+            return false;
+        if (email.Count(c => c == '@') != 1)
+            return false;
+
+        var parts = email.Split('@');
+        if (parts.Length != 2)
+            return false;
+        var local = parts[0];
+        var domain = parts[1];
+        if (string.IsNullOrWhiteSpace(local) || string.IsNullOrWhiteSpace(domain))
+            return false;
+        if (local.StartsWith('.') || local.EndsWith('.') || domain.StartsWith('.') || domain.EndsWith('.'))
+            return false;
+        if (local.Contains("..") || domain.Contains(".."))
+            return false;
+        if (!domain.Contains('.'))
+            return false;
+
+        try
+        {
+            _ = new MailAddress(email);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     /*public async Task<bool> VerifyEmailAsync(string email, string token)

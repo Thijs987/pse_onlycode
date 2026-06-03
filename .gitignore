@@ -6,3 +6,6 @@ obj/
 # Common node modules locations
 /Backend/src/node_modules
 /Backend/src/wwwroot/node_modules
+
+# local development environment variables
+.env
