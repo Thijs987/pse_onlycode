@@ -2,6 +2,7 @@ using System;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 using Application.Services;
+using Application.Results;
 using Domain;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -32,42 +33,34 @@ public class AuthService
     }
 
 
-    public async Task<UserDto?> Login(string email, string password, string? ipAddress = null)
+    public async Task<Result<UserDto>> Login(string email, string password, string? ipAddress = null)
     {
-        // basic validation
+        // validation
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {
             await _auditService.LogAuthEventAsync("login_attempt", email ?? "unknown", false, "Validation failed: empty input", ipAddress);
-            return null;
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Email and password are required."));
         }
 
-        // normalize email
         email = email.Trim().ToLowerInvariant();
-
         try
         {
             _ = new MailAddress(email);
         }
         catch
         {
-            /* Treat invalid email format as authentication failure without throwing
-               to avoid revealing information to callers.
-               Run a "dummy verify" to make timing similar to a real verification. */
             await _auditService.LogAuthEventAsync("login_attempt", email, false, "Validation failed: invalid email format", ipAddress);
             PasswordHasher.Verify(password, _dummyHash);
-            return null;
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
         }
 
-        // rate limiting: max 5 failed login attempts per 15 minutes per email
         var rateLimitKey = $"login:{email}";
-        var allowed = await _rateLimitService.IsAllowedAsync(rateLimitKey, MaxFailedLoginAttempts, TimeSpan.FromMinutes(LoginAttemptWindowMinutes));
-        if (!allowed)
+        if (!await _rateLimitService.IsAllowedAsync(rateLimitKey, MaxFailedLoginAttempts, TimeSpan.FromMinutes(LoginAttemptWindowMinutes)))
         {
             await _auditService.LogAuthEventAsync("login_attempt", email, false, "Rate limit exceeded", ipAddress);
-            return null;
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.RateLimited, "Too many login attempts. Try again later."));
         }
 
-        // find user by email
         AppUser? user;
         try
         {
@@ -76,38 +69,30 @@ public class AuthService
         catch (Exception ex)
         {
             await _auditService.LogAuthEventAsync("login_attempt", email, false, $"DB error: {ex.Message}", ipAddress);
-            throw new InvalidOperationException("Failed to access user store.", ex);
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InternalError, "Unable to access user store."));
         }
 
-        // if user not found...
         if (user == null)
         {
-            /* Mitigate user-existence timing attacks by performing a password
-               verification against a constant dummy hash so callers can't observe
-               large time differences between "user not found" and "bad password" */
             PasswordHasher.Verify(password, _dummyHash);
             await _rateLimitService.RecordAttemptAsync(rateLimitKey);
-            return null;
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
         }
 
-        // check if account is locked out
         if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
         {
             await _auditService.LogAuthEventAsync("login_attempt", email, false, $"Account locked until {user.LockoutEnd:O}", ipAddress);
-            return null;
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.AccountLocked, "Account is temporarily locked."));
         }
 
-        // check email verification
-        /*if (!user.IsEmailVerified)
+        if (!user.IsEmailVerified)
         {
             await _auditService.LogAuthEventAsync("login_attempt", email, false, "Email not verified", ipAddress);
-            return null;
-        }*/
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.EmailNotVerified, "Email address has not been verified."));
+        }
 
-        // verify password
         if (!PasswordHasher.Verify(password, user.PasswordHash))
         {
-            // increment failed attempts and lock if needed
             user.FailedLoginAttempts++;
             if (user.FailedLoginAttempts >= MaxFailedLoginAttempts)
             {
@@ -121,20 +106,19 @@ public class AuthService
 
             await _db.SaveChangesAsync();
             await _rateLimitService.RecordAttemptAsync(rateLimitKey);
-            return null;
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
         }
 
-        // successful login: reset failed attempts and rate limit
         user.FailedLoginAttempts = 0;
         user.LockoutEnd = null;
         await _db.SaveChangesAsync();
         await _rateLimitService.ResetAsync(rateLimitKey);
         await _auditService.LogAuthEventAsync("login_success", email, true, null, ipAddress);
 
-        return new UserDto { Id = user.Id, Email = user.Email, Username = user.Username };
+        return Result<UserDto>.Success(new UserDto { Id = user.Id, Email = user.Email, Username = user.Username });
     }
 
-    public async Task<UserDto> Register(string email, string username, string password, string? ipAddress = null)
+    public async Task<Result<UserDto>> Register(string email, string username, string password, string? ipAddress = null)
     {
         // rate limiting: max 3 register attempts per 30 minutes, per IP
         var rateLimitKey = $"register:{ipAddress ?? "unknown"}";
@@ -142,13 +126,13 @@ public class AuthService
         if (!allowed)
         {
             await _auditService.LogAuthEventAsync("register_attempt", email ?? "unknown", false, "Rate limit exceeded", ipAddress);
-            throw new InvalidOperationException("Too many registration attempts. Please try again later.");
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.RateLimited, "Too many registration attempts. Please try again later."));
         }
 
         // basic validation
-        if (string.IsNullOrWhiteSpace(email)) throw new ArgumentException("Email is required.", nameof(email));
-        if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("Username is required.", nameof(username));
-        if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password is required.", nameof(password));
+        if (string.IsNullOrWhiteSpace(email)) return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Email is required."));
+        if (string.IsNullOrWhiteSpace(username)) return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Username is required."));
+        if (string.IsNullOrWhiteSpace(password)) return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Password is required."));
 
         // normalize email and username
         email = email.Trim().ToLowerInvariant();
@@ -161,27 +145,27 @@ public class AuthService
         catch
         {
             await _auditService.LogAuthEventAsync("register_attempt", email, false, "Invalid email format", ipAddress);
-            throw new ArgumentException("Invalid email format.", nameof(email));
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Invalid email format."));
         }
 
         // username check + valid password check
         if (username.Length < 3 || username.Length > 30)
-            throw new ArgumentException("Username must be between 3 and 30 characters.", nameof(username));
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Username must be between 3 and 30 characters."));
 
         if (!IsPasswordValid(password))
-            throw new ArgumentException("Password does not meet complexity requirements. Use at least 8 characters including upper, lower, digit and special character.", nameof(password));
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Password does not meet complexity requirements. Use at least 8 characters including upper, lower, digit and special character."));
 
         // checks if email or username is already taken
         if (await _db.Users.AnyAsync(u => u.Email == email))
         {
             await _auditService.LogAuthEventAsync("register_attempt", email, false, "Email already in use", ipAddress);
-            throw new InvalidOperationException("Email is already in use.");
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.DuplicateEmail, "Email is already in use."));
         }
 
         if (await _db.Users.AnyAsync(u => u.Username == username))
         {
             await _auditService.LogAuthEventAsync("register_attempt", email, false, "Username already in use", ipAddress);
-            throw new InvalidOperationException("Username is already in use.");
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.DuplicateUsername, "Username is already in use."));
         }
 
         // generate email verification token (valid for 24 hours)
@@ -208,7 +192,6 @@ public class AuthService
         }
         catch (DbUpdateException ex)
         {
-            // Try to detect common unique constraint violations and return a helpful message.
             var inner = ex.InnerException?.Message ?? string.Empty;
             if (!string.IsNullOrEmpty(inner) && (inner.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase)
                 || inner.Contains("unique", StringComparison.OrdinalIgnoreCase)
@@ -216,11 +199,11 @@ public class AuthService
                 || inner.Contains("constraint", StringComparison.OrdinalIgnoreCase)))
             {
                 await _auditService.LogAuthEventAsync("register_attempt", email, false, "Duplicate key (race condition)", ipAddress);
-                throw new InvalidOperationException("Email or username already exists.", ex);
+                return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.DuplicateEmail, "Email or username already exists."));
             }
 
             await _auditService.LogAuthEventAsync("register_attempt", email, false, $"DB error: {ex.Message}", ipAddress);
-            throw new InvalidOperationException("Failed to create user.", ex);
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InternalError, "Failed to create user."));
         }
 
         // send verification email
@@ -239,7 +222,7 @@ public class AuthService
         await _auditService.LogAuthEventAsync("register_attempt", email, true, "User created, email verification required", ipAddress);
         await _rateLimitService.RecordAttemptAsync(rateLimitKey);
 
-        return new UserDto { Id = user.Id, Email = user.Email, Username = user.Username };
+        return Result<UserDto>.Success(new UserDto { Id = user.Id, Email = user.Email, Username = user.Username });
     }
 
     private static bool IsPasswordValid(string password)
