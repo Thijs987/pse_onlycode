@@ -1,18 +1,23 @@
+using System.Collections.Concurrent;
+
 public static class LobbyEndpoints
 {
     public static void MapLobbyEndpoints(this WebApplication app)
     {
-        // Group all lobby routes together under shared /api/lobbies prefix
         var group = app.MapGroup("/api/lobbies");
 
-        group.MapGet("/active", (ConnectionManager wsManager) =>
+        // GET /api/lobbies/active
+        group.MapGet("/active", (ConnectionManager manager) =>
         {
-            return Results.Ok();
+            var activeLobbies = manager.GetActiveLobbies();
+            return Results.Ok(activeLobbies);
         });
 
-        group.MapPost("/create", (string hostId) =>
+        // POST /api/lobbies/create?hostId=PLayer_x
+        group.MapPost("/create", (string hostId, ConnectionManager manager) =>
         {
-            return Results.Created();
+            string newLobbyId = manager.CreateLobby();
+            return Results.Ok(new { LobbyId = newLobbyId });
         });
     }
 }
