@@ -2,14 +2,14 @@ extends Node2D
 
 var screen_size
 var dragging_card
-var card_offsetx
-var card_offsety
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	screen_size = get_viewport_rect().size
 	
 
+var card_offsetx
+var card_offsety
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -23,6 +23,7 @@ func _input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.is_pressed():
 			var card = check_for_card()
+			print(card)
 			if card != null:
 				dragging_card = card
 				var card_pos = dragging_card.position
@@ -31,6 +32,33 @@ func _input(event):
 				card_offsety = card_pos.y - mouse_pos.y
 		else:
 			dragging_card = null
+
+func connect_card_signals(card):
+	card.connect("hovered", hovered_over_card)
+	card.connect("hovered_away", hovered_away_card)
+
+var is_hovering
+
+func hovered_over_card(card):
+	if !is_hovering:
+		is_hovering = true
+		highlight_card(card, true)
+
+func hovered_away_card(card):
+	highlight_card(card, false)
+	var check_card = check_for_card()
+	if check_card:
+		highlight_card(check_card, true)
+	else:
+		is_hovering = false
+
+func highlight_card(card, hovered):
+	if hovered:
+		card.z_index = 2
+		card.scale = Vector2(1.1, 1.1)
+	else:
+		card.z_index = 0
+		card.scale = Vector2(1.0, 1.0)
 
 # Checks wether under the current mouse position is a card and returns
 # the collider of the card
@@ -41,7 +69,20 @@ func check_for_card():
 	parameters.collide_with_areas = true
 	parameters.collision_mask = 1
 	var result = space_state.intersect_point(parameters)
-	if (result.size() > 0):
-		return result[0].collider.get_parent()
+	var result_size = result.size()
+	if (result_size > 0):
+		return highest_z(result)
 	return null
 	
+func highest_z(cards):
+	var highest_card = cards[0].collider.get_parent()
+	var highest_card_z = highest_card.z_index
+	
+	for i in range(0, cards.size()):
+		var new_card = cards[i].collider.get_parent()
+		var new_card_z = new_card.z_index
+		if new_card_z > highest_card_z:
+			highest_card = new_card
+			highest_card_z = new_card_z
+			
+	return highest_card
