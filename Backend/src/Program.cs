@@ -17,7 +17,7 @@ builder.Services.AddScoped<AuthService>();
 // Audit and rate limit services (in-memory implementations; replace with distributed versions in production)
 builder.Services.AddSingleton<Application.Services.IAuditService, Application.Services.InMemoryAuditService>();
 builder.Services.AddSingleton<Application.Services.IRateLimitService, Application.Services.InMemoryRateLimitService>();
-//builder.Services.AddSingleton<Application.Services.IEmailService, Application.Services.ConsoleEmailService>();
+builder.Services.AddSingleton<Application.Services.IEmailService, Application.Services.ConsoleEmailService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
