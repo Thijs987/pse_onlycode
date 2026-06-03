@@ -1,3 +1,8 @@
+/*
+    The MatchManager handles the server-side state of the matches.
+    It does NOT send any form of messages to the player(s).
+    This is done by the ConnectionManager and called by the MessageRouter.
+*/
 using System.Collections.Concurrent;
 
 public class MatchManager

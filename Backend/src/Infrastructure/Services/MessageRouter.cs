@@ -1,8 +1,12 @@
+/*
+    Call MatchManager and ConnectionManager functions based on te incomming message.
+*/
 using System.Text.Json;
+using Domain;
 
 public class MessageRouter
 {
-    public async Task RouteMessageAsync(string connectionId, string rawJson, ConnectionManager connectionManager, MatchManager matchManager)
+    public async Task RouteMessageAsync(string playerId, string lobbyId, string rawJson, ConnectionManager connectionManager, MatchManager matchManager)
     {
         try
         {
@@ -11,20 +15,20 @@ public class MessageRouter
 
             bool success = false;
 
-            Console.WriteLine($"Received {message.Action} from {connectionId}");
+            Console.WriteLine($"Received {message.Action} from {playerId}");
 
             // TODO: add actual logic
             switch (message.Action)
             {
                 case "START_GAME":
                     matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
-                    await connectionManager.SendMessageAsync(connectionId, "Game Started!");
+                    await connectionManager.SendMessageAsync(playerId, "Game Started!");
                     break;
 
                 case "PLAY_CARD":
                     // Let's assume message.Data contains the MatchId and CardId
                     // You'd parse that JSON here, but for simplicity:
-                    success = matchManager.TryPlayCard("match_123", message.PlayerId, message.Data);
+                    success = matchManager.TryPlayCard(lobbyId, message.PlayerId, message.Data);
 
                     if (success)
                     {
@@ -34,13 +38,13 @@ public class MessageRouter
                     }
                     else
                     {
-                        await connectionManager.SendMessageAsync(connectionId, "ILLEGAL_MOVE");
+                        await connectionManager.SendMessageAsync(playerId, "ILLEGAL_MOVE");
                     }
                     break;
 
                 case "END_TURN":
                     // Normal end to a turn. Grab card (check IH) and broadcast action to lobby.
-                    success = matchManager.GetFirstCard("match123", message.PlayerId);
+                    success = matchManager.GetFirstCard(lobbyId, message.PlayerId);
                     // Get the connection Id of all player to send this to.
                     // Get player that gets card
                     if (success)
@@ -51,8 +55,10 @@ public class MessageRouter
                     }
                     else
                     {
-                        await connectionManager.SendMessageAsync(connectionId, "First Card Error");
+                        await connectionManager.SendMessageAsync(playerId, "First Card Error");
                     }
+
+                    // connectionManager.BroadcastToLobbyAsync(lobbyId)
                     break;
             }
         }

@@ -1,3 +1,6 @@
+/*
+    Connection with lobbies and message sending within.
+*/
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
@@ -39,7 +42,7 @@ public class ConnectionManager
             while (!result.CloseStatus.HasValue && !cancellationToken.IsCancellationRequested)
             {
                 string rawMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                await router.RouteMessageAsync(playerId, rawMessage, this, matchManager);
+                await router.RouteMessageAsync(playerId, lobbyId, rawMessage, this, matchManager);
                 result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
             }
 
