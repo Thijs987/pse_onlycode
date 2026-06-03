@@ -3,6 +3,9 @@ extends Area2D
 # Deze aanpassen voor het goeie aantal kaarten
 @export var card_count: int = 40
 
+# Hier kan dan de echte pile voor de database geimporteerd worden
+# (Import line)
+
 # Maakt CounterLabel node
 @onready var counter_label: Label = $CounterLabel
 
@@ -29,3 +32,6 @@ func decrease_counter():
 # Past card count getal aan
 func update_card_text():
 	counter_label.text = str(card_count)
+
+# Hier moet een functie die de volgende kaart uit de string/array pakt
+# func ...
