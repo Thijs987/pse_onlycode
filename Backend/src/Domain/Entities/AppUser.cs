@@ -18,6 +18,9 @@ public class AppUser
     public string? VerificationToken { get; set; }
     public DateTime? VerificationTokenExpiry { get; set; }
 
+    // soft delete -> we keep them but anonymize them and prevent login (so we don't lose game history, but they can't log in anymore)
+    public Boolean IsDeleted { get; set; } = false;
+
     // stats
     public int Wins { get; set; }
     public int Losses { get; set; }
