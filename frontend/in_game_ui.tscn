@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://dv7yfv31haafa"]
+
+[ext_resource type="Script" uid="uid://d0yc1eggg2yc" path="res://h_box_container.gd" id="1_onc8m"]
+
+[node name="InGameUI" type="Control" unique_id=1898507460]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HandContainer" type="MarginContainer" parent="." unique_id=1956180744]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 22.42
+offset_bottom = 22.419983
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HandVerticalAllignment" type="VBoxContainer" parent="HandContainer" unique_id=411437427]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/separation = 50
+
+[node name="Control" type="Control" parent="HandContainer/HandVerticalAllignment" unique_id=641842636]
+layout_mode = 2
+
+[node name="CardContainer" type="MarginContainer" parent="HandContainer/HandVerticalAllignment" unique_id=1301720671]
+layout_mode = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_right = 100
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HandContainer/HandVerticalAllignment/CardContainer" unique_id=308336265]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 0
+script = ExtResource("1_onc8m")

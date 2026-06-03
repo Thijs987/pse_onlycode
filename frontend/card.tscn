@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://dlb3crw3qdkv2"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_db7xr"]
+
+[node name="Button" type="Button" unique_id=831130601]
+custom_minimum_size = Vector2(120, 180)
+tooltip_text = "asdf"
+icon = SubResource("PlaceholderTexture2D_db7xr")
+icon_alignment = 1
+expand_icon = true

@@ -11,8 +11,17 @@ config_version=5
 [application]
 
 config/name="Frontend"
+run/main_scene="uid://dv7yfv31haafa"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+
+[display]
+
+window/stretch/aspect="expand"
+
+[dotnet]
+
+project/assembly_name="Frontend"
 
 [physics]
 
