@@ -4,6 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// To run the server either do 'dotnet run' or 'dotnet watch'.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -21,41 +22,29 @@ if (app.Environment.IsDevelopment())
 
 app.UseWebSockets();
 
-// app.UseHttpsRedirection();
-
-// var summaries = new[]
-// {
-//     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-// };
-
-// app.MapGet("/weatherforecast", () =>
-// {
-//     var forecast =  Enumerable.Range(1, 5).Select(index =>
-//         new WeatherForecast
-//         (
-//             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-//             Random.Shared.Next(-20, 55),
-//             summaries[Random.Shared.Next(summaries.Length)]
-//         ))
-//         .ToArray();
-//     return forecast;
-// })
-// .WithName("GetWeatherForecast")
-// .WithOpenApi();
-
-// record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-// {
-//     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-// }
-
-
 app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManager, MessageRouter router) =>
 {
     if (context.WebSockets.IsWebSocketRequest)
     {
+        string lobbyId = context.Request.Query["lobbyId"].ToString();
+        string playerId = context.Request.Query["playerId"].ToString();
+
+        if (string.IsNullOrEmpty(lobbyId) || string.IsNullOrEmpty(playerId))
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return;
+        }
+
+        if (!connectionManager.IsLobbyAvailable(lobbyId))
+        {
+            Console.WriteLine($"Rejected {playerId}: Lobby {lobbyId} is full or doesn't exist.");
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return;
+        }
+
         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-        string connectionId = Guid.NewGuid().ToString();
-        await connectionManager.HandleConnectionAsync(connectionId, webSocket, router);
+
+        await connectionManager.HandleConnectionAsync(playerId, lobbyId, webSocket, router);
     }
     else
     {

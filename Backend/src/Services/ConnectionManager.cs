@@ -4,13 +4,32 @@ using System.Text;
 
 public class ConnectionManager
 {
-    // dictionary to keep track of connections
+    private const int MAX_PLAYERS_PER_LOBBY = 4;
+
+    // Tracks all active WebSockets (ConnectionId -> WebSocket)
     private readonly ConcurrentDictionary<string, WebSocket> _sockets = new();
 
-    public async Task HandleConnectionAsync(string connectionId, WebSocket socket, MessageRouter router)
+    // Tracks which connections are in which lobby (LobbyId -> Dictionary of ConnectionIds)
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, bool>> _lobbies = new();
+
+    // Tracks which lobby a connection is currently in (ConnectionId -> LobbyId) for cleanup
+    private readonly ConcurrentDictionary<string, string> _connectionToLobby = new();
+
+    public async Task HandleConnectionAsync(string playerId, string lobbyId, WebSocket socket, MessageRouter router)
     {
-        _sockets.TryAdd(connectionId, socket);
-        Console.WriteLine($"Socket Connected: {connectionId}. Total connections: {_sockets.Count}");
+        _sockets.TryAdd(playerId, socket);
+        AddToLobby(playerId, lobbyId);
+        Console.WriteLine($"Socket Connected: {playerId} joined Lobby {lobbyId}");
+
+        var joinMessage = new NetworkMessage
+        {
+            Action = "PLAYER_JOINED",
+            PlayerId = playerId,
+            Data = $"{playerId} has joined the game!"
+        };
+
+        string jsonBroadcast = System.Text.Json.JsonSerializer.Serialize(joinMessage);
+        await BroadcastToLobbyAsync(lobbyId, jsonBroadcast);
 
         var buffer = new byte[1024 * 4];
 
@@ -18,15 +37,10 @@ public class ConnectionManager
         {
             var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-            // Keep the connection open and listen for messages
             while (!result.CloseStatus.HasValue)
             {
                 string rawMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
-
-                // Hand the raw JSON text over to the router to figure out what to do with it
-                await router.RouteMessageAsync(connectionId, rawMessage, this);
-
-                // Wait for the next message
+                await router.RouteMessageAsync(playerId, rawMessage, this);
                 result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             }
 
@@ -34,24 +48,104 @@ public class ConnectionManager
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error on connection {connectionId}: {ex.Message}");
+            Console.WriteLine($"Error on connection {playerId}: {ex.Message}");
         }
         finally
         {
-            _sockets.TryRemove(connectionId, out _);
-            Console.WriteLine($"Socket Disconnected: {connectionId}");
+            RemoveFromLobby(playerId);
+            _sockets.TryRemove(playerId, out _);
+
+            var leaveMessage = new NetworkMessage
+            {
+                Action = "PLAYER_LEFT",
+                PlayerId = playerId,
+                Data = $"{playerId} disconnected."
+            };
+            await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
+
+            Console.WriteLine($"Socket Disconnected: {playerId}");
+        }
+    }
+
+    public void AddToLobby(string connectionId, string lobbyId)
+    {
+        var lobbyConnections = _lobbies.GetOrAdd(lobbyId, _ => new ConcurrentDictionary<string, bool>());
+
+        lobbyConnections.TryAdd(connectionId, true);
+
+        _connectionToLobby.TryAdd(connectionId, lobbyId);
+    }
+
+    public void RemoveFromLobby(string connectionId)
+    {
+        if (_connectionToLobby.TryRemove(connectionId, out string? lobbyId))
+        {
+            if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
+            {
+                lobbyConnections.TryRemove(connectionId, out _);
+                if (lobbyConnections.IsEmpty)
+                {
+                    _lobbies.TryRemove(lobbyId, out _);
+                    Console.WriteLine($"Lobby {lobbyId} is empty and was destroyed.");
+                }
+            }
+        }
+    }
+
+    public async Task BroadcastToLobbyAsync(string lobbyId, string message)
+    {
+        if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
+        {
+            var bytes = Encoding.UTF8.GetBytes(message);
+            var buffer = new ArraySegment<byte>(bytes);
+
+            foreach (var connectionId in lobbyConnections.Keys)
+            {
+                if (_sockets.TryGetValue(connectionId, out var socket) && socket.State == WebSocketState.Open)
+                {
+                    await socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                }
+            }
         }
     }
 
     public async Task SendMessageAsync(string connectionId, string message)
     {
-        if (_sockets.TryGetValue(connectionId, out var socket))
+        if (_sockets.TryGetValue(connectionId, out var socket) && socket.State == WebSocketState.Open)
         {
-            if (socket.State == WebSocketState.Open)
+            var bytes = Encoding.UTF8.GetBytes(message);
+            await socket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+        }
+    }
+
+    // HTTP things
+    public string CreateLobby()
+    {
+        string newLobbyId = Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
+
+        _lobbies.TryAdd(newLobbyId, new ConcurrentDictionary<string, bool>());
+        Console.WriteLine($"Lobby {newLobbyId} created via HTTP.");
+
+        return newLobbyId;
+    }
+
+    public bool IsLobbyAvailable(string lobbyId)
+    {
+        if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
+        {
+            if (lobbyConnections.Count < MAX_PLAYERS_PER_LOBBY)
             {
-                var bytes = Encoding.UTF8.GetBytes(message);
-                await socket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                return true;
             }
         }
+        return false;
+    }
+
+    // Only returns lobbies with less than 4 players like this
+    public IEnumerable<string> GetActiveLobbies()
+    {
+        return _lobbies
+            .Where(lobby => lobby.Value.Count < MAX_PLAYERS_PER_LOBBY)
+            .Select(lobby => lobby.Key);
     }
 }
