@@ -23,7 +23,8 @@ public class MessageRouter
                 case "START_GAME":
                     // matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
                     // Changed matchId to lobbyId
-                    matchManager.StartNewMatch(lobbyId, new List<string> { message.PlayerId });
+                    var players = connectionManager.GetPlayers(lobbyId);
+                    matchManager.StartNewMatch(lobbyId, players);
                     await connectionManager.SendMessageAsync(playerId, "Game Started!");
                     break;
 
@@ -44,7 +45,7 @@ public class MessageRouter
                     }
                     break;
 
-                case "END_TURN":
+                case "DRAW_CARD":
                     // Normal end to a turn. Grab card (check IH) and broadcast action to lobby.
                     string card = matchManager.GetFirstCard(lobbyId, message.PlayerId);
                     // Get the connection Id of all player to send this to.

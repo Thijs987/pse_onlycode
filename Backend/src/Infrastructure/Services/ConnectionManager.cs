@@ -1,5 +1,6 @@
 /*
     Connection with lobbies and message sending within.
+    ConnectionId == playerId?
 */
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
@@ -83,6 +84,16 @@ public class ConnectionManager
             await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
             Console.WriteLine($"Socket Disconnected: {playerId}");
         }
+    }
+
+    public List<string> GetPlayers(string lobbyId)
+    {
+        if (!_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
+        {
+            throw new Exception($"No lobby {lobbyId} found");
+        }
+        List<string> players = lobbyConnections.Keys.ToList<string>();
+        return players;
     }
 
     public void AddToLobby(string connectionId, string lobbyId)
