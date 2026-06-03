@@ -4,7 +4,7 @@ using System.Text;
 
 public class ConnectionManager
 {
-    private const int MAX_PLAYERS_PER_LOBBY = 4;
+    private const int MaxPlayersPerLobby = 4;
 
     // Tracks all active WebSockets (ConnectionId -> WebSocket)
     private readonly ConcurrentDictionary<string, WebSocket> _sockets = new();
@@ -133,7 +133,7 @@ public class ConnectionManager
     {
         if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
         {
-            if (lobbyConnections.Count < MAX_PLAYERS_PER_LOBBY)
+            if (lobbyConnections.Count < MaxPlayersPerLobby)
             {
                 return true;
             }
@@ -145,7 +145,7 @@ public class ConnectionManager
     public IEnumerable<string> GetActiveLobbies()
     {
         return _lobbies
-            .Where(lobby => lobby.Value.Count < MAX_PLAYERS_PER_LOBBY)
+            .Where(lobby => lobby.Value.Count < MaxPlayersPerLobby)
             .Select(lobby => lobby.Key);
     }
 }
