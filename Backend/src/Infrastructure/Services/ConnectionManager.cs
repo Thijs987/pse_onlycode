@@ -1,3 +1,7 @@
+/*
+    Connection with lobbies and message sending within.
+    ConnectionId == playerId?
+*/
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
@@ -15,8 +19,7 @@ public class ConnectionManager
     // Tracks which lobby a connection is currently in (ConnectionId -> LobbyId) for cleanup
     private readonly ConcurrentDictionary<string, string> _connectionToLobby = new();
 
-    // 1. Add CancellationToken to the parameter list
-    public async Task HandleConnectionAsync(string playerId, string lobbyId, WebSocket socket, MessageRouter router, CancellationToken cancellationToken)
+    public async Task HandleConnectionAsync(string playerId, string lobbyId, WebSocket socket, MessageRouter router, MatchManager matchManager, CancellationToken cancellationToken)
     {
         _sockets.TryAdd(playerId, socket);
         AddToLobby(playerId, lobbyId);
@@ -40,7 +43,7 @@ public class ConnectionManager
             while (!result.CloseStatus.HasValue && !cancellationToken.IsCancellationRequested)
             {
                 string rawMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                await router.RouteMessageAsync(playerId, rawMessage, this);
+                await router.RouteMessageAsync(playerId, lobbyId, rawMessage, this, matchManager);
                 result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
             }
 
@@ -81,6 +84,16 @@ public class ConnectionManager
             await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
             Console.WriteLine($"Socket Disconnected: {playerId}");
         }
+    }
+
+    public List<string> GetPlayers(string lobbyId)
+    {
+        if (!_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
+        {
+            throw new Exception($"No lobby {lobbyId} found");
+        }
+        List<string> players = lobbyConnections.Keys.ToList<string>();
+        return players;
     }
 
     public void AddToLobby(string connectionId, string lobbyId)

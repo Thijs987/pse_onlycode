@@ -24,6 +24,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<ConnectionManager>();
 builder.Services.AddSingleton<MessageRouter>();
+builder.Services.AddSingleton<MatchManager>();
 
 var app = builder.Build();
 
@@ -31,7 +32,7 @@ app.MapControllers();
 
 app.UseWebSockets();
 
-app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManager, MessageRouter router) =>
+app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManager, MessageRouter router, MatchManager matchManager) =>
 {
     if (context.WebSockets.IsWebSocketRequest)
     {
@@ -53,7 +54,7 @@ app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManage
 
         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
-        await connectionManager.HandleConnectionAsync(playerId, lobbyId, webSocket, router, context.RequestAborted);
+        await connectionManager.HandleConnectionAsync(playerId, lobbyId, webSocket, router, matchManager, context.RequestAborted);
     }
     else
     {
