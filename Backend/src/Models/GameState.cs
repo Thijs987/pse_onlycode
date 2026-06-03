@@ -4,7 +4,10 @@ public class GameState
     public string MatchId { get; set; } = string.Empty;
     public List<string> PlayerIds { get; set; } = new();
     public string CurrentTurnPlayerId { get; set; } = string.Empty;
-
+    // Cards players have in their hand
     public Dictionary<string, List<string>> PlayerHands { get; set; } = new();
+    // Played cards
     public List<string> TableCards { get; set; } = new();
+    // Deck on table
+    public LinkedList<string> Deck { get; set; } = new();
 }

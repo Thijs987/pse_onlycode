@@ -13,6 +13,8 @@ public class MatchManager
             CurrentTurnPlayerId = players[0]
         };
 
+        newState.Deck.AddLast("Test");
+
         // TODO: Give initial hands to players
 
         _activeMatches.TryAdd(matchId, newState);
@@ -33,6 +35,34 @@ public class MatchManager
 
         // Apply the game rules
         match.TableCards.Add(cardId);
+        return true;
+    }
+
+    public bool GetFirstCard(string matchId, string playerId)
+    {
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+            return false;
+
+        if (match.CurrentTurnPlayerId != playerId)
+        {
+            Console.WriteLine($"{playerId} tried to end turn, but not their turn!");
+            return false;
+        }
+
+        var deck = match.Deck;
+        var firstNode = deck.First;
+
+        if (firstNode != null)
+        {
+            string card = firstNode.Value;
+            Console.WriteLine($"The first card is {card}");
+        }
+
+        if (deck.Count <= 0)
+        {
+            // Refill deck
+        }
+
 
         // Advance the turn to the next player
         int currentIndex = match.PlayerIds.IndexOf(playerId);

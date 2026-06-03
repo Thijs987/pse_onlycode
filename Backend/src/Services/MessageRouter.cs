@@ -9,6 +9,8 @@ public class MessageRouter
             var message = JsonSerializer.Deserialize<NetworkMessage>(rawJson);
             if (message == null) return;
 
+            bool success = false;
+
             Console.WriteLine($"Received {message.Action} from {connectionId}");
 
             // TODO: add actual logic
@@ -22,7 +24,7 @@ public class MessageRouter
                 case "PLAY_CARD":
                     // Let's assume message.Data contains the MatchId and CardId
                     // You'd parse that JSON here, but for simplicity:
-                    bool success = matchManager.TryPlayCard("match_123", message.PlayerId, message.Data);
+                    success = matchManager.TryPlayCard("match_123", message.PlayerId, message.Data);
 
                     if (success)
                     {
@@ -33,6 +35,23 @@ public class MessageRouter
                     else
                     {
                         await connectionManager.SendMessageAsync(connectionId, "ILLEGAL_MOVE");
+                    }
+                    break;
+
+                case "END_TURN":
+                    // Normal end to a turn. Grab card (check IH) and broadcast action to lobby.
+                    success = matchManager.GetFirstCard("match123", message.PlayerId);
+                    // Get the connection Id of all player to send this to.
+                    // Get player that gets card
+                    if (success)
+                    {
+                        // If the move was valid, broadcast the result to EVERYONE in the game
+                        // (You will need to add a Broadcast method to your ConnectionManager)
+                        Console.WriteLine("First Card Gotten successfully.");
+                    }
+                    else
+                    {
+                        await connectionManager.SendMessageAsync(connectionId, "First Card Error");
                     }
                     break;
             }
