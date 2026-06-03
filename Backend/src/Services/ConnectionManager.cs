@@ -7,7 +7,7 @@ public class ConnectionManager
     // dictionary to keep track of connections
     private readonly ConcurrentDictionary<string, WebSocket> _sockets = new();
 
-    public async Task HandleConnectionAsync(string connectionId, WebSocket socket, MessageRouter router)
+    public async Task HandleConnectionAsync(string connectionId, WebSocket socket, MessageRouter router, MatchManager matchManager)
     {
         _sockets.TryAdd(connectionId, socket);
         Console.WriteLine($"Socket Connected: {connectionId}. Total connections: {_sockets.Count}");
@@ -24,7 +24,7 @@ public class ConnectionManager
                 string rawMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
                 // Hand the raw JSON text over to the router to figure out what to do with it
-                await router.RouteMessageAsync(connectionId, rawMessage, this);
+                await router.RouteMessageAsync(connectionId, rawMessage, this, matchManager);
 
                 // Wait for the next message
                 result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);

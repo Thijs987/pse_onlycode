@@ -9,6 +9,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<ConnectionManager>();
 builder.Services.AddSingleton<MessageRouter>();
+builder.Services.AddSingleton<MatchManager>();
 
 var app = builder.Build();
 
@@ -49,13 +50,13 @@ app.UseWebSockets();
 // }
 
 
-app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManager, MessageRouter router) =>
+app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManager, MessageRouter router, MatchManager matchManager) =>
 {
     if (context.WebSockets.IsWebSocketRequest)
     {
         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
         string connectionId = Guid.NewGuid().ToString();
-        await connectionManager.HandleConnectionAsync(connectionId, webSocket, router);
+        await connectionManager.HandleConnectionAsync(connectionId, webSocket, router, matchManager);
     }
     else
     {
