@@ -1,6 +1,7 @@
 using System;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
+using Application.Services;
 using Domain;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -10,18 +11,32 @@ namespace Application;
 public class AuthService
 {
     private readonly AppDbContext _db;
+    private readonly IAuditService _auditService;
+    private readonly IRateLimitService _rateLimitService;
     private static readonly string _dummyHash = PasswordHasher.Hash("__dummy_password_for_timing__");
 
-    public AuthService(AppDbContext db)
+    // Configuration
+    private const int MaxFailedLoginAttempts = 5;
+    private const int LockoutDurationMinutes = 15;
+    private const int LoginAttemptWindowMinutes = 15;
+    private const int RegisterAttemptWindowMinutes = 30;
+
+    public AuthService(AppDbContext db, IAuditService auditService, IRateLimitService rateLimitService)
     {
         _db = db;
+        _auditService = auditService;
+        _rateLimitService = rateLimitService;
     }
 
-    public async Task<UserDto?> Login(string email, string password)
+
+    public async Task<UserDto?> Login(string email, string password, string? ipAddress = null)
     {
         // basic validation
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            await _auditService.LogAuthEventAsync("login_attempt", email ?? "unknown", false, "Validation failed: empty input", ipAddress);
             return null;
+        }
 
         // normalize email
         email = email.Trim().ToLowerInvariant();
@@ -35,7 +50,17 @@ public class AuthService
             /* Treat invalid email format as authentication failure without throwing
                to avoid revealing information to callers.
                Run a "dummy verify" to make timing similar to a real verification. */
+            await _auditService.LogAuthEventAsync("login_attempt", email, false, "Validation failed: invalid email format", ipAddress);
             PasswordHasher.Verify(password, _dummyHash);
+            return null;
+        }
+
+        // rate limiting: max 5 failed login attempts per 15 minutes per email
+        var rateLimitKey = $"login:{email}";
+        var allowed = await _rateLimitService.IsAllowedAsync(rateLimitKey, MaxFailedLoginAttempts, TimeSpan.FromMinutes(LoginAttemptWindowMinutes));
+        if (!allowed)
+        {
+            await _auditService.LogAuthEventAsync("login_attempt", email, false, "Rate limit exceeded", ipAddress);
             return null;
         }
 
@@ -47,6 +72,7 @@ public class AuthService
         }
         catch (Exception ex)
         {
+            await _auditService.LogAuthEventAsync("login_attempt", email, false, $"DB error: {ex.Message}", ipAddress);
             throw new InvalidOperationException("Failed to access user store.", ex);
         }
 
@@ -57,18 +83,65 @@ public class AuthService
                verification against a constant dummy hash so callers can't observe
                large time differences between "user not found" and "bad password" */
             PasswordHasher.Verify(password, _dummyHash);
+            await _rateLimitService.RecordAttemptAsync(rateLimitKey);
+            return null;
+        }
+
+        // check if account is locked out
+        if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
+        {
+            await _auditService.LogAuthEventAsync("login_attempt", email, false, $"Account locked until {user.LockoutEnd:O}", ipAddress);
+            return null;
+        }
+
+        // check email verification
+        if (!user.IsEmailVerified)
+        {
+            await _auditService.LogAuthEventAsync("login_attempt", email, false, "Email not verified", ipAddress);
             return null;
         }
 
         // verify password
         if (!PasswordHasher.Verify(password, user.PasswordHash))
+        {
+            // increment failed attempts and lock if needed
+            user.FailedLoginAttempts++;
+            if (user.FailedLoginAttempts >= MaxFailedLoginAttempts)
+            {
+                user.LockoutEnd = DateTime.UtcNow.AddMinutes(LockoutDurationMinutes);
+                await _auditService.LogAuthEventAsync("login_attempt", email, false, $"Account locked after {user.FailedLoginAttempts} failed attempts", ipAddress);
+            }
+            else
+            {
+                await _auditService.LogAuthEventAsync("login_attempt", email, false, $"Wrong password (attempt {user.FailedLoginAttempts}/{MaxFailedLoginAttempts})", ipAddress);
+            }
+
+            await _db.SaveChangesAsync();
+            await _rateLimitService.RecordAttemptAsync(rateLimitKey);
             return null;
+        }
+
+        // successful login: reset failed attempts and rate limit
+        user.FailedLoginAttempts = 0;
+        user.LockoutEnd = null;
+        await _db.SaveChangesAsync();
+        await _rateLimitService.ResetAsync(rateLimitKey);
+        await _auditService.LogAuthEventAsync("login_success", email, true, null, ipAddress);
 
         return new UserDto { Id = user.Id, Email = user.Email, Username = user.Username };
     }
 
-    public async Task<UserDto> Register(string email, string username, string password)
+    public async Task<UserDto> Register(string email, string username, string password, string? ipAddress = null)
     {
+        // rate limiting: max 3 register attempts per 30 minutes, per IP
+        var rateLimitKey = $"register:{ipAddress ?? "unknown"}";
+        var allowed = await _rateLimitService.IsAllowedAsync(rateLimitKey, 3, TimeSpan.FromMinutes(RegisterAttemptWindowMinutes));
+        if (!allowed)
+        {
+            await _auditService.LogAuthEventAsync("register_attempt", email ?? "unknown", false, "Rate limit exceeded", ipAddress);
+            throw new InvalidOperationException("Too many registration attempts. Please try again later.");
+        }
+
         // basic validation
         if (string.IsNullOrWhiteSpace(email)) throw new ArgumentException("Email is required.", nameof(email));
         if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("Username is required.", nameof(username));
@@ -84,6 +157,7 @@ public class AuthService
         }
         catch
         {
+            await _auditService.LogAuthEventAsync("register_attempt", email, false, "Invalid email format", ipAddress);
             throw new ArgumentException("Invalid email format.", nameof(email));
         }
 

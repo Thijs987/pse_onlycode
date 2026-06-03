@@ -15,6 +15,10 @@ public class UserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(x => x.Email).IsRequired();
         builder.Property(x => x.Username).IsRequired();
 
+        // unique constraints -> prevents race conditions (on db level)
+        builder.HasIndex(x => x.Email).IsUnique();
+        builder.HasIndex(x => x.Username).IsUnique();
+
         // stats
         builder.Property(x => x.Wins).HasDefaultValue(0);
         builder.Property(x => x.Losses).HasDefaultValue(0);

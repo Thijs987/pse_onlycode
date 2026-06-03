@@ -10,14 +10,13 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
-// Voor Sem heh
-/* Services
- * - AuthService: Handles user registration and login
- * - LobbyService: Handles lobby creation and management
- */ /*
+// Register services
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<LobbyService>();
-*/
+//builder.Services.AddScoped<LobbyService>(); -> Still has to be made
+
+// Audit and rate limit services (in-memory implementations; replace with distributed versions in production)
+builder.Services.AddSingleton<Application.Services.IAuditService, Application.Services.InMemoryAuditService>();
+builder.Services.AddSingleton<Application.Services.IRateLimitService, Application.Services.InMemoryRateLimitService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
