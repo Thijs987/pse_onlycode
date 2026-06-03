@@ -1,10 +1,24 @@
+using Application;
+using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using System.Net.WebSockets;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-// To run the server either do 'dotnet run' or 'dotnet watch'.
+builder.Services.AddControllers();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+// Voor Sem heh
+/* Services
+ * - AuthService: Handles user registration and login
+ * - LobbyService: Handles lobby creation and management
+ */ /*
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<LobbyService>();
+*/
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -13,12 +27,7 @@ builder.Services.AddSingleton<MessageRouter>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.MapControllers();
 
 app.UseWebSockets();
 
