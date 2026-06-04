@@ -59,17 +59,41 @@ public class MatchManager
                 result.CardId = cardData.CardId;
                 break;
             case "DDos":
+                result.CardId = cardData.CardId;
+                break;
             case "SQL":
+                result.CardId = cardData.CardId;
+                break;
             case "cm":
+                result.CardId = cardData.CardId;
+                break;
             case "wild":
+                result.CardId = cardData.CardId;
+                break;
             case "vibe":
+                result.CardId = cardData.CardId;
+                break;
             case "loop":
+                result.CardId = cardData.CardId;
+                break;
             case "com":
+                result.CardId = cardData.CardId;
+                break;
             case "im":
+                result.CardId = cardData.CardId;
+                break;
             case "os":
+                result.CardId = cardData.CardId;
+                break;
             case "th":
+                result.CardId = cardData.CardId;
+                break;
             case "def":
+                result.CardId = cardData.CardId;
+                break;
             case "ms":
+                result.CardId = cardData.CardId;
+                break;
             default:
                 return new DataInfo {Error = "Invalid card"};
         }
