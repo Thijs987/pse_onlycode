@@ -25,7 +25,7 @@ func _process(_delta):
 
 
 # Function to play a card
-func Play_Card(card_id: int):
+func Play_Card(card_id: String):
 	_Send({
 		"type": "PLAY_CARD",
 		"card_id": card_id
