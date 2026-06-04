@@ -11,5 +11,5 @@ public class GameState
     // Played cards
     public List<string> TableCards { get; set; } = new();
     // Deck on table
-    public LinkedList<string> Deck { get; set; } = new();
+    public List<string> Deck { get; set; } = new();
 }
