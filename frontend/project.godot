@@ -15,6 +15,11 @@ run/main_scene="uid://qekpyka670e2"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+GSCWS="*uid://dpuhn7q6mnrth"
+GSCHTTP="*uid://cvcwuxk0ribeo"
+
 [dotnet]
 
 project/assembly_name="Frontend"

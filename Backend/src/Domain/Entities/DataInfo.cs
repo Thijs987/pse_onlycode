@@ -17,12 +17,12 @@ public class DataInfo
     [JsonPropertyName("nextPlayer")]
     public string NextPlayer { get; set; } = string.Empty;
 
-    // Amount of moves for next player
-    [JsonPropertyName("Turns")]
+    //Amount of moves for next player
+    [JsonPropertyName("turns")]
     public int Turns { get; set; } = 1;
 
-    // Error message
-    [JsonPropertyName("Error")]
+    //Error message
+    [JsonPropertyName("error")]
     public string Error { get; set; } = string.Empty;
 
     // Used for sending hands or multiple cards
