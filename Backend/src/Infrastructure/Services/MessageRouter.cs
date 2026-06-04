@@ -62,6 +62,7 @@ public class MessageRouter
                     // Normal end to a turn. Grab card (check IH) and broadcast action to lobby.
                     responseData = matchManager.GetFirstCard(lobbyId, message.PlayerId);
                     var card = responseData.CardId;
+                    var newLimit = responseData.Message;
 
                     if (card == "")
                     {
@@ -86,7 +87,7 @@ public class MessageRouter
                     responseData = matchManager.NextTurn(lobbyId, playerId);
 
                     // check player card limit and remove player if over the limit
-                    var end = matchManager.CheckCardLimit(lobbyId, playerId);
+                    var end = matchManager.CheckCardLimit(lobbyId, playerId, newLimit);
                     // Send error if there is an error
                     if(end.Error != ""){
                         var errorMessage = new NetworkMessage
