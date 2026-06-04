@@ -14,7 +14,7 @@ public class MessageRouter
             var data = message.Data;
             if (message == null) return;
 
-            bool success = false;
+            // bool success = false;
 
             Console.WriteLine($"Received {message.Action} from {playerId}");
 
@@ -32,19 +32,25 @@ public class MessageRouter
                 case "PLAY_CARD":
                     // Let's assume message.Data contains the MatchId and CardId
                     // You'd parse that JSON here, but for simplicity:
-                    Console.WriteLine($"{playerId} played: {data.CardId}");
-                    success = matchManager.TryPlayCard(lobbyId, message.PlayerId, data);
+                    var result = matchManager.TryPlayCard(lobbyId, message.PlayerId, data);
 
-                    if (success)
+                    if (result.Error == "")
                     {
                         // If the move was valid, broadcast the result to EVERYONE in the game
                         // (You will need to add a Broadcast method to your ConnectionManager)
                         Console.WriteLine("Card played successfully.");
-                        await connectionManager.BroadcastToLobbyAsync(lobbyId, "Succesplay");
+                        var cardPlayedMessage = new NetworkMessage
+                            {
+                                Action = "CARD_PLAYED",
+                                PlayerId = playerId,
+                                Data = result
+                            };
+
+                        await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(cardPlayedMessage));
                     }
                     else
                     {
-                        await connectionManager.SendMessageAsync(playerId, "ILLEGAL_MOVE");
+                        await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(result));
                     }
                     break;
 

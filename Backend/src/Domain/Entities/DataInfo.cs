@@ -18,4 +18,7 @@ public class DataInfo
 
     [JsonPropertyName("Turns")]
     public int Turns { get; set; } = 1;
+
+    [JsonPropertyName("Error")]
+    public string Error { get; set; } = string.Empty;
 }

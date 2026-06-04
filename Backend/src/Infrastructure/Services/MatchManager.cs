@@ -4,6 +4,7 @@
     This is done by the ConnectionManager and called by the MessageRouter.
 */
 using System.Collections.Concurrent;
+using Domain;
 
 public class MatchManager
 {
@@ -29,61 +30,49 @@ public class MatchManager
     }
 
     // Returns true if the move was legal, false if it was invalid
-    public bool TryPlayCard(string matchId, string playerId, DataInfo cardData)
+    public DataInfo TryPlayCard(string matchId, string playerId, DataInfo cardData)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
-            return false;
+            return new DataInfo {Error = "Match not found!"};
 
         if (match.CurrentTurnPlayerId != playerId)
         {
             Console.WriteLine($"{playerId} tried to play out of turn!");
-            return false;
+            return new DataInfo {Error = "Tried to play out of turn!"};
         }
 
         // Apply the game rules
-        // var (success, ding) = TryEffectCard(cardData);
-        // if(success) {
-        //     Console.WriteLine($"{playerId} played: {Data.CardId}");
-        // }
-
-        match.TableCards.Add(cardData.CardId);
-        return true;
+        var result = TryEffectCard(cardData);
+        if(result.Error == "") {
+            match.TableCards.Add(cardData.CardId);
+        }
+        return result;
     }
 
     // apply game effects
-    public (bool, string) TryEffectCard(string cardData){
-        switch(cardData)
+    public DataInfo TryEffectCard(DataInfo cardData){
+        var result = new DataInfo();
+        switch(cardData.CardId)
         {
             case "nor":
-                //return (false, "reason for invalid")
-                return (true, "succesfull play normal");
+                result.CardId = cardData.CardId;
+                break;
             case "DDos":
-                return (true, "successfull play");
             case "SQL":
-                return (true, "successfull play");
             case "cm":
-                return (true, "successfull play");
             case "wild":
-                return (true, "successfull play");
             case "vibe":
-                return (true, "successfull play");
             case "loop":
-                return (true, "successfull play");
             case "com":
-                return (true, "successfull play");
             case "im":
-                return (true, "successfull play");
             case "os":
-                return (true, "successfull play");
             case "th":
-                return (true, "successfull play");
             case "def":
-                return (true, "successfull play");
             case "ms":
-                return (true, "successfull play");
             default:
-                return (false, "invalid card");
+                return new DataInfo {Error = "Invalid card"};
         }
+        return result;
     }
 
     public string GetFirstCard(string matchId, string playerId)
