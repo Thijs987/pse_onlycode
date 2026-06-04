@@ -2,14 +2,15 @@ extends Node2D
 
 var screen_size
 var dragging_card
+var is_hovering
+var card_offsetx
+var card_offsety
+var hand_reference
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	screen_size = get_viewport_rect().size
-	
-
-var card_offsetx
-var card_offsety
+	hand_reference = $"../PlayerHand"
 
 var play_area = Vector2(0, 200)
 #Location of the play pile
@@ -56,13 +57,12 @@ func start_dragging(card):
 func stop_dragging():
 	if dragging_card:
 		dragging_card.scale = Vector2(1.1, 1.1)
+		hand_reference.add_card_to_hand(dragging_card)
 	dragging_card = null
 
 func connect_card_signals(card):
 	card.connect("hovered", hovered_over_card)
 	card.connect("hovered_away", hovered_away_card)
-
-var is_hovering
 
 func hovered_over_card(card):
 	if !is_hovering:
