@@ -8,6 +8,8 @@ using Domain;
 
 public class MatchManager
 {
+    private const int initialHandSize = 3;
+
     private readonly ConcurrentDictionary<string, GameState> _activeMatches = new();
 
     public DataInfo StartNewMatch(string matchId, List<string> players)
@@ -19,15 +21,30 @@ public class MatchManager
             CurrentTurnPlayerId = players[0]
         };
 
-        newState.Deck.AddLast("1");
-        newState.Deck.AddLast("2");
-        newState.Deck.AddLast("3");
+        // For now we populate a dummy deck. Once the shuffle logic is done we replace this loop.
+        for (int i = 1; i <= 20; i++)
+        {
+            newState.Deck.AddLast($"Card_{i}");
+        }
 
-        // TODO: Give initial hands to players
+        // Initialize hands and deal 3 cards per player
+        foreach (var player in players)
+        {
+            newState.PlayerHands[player] = new List<string>();
+
+            for (int i = 0; i < initialHandSize; i++)
+            {
+                if (newState.Deck.Count > 0)
+                {
+                    string card = newState.Deck.First.Value;
+                    newState.Deck.RemoveFirst();
+                    newState.PlayerHands[player].Add(card);
+                }
+            }
+        }
 
         _activeMatches.TryAdd(matchId, newState);
-
-        Console.WriteLine($"Match {matchId} started!");
+        Console.WriteLine($"Match {matchId} started! Handed out initial hands HAHAHAHAHA.");
 
         return new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
     }
@@ -172,5 +189,15 @@ public class MatchManager
         };
 
         return responseData;
+    }
+
+    //Safely gets a single player's hand without exposing the whole GameState
+    public List<string> GetPlayerHand(string matchId, string playerId)
+    {
+        if (_activeMatches.TryGetValue(matchId, out var match) && match.PlayerHands.TryGetValue(playerId, out var hand))
+        {
+            return hand;
+        }
+        return new List<string>();
     }
 }
