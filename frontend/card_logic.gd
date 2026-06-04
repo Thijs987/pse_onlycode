@@ -25,13 +25,22 @@ func _input(event):
 			var card = check_for_card()
 			print(card)
 			if card != null:
-				dragging_card = card
-				var card_pos = dragging_card.position
-				var mouse_pos = get_global_mouse_position()
-				card_offsetx = card_pos.x - mouse_pos.x
-				card_offsety = card_pos.y - mouse_pos.y
+				start_dragging(card)
 		else:
-			dragging_card = null
+			stop_dragging()
+
+func start_dragging(card):
+	card.scale = Vector2(1.0, 1.0)
+	dragging_card = card
+	var card_pos = dragging_card.position
+	var mouse_pos = get_global_mouse_position()
+	card_offsetx = card_pos.x - mouse_pos.x
+	card_offsety = card_pos.y - mouse_pos.y
+
+func stop_dragging():
+	if dragging_card:
+		dragging_card.scale = Vector2(1.1, 1.1)
+		dragging_card = null
 
 func connect_card_signals(card):
 	card.connect("hovered", hovered_over_card)
@@ -73,7 +82,9 @@ func check_for_card():
 	if (result_size > 0):
 		return highest_z(result)
 	return null
-	
+
+# returns the card with the highest z value from a list of cards checked
+# by check_for_card()
 func highest_z(cards):
 	var highest_card = cards[0].collider.get_parent()
 	var highest_card_z = highest_card.z_index
