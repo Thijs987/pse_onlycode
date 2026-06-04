@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dlb3crw3qdkv2" path="res://card.tscn" id="2_r0du0"]
 
 [node name="Main" type="Node2D" unique_id=704437941]
+position = Vector2(-14, 0)
 
 [node name="CardLogic" type="Node2D" parent="." unique_id=2043272623]
 script = ExtResource("1_uu6xs")
