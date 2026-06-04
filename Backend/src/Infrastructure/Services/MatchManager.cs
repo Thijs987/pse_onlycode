@@ -11,6 +11,15 @@ public class MatchManager
     private const int initialHandSize = 3;
 
     private readonly ConcurrentDictionary<string, GameState> _activeMatches = new();
+    private readonly Dictionary<string, ICardEffect> _cardRegistry = new();
+
+    public MatchManager(IEnumerable<ICardEffect> allCards)
+    {
+        foreach (var card in allCards)
+        {
+            _cardRegistry[card.CardId] = card;
+        }
+    }
 
     public DataInfo StartNewMatch(string matchId, List<string> players)
     {
@@ -62,65 +71,82 @@ public class MatchManager
             return new DataInfo { Error = "Tried to play out of turn!" };
         }
 
-        // Apply the game rules
-        var responseData = TryEffectCard(cardData);
-        if (responseData.Error == "")
+        if (!match.PlayerHands[playerId].Contains(cardData.CardId))
+        {
+            Console.WriteLine($"{playerId} tried to play a card they don't have: {cardData.CardId}");
+            return new DataInfo { Error = "You do not have that card in your hand!" };
+        }
+
+        // Look up the card in registry
+        if (!_cardRegistry.TryGetValue(cardData.CardId, out var cardEffect))
+        {
+            return new DataInfo { Error = $"Unknown card: {cardData.CardId}" };
+        }
+
+        // Apply the specific card's logic
+        var responseData = cardEffect.ApplyEffect(match, playerId, cardData);
+
+        // If no errors, add it to the table
+        if (string.IsNullOrEmpty(responseData.Error))
         {
             match.TableCards.Add(cardData.CardId);
         }
+
         return responseData;
     }
 
+    // Legendary Artifact
+
     // apply game effects
-    public DataInfo TryEffectCard(DataInfo cardData)
-    {
-        var responseData = new DataInfo();
-        switch (cardData.CardId)
-        {
-            case "nor":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "DDos":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "SQL":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "cm":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "wild":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "vibe":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "loop":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "com":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "im":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "os":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "th":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "def":
-                responseData.CardId = cardData.CardId;
-                break;
-            case "ms":
-                responseData.CardId = cardData.CardId;
-                break;
-            default:
-                return new DataInfo { Error = "Invalid card" };
-        }
-        return responseData;
-    }
+    // public DataInfo TryEffectCard(DataInfo cardData)
+    // {
+    //     var responseData = new DataInfo();
+    //     switch (cardData.CardId)
+    //     {
+    //         case "nor":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "DDos":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "SQL":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "cm":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "wild":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "vibe":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "loop":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "com":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "im":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "os":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "th":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "def":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "ms":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         default:
+    //             return new DataInfo { Error = "Invalid card" };
+    //     }
+    //     return responseData;
+    // }
 
     public DataInfo GetFirstCard(string matchId, string playerId)
     {
@@ -147,6 +173,7 @@ public class MatchManager
 
         string card = firstNode.Value;
         deck.RemoveFirst();
+        match.PlayerHands[playerId].Add(card);
         Console.WriteLine($"The first card is {card}");
 
         if (deck.Count <= 0)
