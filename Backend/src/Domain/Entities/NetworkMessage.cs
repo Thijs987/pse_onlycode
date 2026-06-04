@@ -12,5 +12,5 @@ public class NetworkMessage
 
     // The actual data, example: "cardPlayed": "Garbage Collector"
     [JsonPropertyName("data")]
-    public string Data { get; set; } = string.Empty;
+    public DataInfo Data { get; set; } = new();
 }

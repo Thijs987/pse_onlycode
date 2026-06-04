@@ -4,6 +4,7 @@
     This is done by the ConnectionManager and called by the MessageRouter.
 */
 using System.Collections.Concurrent;
+using Domain;
 
 public class MatchManager
 {
@@ -28,21 +29,75 @@ public class MatchManager
         Console.WriteLine($"Match {matchId} started!");
     }
 
-    // Returns true if the move was legal, false if it was invalid
-    public bool TryPlayCard(string matchId, string playerId, string cardId)
+    // Returns DataInfo if there is no error result.Error=="".
+    // Otherwise specific error is is inside result.Error.
+    public DataInfo TryPlayCard(string matchId, string playerId, DataInfo cardData)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
-            return false;
+            return new DataInfo {Error = "Match not found!"};
 
         if (match.CurrentTurnPlayerId != playerId)
         {
             Console.WriteLine($"{playerId} tried to play out of turn!");
-            return false;
+            return new DataInfo {Error = "Tried to play out of turn!"};
         }
 
         // Apply the game rules
-        match.TableCards.Add(cardId);
-        return true;
+        var result = TryEffectCard(cardData);
+        if(result.Error == "") {
+            match.TableCards.Add(cardData.CardId);
+        }
+        return result;
+    }
+
+    // apply game effects
+    public DataInfo TryEffectCard(DataInfo cardData){
+        var result = new DataInfo();
+        switch(cardData.CardId)
+        {
+            case "nor":
+                result.CardId = cardData.CardId;
+                break;
+            case "DDos":
+                result.CardId = cardData.CardId;
+                break;
+            case "SQL":
+                result.CardId = cardData.CardId;
+                break;
+            case "cm":
+                result.CardId = cardData.CardId;
+                break;
+            case "wild":
+                result.CardId = cardData.CardId;
+                break;
+            case "vibe":
+                result.CardId = cardData.CardId;
+                break;
+            case "loop":
+                result.CardId = cardData.CardId;
+                break;
+            case "com":
+                result.CardId = cardData.CardId;
+                break;
+            case "im":
+                result.CardId = cardData.CardId;
+                break;
+            case "os":
+                result.CardId = cardData.CardId;
+                break;
+            case "th":
+                result.CardId = cardData.CardId;
+                break;
+            case "def":
+                result.CardId = cardData.CardId;
+                break;
+            case "ms":
+                result.CardId = cardData.CardId;
+                break;
+            default:
+                return new DataInfo {Error = "Invalid card"};
+        }
+        return result;
     }
 
     public string GetFirstCard(string matchId, string playerId)
