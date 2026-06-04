@@ -29,7 +29,7 @@ public class MatchManager
     }
 
     // Returns true if the move was legal, false if it was invalid
-    public bool TryPlayCard(string matchId, string playerId, string cardId)
+    public bool TryPlayCard(string matchId, string playerId, DataInfo cardData)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
             return false;
@@ -41,8 +41,49 @@ public class MatchManager
         }
 
         // Apply the game rules
-        match.TableCards.Add(cardId);
+        // var (success, ding) = TryEffectCard(cardData);
+        // if(success) {
+        //     Console.WriteLine($"{playerId} played: {Data.CardId}");
+        // }
+
+        match.TableCards.Add(cardData.CardId);
         return true;
+    }
+
+    // apply game effects
+    public (bool, string) TryEffectCard(string cardData){
+        switch(cardData)
+        {
+            case "nor":
+                //return (false, "reason for invalid")
+                return (true, "succesfull play normal");
+            case "DDos":
+                return (true, "successfull play");
+            case "SQL":
+                return (true, "successfull play");
+            case "cm":
+                return (true, "successfull play");
+            case "wild":
+                return (true, "successfull play");
+            case "vibe":
+                return (true, "successfull play");
+            case "loop":
+                return (true, "successfull play");
+            case "com":
+                return (true, "successfull play");
+            case "im":
+                return (true, "successfull play");
+            case "os":
+                return (true, "successfull play");
+            case "th":
+                return (true, "successfull play");
+            case "def":
+                return (true, "successfull play");
+            case "ms":
+                return (true, "successfull play");
+            default:
+                return (false, "invalid card");
+        }
     }
 
     public string GetFirstCard(string matchId, string playerId)
