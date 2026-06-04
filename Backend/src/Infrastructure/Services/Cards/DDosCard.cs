@@ -5,7 +5,7 @@ namespace Infrastructure.Services.Cards;
 
 public class DDosCard : ICardEffect
 {
-    public string CardId => "DDos";
+    public string CardId => "ddos";
 
     public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
     {

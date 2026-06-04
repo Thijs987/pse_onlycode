@@ -3,9 +3,10 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
-public class SQLInjectionCard : ICardEffect
+// MVP ahh card
+public class MiracleSortCard : ICardEffect
 {
-    public string CardId => "sql";
+    public string CardId => "miracle";
 
     public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
     {

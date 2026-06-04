@@ -3,9 +3,9 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
-public class SQLInjectionCard : ICardEffect
+public class BlueScreenCard : ICardEffect
 {
-    public string CardId => "sql";
+    public string CardId => "blue";
 
     public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
     {
