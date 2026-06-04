@@ -26,16 +26,6 @@ public class MatchManager
         newState.Deck.AddLast("1");
         newState.Deck.AddLast("2");
         newState.Deck.AddLast("3");
-        newState.Deck.AddLast("4");
-        newState.Deck.AddLast("5");
-        newState.Deck.AddLast("6");
-        newState.Deck.AddLast("7");
-        newState.Deck.AddLast("8");
-        newState.Deck.AddLast("9");
-        newState.Deck.AddLast("10");
-        newState.Deck.AddLast("11");
-        newState.Deck.AddLast("12");
-        newState.Deck.AddLast("13");
 
         // TODO: Give initial hands to players
 
@@ -50,10 +40,9 @@ public class MatchManager
         if (!_activeMatches.TryGetValue(matchId, out var match))
             return new DataInfo {Error = "Match not found!"};
 
-        if (match.CurrentTurnPlayerId != playerId)
+        if (!match.PlayerHands.TryGetValue(playerId, out var hands))
         {
-            Console.WriteLine($"{playerId} tried to play out of turn!");
-            return new DataInfo {Error = "Tried to play out of turn!"};
+            return new DataInfo {Error = "Cannot find player {playerId}"};
         }
 
         // Apply the game rules
@@ -132,6 +121,18 @@ public class MatchManager
         var firstNode = deck.First;
         var hands = match.PlayerHands;
 
+        if (deck.Count <= 0)
+        {
+            // Refill deck
+            match.CardLimit -=1;
+            Console.WriteLine("Deck empty");
+        }
+
+        // No top card, not possible
+        if (firstNode == null)
+        {
+            throw new Exception("No top card");
+        }
         string card = firstNode.Value;
         deck.RemoveFirst();
         Console.WriteLine($"The first card is {card}");
@@ -196,6 +197,7 @@ public class MatchManager
             return -1;
         }
 
+        // if card count is less then the limit return
         if(hand.Count < match.CardLimit){
             return 0;
         }

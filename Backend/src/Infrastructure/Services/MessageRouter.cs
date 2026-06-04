@@ -87,14 +87,15 @@ public class MessageRouter
                     // next turn
                     (string nextPlayer, int nTurns) = matchManager.NextTurn(lobbyId, playerId);
 
-                    // check player card limit
-                    var end = matchManager.CheckCardLimit(lobbyId, message.PlayerId);
+                    // check player card limit and remove player if over the limit
+                    var end = matchManager.CheckCardLimit(lobbyId, playerId);
                     if(end == 1) {
                         var endPlayerMessage = new NetworkMessage
                         {
                             Action = "CARD_LIMIT",
                             PlayerId = playerId
                         };
+                        //broadcast remove player
                         await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(endPlayerMessage));
                     }
 
