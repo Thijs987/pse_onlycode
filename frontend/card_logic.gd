@@ -1,5 +1,7 @@
 extends Node2D
 
+const CARD_COLLISION_MASK = 1
+
 var screen_size
 var dragging_card
 var is_hovering
@@ -11,6 +13,7 @@ var hand_reference
 func _ready() -> void:
 	screen_size = get_viewport_rect().size
 	hand_reference = $"../PlayerHand"
+	$"../InputManager".connect("left_mouse_release", on_left_mouse_release)
 
 var play_area = Vector2(0, 200)
 #Location of the play pile
@@ -23,29 +26,12 @@ func _process(_delta: float) -> void:
 		dragging_card.position = Vector2(clamp(mouse_pos.x + card_offsetx, 0, screen_size.x),
 			clamp(mouse_pos.y + card_offsety, 0, screen_size.y))
 
-# Listens to mouse input to call events when pressed
-func _input(event):
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.is_pressed():
-			var card = check_for_card()
-			print(card)
-			if card != null:
-				if card.movable:
-					start_dragging(card)
-		else:
-			stop_dragging()
-
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-			if event.is_released():
-				var card = check_for_card()
-				if card != null:
-					play_card(card)
-
 ### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
 	if card.position.y < play_area.y:
 		card.position = play_pile
 		card.movable = false
+		highlight_card(card, false)
 
 func start_dragging(card):
 	card.scale = Vector2(1.0, 1.0)
@@ -56,7 +42,9 @@ func start_dragging(card):
 	card_offsety = card_pos.y - mouse_pos.y
 
 func stop_dragging():
-	if dragging_card:
+	if dragging_card and dragging_card.movable == true:
+		play_card(dragging_card)
+	elif dragging_card:
 		dragging_card.scale = Vector2(1.1, 1.1)
 		hand_reference.add_card_to_hand(dragging_card)
 	dragging_card = null
@@ -65,15 +53,19 @@ func connect_card_signals(card):
 	card.connect("hovered", hovered_over_card)
 	card.connect("hovered_away", hovered_away_card)
 
+func on_left_mouse_release():
+	stop_dragging()
+	var card = check_for_card()
+
 func hovered_over_card(card):
-	if !is_hovering:
+	if !is_hovering and card.movable == true:
 		is_hovering = true
 		highlight_card(card, true)
 
 func hovered_away_card(card):
 	highlight_card(card, false)
 	var check_card = check_for_card()
-	if check_card:
+	if check_card and card.movable == true:
 		highlight_card(check_card, true)
 	else:
 		is_hovering = false
