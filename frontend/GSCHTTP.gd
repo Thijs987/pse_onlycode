@@ -8,9 +8,7 @@ signal Leaderboard_Received(data) # Signal that passes the leaderboard
 
 const BASE_URL = "http://localhost:5025"
 
-func _ready():
-	Create_Lobby("Player_1")
-	Get_Lobbies()
+var P_Name := ""
 
 # Returns the active Lobbies
 func Get_Lobbies():
@@ -35,8 +33,9 @@ func _On_Lobbies_Received(result, response_code, headers, body):
 	Lobbies_Received.emit(text)
 
 
-# Creates a game with as host "PId"
-func Create_Lobby(player_id: String):
+# Creates a game with as host "PId" and connects "PId" to that game
+func Create_Game(PId: String):
+	P_Name = PId
 	var request = HTTPRequest.new()
 	add_child(request)
 
@@ -46,7 +45,7 @@ func Create_Lobby(player_id: String):
 	var headers = ["Content-Type: application/json"]
 	request.request(
 		"%s/api/lobbies/create?hostId=%s"
-		% [BASE_URL, player_id],
+		% [BASE_URL, PId],
 		headers,
 		HTTPClient.METHOD_POST,
 		json
@@ -56,9 +55,12 @@ func Create_Lobby(player_id: String):
 # Emits the data received from the server
 # use GSCHTTP.game_created.connect(Fnc) to pass them as arguments to Fnc.
 func _On_Game_Created(result, response_code, headers, body):
-	var text = body.get_string_from_utf8()
+	var json = JSON.parse_string(
+		body.get_string_from_utf8()
+	)
 
-	print("Game created:")
-	print(text)
+	var lobby_id = json["lobbyId"]
 
-	Game_Created.emit(text)
+	print("Created lobby:", lobby_id)
+
+	GSCWS.Join_Lobby(lobby_id, P_Name)
