@@ -3,6 +3,8 @@ extends Node2D
 signal hovered
 signal hovered_away
 
+var movable = true
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	get_parent().connect_card_signals(self)
@@ -13,8 +15,10 @@ func _process(delta: float) -> void:
 	pass
 
 func _on_area_2d_mouse_entered() -> void:
-	emit_signal("hovered", self)
+	if movable:
+		emit_signal("hovered", self)
 
 
 func _on_area_2d_mouse_exited() -> void:
-	emit_signal("hovered_away", self)
+	if movable:
+		emit_signal("hovered_away", self)
