@@ -8,9 +8,20 @@ using Domain;
 
 public class MatchManager
 {
-    private readonly ConcurrentDictionary<string, GameState> _activeMatches = new();
+    private const int initialHandSize = 3;
 
-    public void StartNewMatch(string matchId, List<string> players)
+    private readonly ConcurrentDictionary<string, GameState> _activeMatches = new();
+    private readonly Dictionary<string, ICardEffect> _cardRegistry = new();
+
+    public MatchManager(IEnumerable<ICardEffect> allCards)
+    {
+        foreach (var card in allCards)
+        {
+            _cardRegistry[card.CardId] = card;
+        }
+    }
+
+    public DataInfo StartNewMatch(string matchId, List<string> players)
     {
         var newState = new GameState
         {
@@ -19,106 +30,135 @@ public class MatchManager
             CurrentTurnPlayerId = players[0]
         };
 
-        foreach (string p in players){
-            newState.PlayerHands.Add(p, []);
+        // For now we populate a dummy deck. Once the shuffle logic is done we replace this loop.
+        for (int i = 1; i <= 20; i++)
+        {
+            newState.Deck.AddLast($"Card_{i}");
         }
 
-        newState.Deck.AddLast("1");
-        newState.Deck.AddLast("2");
-        newState.Deck.AddLast("3");
-        newState.Deck.AddLast("4");
-        newState.Deck.AddLast("5");
-        newState.Deck.AddLast("6");
-        newState.Deck.AddLast("7");
+        // Initialize hands and deal 3 cards per player
+        foreach (var player in players)
+        {
+            newState.PlayerHands[player] = new List<string>();
 
-        // TODO: Give initial hands to players
+            for (int i = 0; i < initialHandSize; i++)
+            {
+                if (newState.Deck.Count > 0)
+                {
+                    string card = newState.Deck.First.Value;
+                    newState.Deck.RemoveFirst();
+                    newState.PlayerHands[player].Add(card);
+                }
+            }
+        }
 
         _activeMatches.TryAdd(matchId, newState);
-        Console.WriteLine($"Match {matchId} started!");
+        Console.WriteLine($"Match {matchId} started! Handed out initial hands HAHAHAHAHA.");
+
+        return new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
     }
 
-    // Returns DataInfo if there is no error result.Error=="".
-    // Otherwise specific error is is inside result.Error.
+    // Returns DataInfo if there is no error responseData.Error=="".
+    // Otherwise specific error is is inside responseData.Error.
     public DataInfo TryPlayCard(string matchId, string playerId, DataInfo cardData)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
-            return new DataInfo {Error = "Match not found!"};
+            return new DataInfo { Error = "Match not found!" };
 
         if (!match.PlayerHands.TryGetValue(playerId, out var hands))
         {
             return new DataInfo {Error = "Cannot find player {playerId}"};
         }
 
-        // Apply the game rules
-        var result = TryEffectCard(cardData);
-        if(result.Error == "") {
+        if (!match.PlayerHands[playerId].Contains(cardData.CardId))
+        {
+            Console.WriteLine($"{playerId} tried to play a card they don't have: {cardData.CardId}");
+            return new DataInfo { Error = "You do not have that card in your hand!" };
+        }
+
+        // Look up the card in registry
+        if (!_cardRegistry.TryGetValue(cardData.CardId, out var cardEffect))
+        {
+            return new DataInfo { Error = $"Unknown card: {cardData.CardId}" };
+        }
+
+        // Apply the specific card's logic
+        var responseData = cardEffect.ApplyEffect(match, playerId, cardData);
+
+        // If no errors, add it to the table
+        if (string.IsNullOrEmpty(responseData.Error))
+        {
             match.TableCards.Add(cardData.CardId);
         }
-        return result;
+
+        return responseData;
     }
+
+    // Legendary Artifact
 
     // apply game effects
-    public DataInfo TryEffectCard(DataInfo cardData){
-        var result = new DataInfo();
-        switch(cardData.CardId)
-        {
-            case "nor":
-                result.CardId = cardData.CardId;
-                break;
-            case "DDos":
-                result.CardId = cardData.CardId;
-                break;
-            case "SQL":
-                result.CardId = cardData.CardId;
-                break;
-            case "cm":
-                result.CardId = cardData.CardId;
-                break;
-            case "wild":
-                result.CardId = cardData.CardId;
-                break;
-            case "vibe":
-                result.CardId = cardData.CardId;
-                break;
-            case "loop":
-                result.CardId = cardData.CardId;
-                break;
-            case "com":
-                result.CardId = cardData.CardId;
-                break;
-            case "im":
-                result.CardId = cardData.CardId;
-                break;
-            case "os":
-                result.CardId = cardData.CardId;
-                break;
-            case "th":
-                result.CardId = cardData.CardId;
-                break;
-            case "def":
-                result.CardId = cardData.CardId;
-                break;
-            case "ms":
-                result.CardId = cardData.CardId;
-                break;
-            default:
-                return new DataInfo {Error = "Invalid card"};
-        }
-        return result;
-    }
+    // public DataInfo TryEffectCard(DataInfo cardData)
+    // {
+    //     var responseData = new DataInfo();
+    //     switch (cardData.CardId)
+    //     {
+    //         case "nor":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "DDos":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "SQL":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "cm":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "wild":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "vibe":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "loop":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "com":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "im":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "os":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "th":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "def":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         case "ms":
+    //             responseData.CardId = cardData.CardId;
+    //             break;
+    //         default:
+    //             return new DataInfo { Error = "Invalid card" };
+    //     }
+    //     return responseData;
+    // }
 
-    public string GetFirstCard(string matchId, string playerId)
+    public DataInfo GetFirstCard(string matchId, string playerId)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
             Console.WriteLine($"Cannot find match {matchId}");
-            return "";
+            return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
 
         if (match.CurrentTurnPlayerId != playerId)
         {
             Console.WriteLine($"{playerId} tried to draw, but not their turn!");
-            return "";
+            return new DataInfo { Error = $"Cannot find player {playerId}" };
         }
 
         var deck = match.Deck;
@@ -135,10 +175,11 @@ public class MatchManager
         // No top card, not possible
         if (firstNode == null)
         {
-            throw new Exception("No top card");
+            return new DataInfo { Error = $"No top card" };
         }
         string card = firstNode.Value;
         deck.RemoveFirst();
+        match.PlayerHands[playerId].Add(card);
         Console.WriteLine($"The first card is {card}");
 
         hands[playerId].Add(card);
@@ -152,21 +193,17 @@ public class MatchManager
             Console.WriteLine("Deck empty");
         }
 
-        // No top card, not possible
-        if (firstNode == null)
-        {
-            throw new Exception("No top card");
-        }
+        var responseData = new DataInfo { CardId = card };
 
-        return card;
+        return responseData;
     }
 
-    public (string, int) NextTurn(string matchId, string playerId)
+    public DataInfo NextTurn(string matchId, string playerId)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
             Console.WriteLine($"Cannot find match {matchId}");
-            return ("", -1);
+            return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
 
         match.NTurns--;
@@ -183,7 +220,23 @@ public class MatchManager
             match.NTurns = 1;
         }
 
-        return (match.CurrentTurnPlayerId, match.NTurns);
+        var responseData = new DataInfo
+        {
+            NextPlayer = match.CurrentTurnPlayerId,
+            Turns = match.NTurns
+        };
+
+        return responseData;
+    }
+
+    //Safely gets a single player's hand without exposing the whole GameState
+    public List<string> GetPlayerHand(string matchId, string playerId)
+    {
+        if (_activeMatches.TryGetValue(matchId, out var match) && match.PlayerHands.TryGetValue(playerId, out var hand))
+        {
+            return hand;
+        }
+        return new List<string>();
     }
 
     public DataInfo CheckCardLimit(string matchId, string playerId)
