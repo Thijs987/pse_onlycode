@@ -32,22 +32,26 @@ public class MatchManager
 
         var allCards = new Dictionary<string, int>()
         {
-            {"nor", 1},
-            {"DDos", 1},
-            {"SQL", 1},
+            {"blue", 1},
             {"cm", 1},
-            {"wild", 1},
-            {"vibe", 1},
-            {"loop", 1},
-            {"com", 1},
-            {"im", 1},
-            {"os", 1},
-            {"th", 1},
-            {"def", 1},
-            {"ms", 1}
+            {"ddos", 1},
+            {"err", 1},
+            {"garb", 1},
+            {"goto", 1},
+            {"imp", 1},
+            {"inf", 1},
+            {"merge", 1},
+            {"miracle", 1},
+            {"nocom", 1},
+            {"sql", 1},
+            {"trojan", 1},
+            {"vibe", 1}
         };
-        foreach(var card in allCards){
-            for(int i = 0; i < card.Value; i++){
+
+        foreach (var card in allCards)
+        {
+            for (int i = 0; i < card.Value; i++)
+            {
                 newState.TableCards.Add(card.Key);
             }
         }
@@ -63,8 +67,8 @@ public class MatchManager
             {
                 if (newState.Deck.Count > 0)
                 {
-                    string card = newState.Deck.First.Value;
-                    newState.Deck.RemoveFirst();
+                    string card = newState.Deck[0];
+                    newState.Deck.RemoveAt(0);
                     newState.PlayerHands[player].Add(card);
                 }
             }
@@ -77,16 +81,18 @@ public class MatchManager
     }
 
     //creates a new deck based on the Tablecards
-    void GenerateDeck(GameState state) {
+    void GenerateDeck(GameState state)
+    {
         state.Deck = new List<string>(state.TableCards);
         state.TableCards = [];
         Randomize(state);
     }
 
     //Randomizes the deck
-    void Randomize(GameState state) {
+    void Randomize(GameState state)
+    {
         var rand = new Random();
-        state.Deck = state.Deck.OrderBy(_=>rand.Next()).ToList();
+        state.Deck = state.Deck.OrderBy(_ => rand.Next()).ToList();
         state.Deck.ForEach(Console.WriteLine);
     }
 
@@ -99,7 +105,7 @@ public class MatchManager
 
         if (!match.PlayerHands.TryGetValue(playerId, out var hands))
         {
-            return new DataInfo {Error = "Cannot find player {playerId}"};
+            return new DataInfo { Error = "Cannot find player {playerId}" };
         }
 
         if (!match.PlayerHands[playerId].Contains(cardData.CardId))
@@ -192,19 +198,20 @@ public class MatchManager
             Console.WriteLine($"{playerId} tried to draw, but not their turn!");
             return new DataInfo { Error = $"Not your turn" };
         }
-  
-//         Eric check
-        if(match.Deck.Count <= 0) {
+
+        //         Eric check
+        if (match.Deck.Count <= 0)
+        {
             // Refill deck
             Console.WriteLine("Deck empty");
             GenerateDeck(match);
-            match.CardLimit -=1;
+            match.CardLimit -= 1;
         }
 
         // No top card, not possible
         if (match.Deck.Count <= 0)
         {
-            return new DataInfo {Error = "Deck could not be generated"};
+            return new DataInfo { Error = "Deck could not be generated" };
         }
 
         var card = match.Deck[0];
@@ -212,7 +219,8 @@ public class MatchManager
         match.Deck.RemoveAt(0);
         Console.WriteLine($"The first card is {card}");
 
-        if (match.PlayerHands.TryGetValue(playerId, out var hand)) {
+        if (match.PlayerHands.TryGetValue(playerId, out var hand))
+        {
             hand.Add(card);
         }
 
@@ -271,21 +279,23 @@ public class MatchManager
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
             Console.WriteLine($"Cannot find match {matchId}");
-            return new DataInfo {Error = $"Cannot find match {matchId}"};
+            return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
         if (!match.PlayerHands.TryGetValue(playerId, out var hand))
         {
             Console.WriteLine($"Cannot find player {playerId}");
-            return new DataInfo {Error = $"Cannot find player {playerId}"};
+            return new DataInfo { Error = $"Cannot find player {playerId}" };
         }
 
-        foreach(string Id in match.PlayerIds) {
+        foreach (string Id in match.PlayerIds)
+        {
             Console.WriteLine($"{Id}");
         }
 
         // if card count is less then the limit return
-        if(hand.Count < match.CardLimit){
-            return new DataInfo {Message = "Good"};
+        if (hand.Count <= match.CardLimit)
+        {
+            return new DataInfo { Message = "Good" };
         }
 
         // remove from cycle
@@ -293,6 +303,6 @@ public class MatchManager
         // remove hand from dict
         match.PlayerHands.Remove(playerId);
 
-        return new DataInfo {Message = $"{playerId} Removed"};
+        return new DataInfo { Message = $"{playerId} Removed" };
     }
 }
