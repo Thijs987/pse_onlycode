@@ -34,7 +34,7 @@ func _On_Lobbies_Received(result, response_code, headers, body):
 
 
 # Creates a game with as host "PId" and connects "PId" to that game
-func Create_Game(PId: String):
+func Create_Lobby(PId: String):
 	P_Name = PId
 	var request = HTTPRequest.new()
 	add_child(request)
