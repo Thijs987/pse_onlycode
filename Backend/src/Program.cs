@@ -12,7 +12,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
-var cardTypes = typeof(ICardEffect).Assembly.GetExecutingAssembly().GetTypes()
+var cardTypes = typeof(ICardEffect).Assembly.GetTypes()
     .Where(t => t.IsClass && !t.IsAbstract && typeof(ICardEffect).IsAssignableFrom(t));
 
 foreach (var type in cardTypes)

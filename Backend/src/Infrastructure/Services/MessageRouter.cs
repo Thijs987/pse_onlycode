@@ -112,10 +112,7 @@ public class MessageRouter
                     {
                         Action = "CARD_DRAWN",
                         PlayerId = playerId,
-                        Data = new DataInfo{
-                            NextPlayer = nextPlayer,
-                            Turns = nTurns
-                        }
+                        Data = responseData
                     };
                     responseData = matchManager.NextTurn(lobbyId, playerId);
 
