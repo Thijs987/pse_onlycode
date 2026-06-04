@@ -3,6 +3,8 @@
 */
 using System.Text.Json;
 using Domain;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.VisualBasic;
 
 public class MessageRouter
 {
@@ -12,8 +14,12 @@ public class MessageRouter
         {
             var message = JsonSerializer.Deserialize<NetworkMessage>(rawJson);
             if (message == null) return;
+            var data = message.Data;
+            // bool success = false;
 
-            bool success = false;
+            // For response
+            DataInfo responseData;
+            NetworkMessage response;
 
             Console.WriteLine($"Received {message.Action} from {playerId}");
 
@@ -24,35 +30,43 @@ public class MessageRouter
                     // matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
                     // Changed matchId to lobbyId
                     var players = connectionManager.GetPlayers(lobbyId);
-                    matchManager.StartNewMatch(lobbyId, players);
-                    await connectionManager.SendMessageAsync(playerId, "Game Started!");
+
+                    responseData = matchManager.StartNewMatch(lobbyId, players);
+
+                    response = MakeMessage("MATCH_STARTED", playerId, responseData);
+                    await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
                     break;
 
                 case "PLAY_CARD":
                     // Let's assume message.Data contains the MatchId and CardId
                     // You'd parse that JSON here, but for simplicity:
-                    success = matchManager.TryPlayCard(lobbyId, message.PlayerId, message.Data);
+                    responseData = matchManager.TryPlayCard(lobbyId, message.PlayerId, data);
 
-                    if (success)
+                    if (responseData.Error == "")
                     {
                         // If the move was valid, broadcast the result to EVERYONE in the game
                         // (You will need to add a Broadcast method to your ConnectionManager)
                         Console.WriteLine("Card played successfully.");
+
+                        response = MakeMessage("CARD_PLAYED", playerId, responseData);
+                        await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
                     }
                     else
                     {
-                        await connectionManager.SendMessageAsync(playerId, "ILLEGAL_MOVE");
+                        response = MakeMessage("ERROR", playerId, responseData);
+                        await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
                     }
                     break;
 
                 case "DRAW_CARD":
                     // Normal end to a turn. Grab card (check IH) and broadcast action to lobby.
-                    string card = matchManager.GetFirstCard(lobbyId, message.PlayerId);
-                    // Get the connection Id of all player to send this to.
-                    // Get player that gets card
+                    responseData = matchManager.GetFirstCard(lobbyId, message.PlayerId);
+                    var card = responseData.CardId;
+
                     if (card == "")
                     {
-                        await connectionManager.SendMessageAsync(playerId, "First Card Error");
+                        response = MakeMessage("Error", playerId, responseData);
+                        await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
                         break;
                     }
 
@@ -65,20 +79,15 @@ public class MessageRouter
                     }
 
                     // Send card to player.
-                    await connectionManager.SendMessageAsync(playerId, $"Got {card}");
+                    response = MakeMessage("CARD_DRAWN", playerId, responseData);
+                    await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
 
                     // next turn
-                    (string nextPlayer, int nTurns) = matchManager.NextTurn(lobbyId, playerId);
-
-                    var endTurnMessage = new NetworkMessage
-                    {
-                        Action = "CARD_DRAWN",
-                        PlayerId = playerId,
-                        Data = $"{nextPlayer},{nTurns}"
-                    };
+                    responseData = matchManager.NextTurn(lobbyId, playerId);
 
                     // Broadcast next player and NTurns
-                    await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(endTurnMessage));
+                    response = MakeMessage("NEXT_TURN", playerId, responseData);
+                    await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
 
                     break;
             }
@@ -87,5 +96,16 @@ public class MessageRouter
         {
             Console.WriteLine("Received invalid JSON from client.");
         }
+    }
+
+    public NetworkMessage MakeMessage(string action, string playerId, DataInfo messageData)
+    {
+        var message = new NetworkMessage
+        {
+            Action = action,
+            PlayerId = playerId,
+            Data = messageData
+        };
+        return message;
     }
 }

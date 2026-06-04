@@ -69,8 +69,7 @@ func Draw_Card(PId: String):
 func Start_Match(PId: String):
 	var message = _Make_Message("", PId)
 	_Send(message)
-
-# Make DataInfo
+	
 func _Make_Data(cardId: String = "",
 				target: String = "",
 				message: String = "",
@@ -87,7 +86,6 @@ func _Make_Data(cardId: String = "",
 	}
 	return data
 
-# Make outer message and set data to empty DataInfo
 func _Make_Message(action: String, PId: String, data: Dictionary = _Make_Data()):
 	var message = {
 		"action": action,
