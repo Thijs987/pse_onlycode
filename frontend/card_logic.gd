@@ -44,7 +44,7 @@ func start_dragging(card):
 func stop_dragging():
 	if dragging_card and dragging_card.movable == true:
 		play_card(dragging_card)
-	elif dragging_card:
+	if dragging_card and dragging_card.movable == true:
 		dragging_card.scale = Vector2(1.1, 1.1)
 		hand_reference.add_card_to_hand(dragging_card)
 	dragging_card = null
