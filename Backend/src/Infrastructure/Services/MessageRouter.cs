@@ -89,7 +89,18 @@ public class MessageRouter
 
                     // check player card limit and remove player if over the limit
                     var end = matchManager.CheckCardLimit(lobbyId, playerId);
-                    if(end == 1) {
+                    // Send error if there is an error
+                    if(end.Error != ""){
+                        var errorMessage = new NetworkMessage
+                        {
+                            Action = "ERROR",
+                            PlayerId = playerId,
+                            Data = end
+                        };
+                        await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(errorMessage));
+                    }
+
+                    if(end.Message == "Removed") {
                         var endPlayerMessage = new NetworkMessage
                         {
                             Action = "CARD_LIMIT",

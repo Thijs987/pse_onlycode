@@ -26,6 +26,10 @@ public class MatchManager
         newState.Deck.AddLast("1");
         newState.Deck.AddLast("2");
         newState.Deck.AddLast("3");
+        newState.Deck.AddLast("4");
+        newState.Deck.AddLast("5");
+        newState.Deck.AddLast("6");
+        newState.Deck.AddLast("7");
 
         // TODO: Give initial hands to players
 
@@ -182,24 +186,28 @@ public class MatchManager
         return (match.CurrentTurnPlayerId, match.NTurns);
     }
 
-    public int CheckCardLimit(string matchId, string playerId)
+    public DataInfo CheckCardLimit(string matchId, string playerId)
     {
         // hands.TryGetValue(playerId, out var hand);
         // var count = hand.Count;
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
             Console.WriteLine($"Cannot find match {matchId}");
-            return -1;
+            return new DataInfo {Error = $"Cannot find match {matchId}"};
         }
         if (!match.PlayerHands.TryGetValue(playerId, out var hand))
         {
             Console.WriteLine($"Cannot find player {playerId}");
-            return -1;
+            return new DataInfo {Error = $"Cannot find player {playerId}"};
+        }
+
+        foreach(string Id in match.PlayerIds) {
+            Console.WriteLine($"{Id}");
         }
 
         // if card count is less then the limit return
         if(hand.Count < match.CardLimit){
-            return 0;
+            return new DataInfo {Message = "Good"};
         }
 
         // remove from cycle
@@ -207,6 +215,6 @@ public class MatchManager
         // remove hand from dict
         match.PlayerHands.Remove(playerId);
 
-        return 1;
+        return new DataInfo {Message = $"{playerId} Removed"};
     }
 }
