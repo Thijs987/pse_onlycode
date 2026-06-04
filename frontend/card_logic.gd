@@ -12,6 +12,7 @@ var card_offsetx
 var card_offsety
 
 var play_area = Vector2(0, 200)
+#Location of the play pile
 var play_pile = Vector2(200, 200)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -28,7 +29,8 @@ func _input(event):
 			var card = check_for_card()
 			print(card)
 			if card != null:
-				start_dragging(card)
+				if card.movable:
+					start_dragging(card)
 		else:
 			stop_dragging()
 
@@ -41,6 +43,7 @@ func _input(event):
 func play_card(card):
 	if card.position.y < play_area.y:
 		card.position = play_pile
+		card.movable = false
 
 func start_dragging(card):
 	card.scale = Vector2(1.0, 1.0)
