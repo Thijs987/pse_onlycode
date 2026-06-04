@@ -50,24 +50,22 @@ func Join_Lobby(LId: String, PId: String):
 
 
 # Function to play a card
-func Play_Card(card_id: String):
-	_Send({
-		"action": "PLAY_CARD",
-		"card_id": card_id
-	})
+func Play_Card(PId: String, card_id: String):
+	var data = _Make_Data(card_id)
+	var message = _Make_Message("PLAY_CARD", PId)
+	_Send(message)
 
 
 # Function to draw a card
 func Draw_Card(PId: String):
-	_Send({
-		"action": "DRAW_CARD",
-		"playerId": PId
-	})
+	
+	var message = _Make_Message("DRAW_CARD", PId)
+	_Send(message)
 
 
 # Function to start match
 func Start_Match(PId: String):
-	var message = _Make_Message("", PId)
+	var message = _Make_Message("MATCH_START", PId)
 	_Send(message)
 
 # Make DataInfo
@@ -116,6 +114,71 @@ func _handle_message(text: String):
 	if (!data):
 		return
 	#Game Started! message has no data -> action=nil
+	
+	#{
+  #"action": "MATCH_STARTED",
+  #"playerId": "Player_1",
+  #"data": {
+	#"cardId": "",
+	#"target": "",
+	#"message": "",
+	#"nextPlayer": "Player_1",
+	#"turns": 1,
+	#"error": ""
+  #}
+#}
+
+#{
+  #"action": "CARD_DRAWN",
+  #"playerId": "Player_1",
+  #"data": {
+	#"cardId": "1",
+	#"target": "",
+	#"message": "",
+	#"nextPlayer": "",
+	#"turns": 1,
+	#"error": ""
+  #}
+#}
+
+#{
+  #"action": "NEXT_TURN",
+  #"playerId": "Player_1",
+  #"data": {
+	#"cardId": "",
+	#"target": "",
+	#"message": "",
+	#"nextPlayer": "Player_1",
+	#"turns": 1,
+	#"error": ""
+  #}
+#}
+
+#{
+  #"action": "CARD_PLAYED",
+  #"playerId": "Player_1",
+  #"data": {
+	#"cardId": "nor",
+	#"target": "",
+	#"message": "",
+	#"nextPlayer": "",
+	#"turns": 1,
+	#"error": ""
+  #}
+#}
+
+#{
+  #"action": "ERROR",
+  #"playerId": "Player_1",
+  #"data": {
+	#"cardId": "",
+	#"target": "",
+	#"message": "",
+	#"nextPlayer": "",
+	#"turns": 1,
+	#"error": "Invalid card"
+  #}
+#}
 
 	match data["action"]:
 		"CARD_PLAYED":
