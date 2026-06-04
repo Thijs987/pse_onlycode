@@ -19,10 +19,29 @@ public class MatchManager
             CurrentTurnPlayerId = players[0]
         };
 
-        newState.Deck.AddLast("1");
-        newState.Deck.AddLast("2");
-        newState.Deck.AddLast("3");
+        var allCards = new Dictionary<string, int>()
+        {
+            {"nor", 1},
+            {"DDos", 1},
+            {"SQL", 1},
+            {"cm", 1},
+            {"wild", 1},
+            {"vibe", 1},
+            {"loop", 1},
+            {"com", 1},
+            {"im", 1},
+            {"os", 1},
+            {"th", 1},
+            {"def", 1},
+            {"ms", 1}
+        };
+        foreach(var card in allCards){
+            for(int i = 0; i < card.Value; i++){
+                newState.TableCards.Add(card.Key);
+            }
+        }
 
+        GenerateDeck(newState);
         // TODO: Give initial hands to players
 
         _activeMatches.TryAdd(matchId, newState);
@@ -30,6 +49,20 @@ public class MatchManager
         Console.WriteLine($"Match {matchId} started!");
 
         return new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
+    }
+
+    //creates a new deck based on the Tablecards
+    void GenerateDeck(GameState state) {
+        state.Deck = new List<string>(state.TableCards);
+        state.TableCards = [];
+        Randomize(state);
+    }
+
+    //Randomizes the deck
+    void Randomize(GameState state) {
+        var rand = new Random();
+        state.Deck = state.Deck.OrderBy(_=>rand.Next()).ToList();
+        state.Deck.ForEach(Console.WriteLine);
     }
 
     // Returns DataInfo if there is no error responseData.Error=="".
@@ -116,27 +149,31 @@ public class MatchManager
         if (match.CurrentTurnPlayerId != playerId)
         {
             Console.WriteLine($"{playerId} tried to draw, but not their turn!");
-            return new DataInfo { Error = $"Cannot find player {playerId}" };
+            return new DataInfo { Error = $"Not your turn" };
         }
 
-        var deck = match.Deck;
-        var firstNode = deck.First;
-
-        // No top card, not possible
-        if (firstNode == null)
-        {
-            return new DataInfo { Error = $"No top card" };
-        }
-
-        string card = firstNode.Value;
-        deck.RemoveFirst();
-        Console.WriteLine($"The first card is {card}");
-
-        if (deck.Count <= 0)
-        {
+        if(match.Deck.Count <= 0) {
             // Refill deck
             Console.WriteLine("Deck empty");
+            GenerateDeck(match);
         }
+
+        // No top card, not possible
+        if (match.Deck.Count <= 0)
+        {
+            return new DataInfo {Error = "Deck could not be generated"};
+        }
+
+        var card = match.Deck[0];
+
+        match.Deck.RemoveAt(0);
+        Console.WriteLine($"The first card is {card}");
+
+        if (match.PlayerHands.TryGetValue(playerId, out var hand)) {
+            hand.Add(card);
+        }
+
+        Console.WriteLine($"card drawn {card}");
 
         var responseData = new DataInfo { CardId = card };
 
