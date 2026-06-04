@@ -21,7 +21,7 @@ public class MessageRouter
             // TODO: add actual logic
             switch (message.Action)
             {
-                case "START_GAME":
+                case "START_MATCH":
                     // matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
                     // Changed matchId to lobbyId
                     var players = connectionManager.GetPlayers(lobbyId);
