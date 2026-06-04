@@ -8,6 +8,10 @@ signal Leaderboard_Received(data) # Signal that passes the leaderboard
 
 const BASE_URL = "http://localhost:5025"
 
+func _ready():
+	Create_Lobby("Player_1")
+	Get_Lobbies()
+
 # Returns the active Lobbies
 func Get_Lobbies():
 	var request = HTTPRequest.new()
@@ -32,7 +36,7 @@ func _On_Lobbies_Received(result, response_code, headers, body):
 
 
 # Creates a game with as host "PId"
-func Create_Game(player_id: String):
+func Create_Lobby(player_id: String):
 	var request = HTTPRequest.new()
 	add_child(request)
 

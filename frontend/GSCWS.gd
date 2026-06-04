@@ -3,20 +3,24 @@ extends Node
 signal card_played(player_id, card_id)
 signal card_drawn(player_id, card_count)
 signal lobby_joined()
+signal match_start
 
 var socket := WebSocketPeer.new()
 
 var joined_emitted := false
 
 
-# func _ready():
-#	lobby_joined.connect(_on_lobby_joined)
+func _ready():
+	lobby_joined.connect(_on_lobby_joined)
+	match_start.connect(match_tests)
+	Join_Lobby("E36384", "Player_1")
 
-#	Join_Lobby("6E3680", "Mees")
+func match_tests():
+	Draw_Card("Player_1")
 
-# func _on_lobby_joined():
-#	print("Connected!")
-#	Start_Match()
+func _on_lobby_joined():
+	print("Connected!")
+	Start_Match()
 
 
 # Updates the websocket and checks for incoming messages
@@ -53,9 +57,10 @@ func Play_Card(card_id: String):
 
 
 # Function to draw a card
-func Draw_Card():
+func Draw_Card(PId: String):
 	_Send({
-		"action": "DRAW_CARD"
+		"action": "DRAW_CARD",
+		"playerId": PId
 	})
 
 
@@ -79,6 +84,14 @@ func _Send(data: Dictionary):
 # Interprets the data sent by the server
 func _handle_message(text: String):
 	var data = JSON.parse_string(text)
+	
+	if (text == "Game Started!"):
+		match_start.emit()
+		return
+	
+	if (!data):
+		return
+	#Game Started! message has no data -> action=nil
 
 	match data["action"]:
 		"CARD_PLAYED":
