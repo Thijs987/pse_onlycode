@@ -74,10 +74,29 @@ public class MessageRouter
                     }
 
                     // Send card to player.
-                    await connectionManager.SendMessageAsync(playerId, $"Got {card}");
+                    var sendCardMessage = new NetworkMessage
+                    {
+                        Action = "SEND_CARD",
+                        PlayerId = playerId,
+                        Data = new DataInfo{
+                            CardId = card
+                        }
+                    };
 
+                    await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(sendCardMessage));
                     // next turn
                     (string nextPlayer, int nTurns) = matchManager.NextTurn(lobbyId, playerId);
+
+                    // check player card limit
+                    var end = matchManager.CheckCardLimit(lobbyId, message.PlayerId);
+                    if(end == 1) {
+                        var endPlayerMessage = new NetworkMessage
+                        {
+                            Action = "CARD_LIMIT",
+                            PlayerId = playerId
+                        };
+                        await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(endPlayerMessage));
+                    }
 
                     var endTurnMessage = new NetworkMessage
                     {
