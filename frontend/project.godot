@@ -15,6 +15,11 @@ run/main_scene="uid://qekpyka670e2"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[display]
+
+window/stretch/aspect="expand"
+window/vsync/vsync_mode=0
+
 [dotnet]
 
 project/assembly_name="Frontend"
