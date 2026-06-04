@@ -29,7 +29,8 @@ public class MatchManager
         Console.WriteLine($"Match {matchId} started!");
     }
 
-    // Returns true if the move was legal, false if it was invalid
+    // Returns DataInfo if there is no error result.Error=="".
+    // Otherwise specific error is is inside result.Error.
     public DataInfo TryPlayCard(string matchId, string playerId, DataInfo cardData)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
