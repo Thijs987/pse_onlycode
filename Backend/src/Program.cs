@@ -1,44 +1,66 @@
+using Application;
+using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using System.Net.WebSockets;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddControllers();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+// Voor Sem heh
+/* Services
+ * - AuthService: Handles user registration and login
+ * - LobbyService: Handles lobby creation and management
+ */ /*
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<LobbyService>();
+*/
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddSingleton<ConnectionManager>();
+builder.Services.AddSingleton<MessageRouter>();
+builder.Services.AddSingleton<MatchManager>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.MapControllers();
+
+app.UseWebSockets();
+
+app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManager, MessageRouter router, MatchManager matchManager) =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    if (context.WebSockets.IsWebSocketRequest)
+    {
+        string lobbyId = context.Request.Query["lobbyId"].ToString();
+        string playerId = context.Request.Query["playerId"].ToString();
 
-app.UseHttpsRedirection();
+        if (string.IsNullOrEmpty(lobbyId) || string.IsNullOrEmpty(playerId))
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return;
+        }
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+        if (!connectionManager.IsLobbyAvailable(lobbyId))
+        {
+            Console.WriteLine($"Rejected {playerId}: Lobby {lobbyId} is full or doesn't exist.");
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return;
+        }
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+        using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
+        await connectionManager.HandleConnectionAsync(playerId, lobbyId, webSocket, router, matchManager, context.RequestAborted);
+    }
+    else
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+    }
+});
+
+app.MapLobbyEndpoints();
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

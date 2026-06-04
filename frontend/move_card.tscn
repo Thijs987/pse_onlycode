@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://b1pkguenhcf5y"]
+
+[ext_resource type="Texture2D" uid="uid://oj43q25kb2kc" path="res://cards/Miracle.webp" id="1_rf1sq"]
+[ext_resource type="Script" uid="uid://4l4hlwcgux15" path="res://shuffle_card.gd" id="2_mfqlb"]
+
+[node name="Move_card" type="Node2D" unique_id=1500584803]
+
+[node name="Shuffle_card" type="Sprite2D" parent="." unique_id=535108178]
+position = Vector2(164.00006, 397.00003)
+scale = Vector2(0.33, 0.33)
+texture = ExtResource("1_rf1sq")
+centered = false
+script = ExtResource("2_mfqlb")
