@@ -40,7 +40,8 @@ func _input(event):
 				var card = check_for_card()
 				if card != null:
 					play_card(card)
-				
+
+### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
 	if card.position.y < play_area.y:
 		card.position = play_pile

@@ -7,6 +7,7 @@ extends Area2D
 func _ready() -> void:
 	self.input_event.connect(_on_pile_input_event)
 
+### HIER KAN KAART PAKKEN LOGICA MET SERVER
 func _on_pile_input_event(viewport: Node, event: InputEvent, shape_idx: int):
 	#Check voor muisklik en of knop is ingedrukt
 	if event is InputEventMouseButton and event.pressed:

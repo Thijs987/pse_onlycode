@@ -1,20 +1,23 @@
 [gd_scene format=3 uid="uid://2rclrrsuh5tp"]
 
 [ext_resource type="Texture2D" uid="uid://ddi0wy7qoyp4c" path="res://Table.jpeg" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://card_logic.gd" id="1_uu6xs"]
 [ext_resource type="Texture2D" uid="uid://bglcmj03jm8lb" path="res://Card_deck_sprite.png" id="2_0xm2m"]
 [ext_resource type="Script" uid="uid://bgyrd0wawaoio" path="res://area_2d.gd" id="2_h2yge"]
+[ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://player_hand.gd" id="3_r0du0"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
 
 [node name="Node2D" type="Node2D" unique_id=1499448830]
-position = Vector2(228, 269)
 
 [node name="Tafel" type="Sprite2D" parent="." unique_id=950271474]
+position = Vector2(230.99998, 271.99997)
 scale = Vector2(2.1893203, 2.1893206)
 texture = ExtResource("1_ig7tw")
 
 [node name="Pile_area" type="Area2D" parent="." unique_id=1734952556]
+position = Vector2(235, 274)
 script = ExtResource("2_h2yge")
 
 [node name="Pile" type="Sprite2D" parent="Pile_area" unique_id=337770192]
@@ -31,3 +34,10 @@ offset_left = 34.0
 offset_top = -131.0
 offset_right = 74.0
 offset_bottom = -108.0
+metadata/_edit_use_anchors_ = true
+
+[node name="CardLogic" type="Node2D" parent="." unique_id=1659768658]
+script = ExtResource("1_uu6xs")
+
+[node name="PlayerHand" type="Node2D" parent="." unique_id=1343786011]
+script = ExtResource("3_r0du0")
