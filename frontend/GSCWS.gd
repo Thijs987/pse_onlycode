@@ -2,20 +2,33 @@ extends Node
 
 signal card_played(player_id, card_id)
 signal card_drawn(player_id, card_count)
+signal lobby_joined()
 
 var socket := WebSocketPeer.new()
 
-# Connect the socket to the server
-func _ready():
-	var err = socket.connect_to_url("ws://localhost:5025/lobby")
+var joined_emitted := false
 
-	if err != OK:
-		print("Failed to connect:", err)
+
+# func _ready():
+#	lobby_joined.connect(_on_lobby_joined)
+
+#	Join_Lobby("6E3680", "Mees")
+
+# func _on_lobby_joined():
+#	print("Connected!")
+#	Start_Match()
 
 
 # Updates the websocket and checks for incoming messages
 func _process(_delta):
 	socket.poll()
+	
+	if (
+		socket.get_ready_state() == WebSocketPeer.STATE_OPEN
+		and not joined_emitted
+	):
+		joined_emitted = true
+		lobby_joined.emit()
 
 	while socket.get_available_packet_count() > 0:
 		var packet = socket.get_packet()
@@ -24,10 +37,17 @@ func _process(_delta):
 		_handle_message(text)
 
 
+func Join_Lobby(LId: String, PId: String):
+	socket.connect_to_url(
+		"ws://localhost:5025/lobby?lobbyId=%s&playerId=%s"
+		% [LId, PId]
+	)
+
+
 # Function to play a card
 func Play_Card(card_id: String):
 	_Send({
-		"type": "PLAY_CARD",
+		"action": "PLAY_CARD",
 		"card_id": card_id
 	})
 
@@ -35,14 +55,14 @@ func Play_Card(card_id: String):
 # Function to draw a card
 func Draw_Card():
 	_Send({
-		"type": "DRAW_CARD"
+		"action": "DRAW_CARD"
 	})
 
 
 # Function to start match
 func Start_Match():
 	_Send({
-		"type": "START_MATCH"
+		"action": "START_MATCH"
 	})
 	
 
@@ -60,7 +80,7 @@ func _Send(data: Dictionary):
 func _handle_message(text: String):
 	var data = JSON.parse_string(text)
 
-	match data["type"]:
+	match data["action"]:
 		"CARD_PLAYED":
 			card_played.emit(
 				data["player_id"],

@@ -38,9 +38,14 @@ func Create_Game(player_id: String):
 
 	request.request_completed.connect(_On_Game_Created)
 
+	var json = JSON.stringify("")
+	var headers = ["Content-Type: application/json"]
 	request.request(
-		"%s/lobbies/create?hostId=%s"
-		% [BASE_URL, player_id]
+		"%s/api/lobbies/create?hostId=%s"
+		% [BASE_URL, player_id],
+		headers,
+		HTTPClient.METHOD_POST,
+		json
 	)
 
 
