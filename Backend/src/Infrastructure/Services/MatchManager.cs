@@ -65,10 +65,9 @@ public class MatchManager
         if (!_activeMatches.TryGetValue(matchId, out var match))
             return new DataInfo { Error = "Match not found!" };
 
-        if (match.CurrentTurnPlayerId != playerId)
+        if (!match.PlayerHands.TryGetValue(playerId, out var hands))
         {
-            Console.WriteLine($"{playerId} tried to play out of turn!");
-            return new DataInfo { Error = "Tried to play out of turn!" };
+            return new DataInfo {Error = "Cannot find player {playerId}"};
         }
 
         if (!match.PlayerHands[playerId].Contains(cardData.CardId))
@@ -164,21 +163,33 @@ public class MatchManager
 
         var deck = match.Deck;
         var firstNode = deck.First;
+        var hands = match.PlayerHands;
+
+        if (deck.Count <= 0)
+        {
+            // Refill deck
+            match.CardLimit -=1;
+            Console.WriteLine("Deck empty");
+        }
 
         // No top card, not possible
         if (firstNode == null)
         {
             return new DataInfo { Error = $"No top card" };
         }
-
         string card = firstNode.Value;
         deck.RemoveFirst();
         match.PlayerHands[playerId].Add(card);
         Console.WriteLine($"The first card is {card}");
 
+        hands[playerId].Add(card);
+
+        Console.WriteLine($"{card} added to {playerId}'s hand");
+
         if (deck.Count <= 0)
         {
             // Refill deck
+            match.CardLimit -=1;
             Console.WriteLine("Deck empty");
         }
 
@@ -226,5 +237,37 @@ public class MatchManager
             return hand;
         }
         return new List<string>();
+    }
+
+    public DataInfo CheckCardLimit(string matchId, string playerId)
+    {
+        // hands.TryGetValue(playerId, out var hand);
+        // var count = hand.Count;
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            Console.WriteLine($"Cannot find match {matchId}");
+            return new DataInfo {Error = $"Cannot find match {matchId}"};
+        }
+        if (!match.PlayerHands.TryGetValue(playerId, out var hand))
+        {
+            Console.WriteLine($"Cannot find player {playerId}");
+            return new DataInfo {Error = $"Cannot find player {playerId}"};
+        }
+
+        foreach(string Id in match.PlayerIds) {
+            Console.WriteLine($"{Id}");
+        }
+
+        // if card count is less then the limit return
+        if(hand.Count < match.CardLimit){
+            return new DataInfo {Message = "Good"};
+        }
+
+        // remove from cycle
+        match.PlayerIds.Remove(playerId);
+        // remove hand from dict
+        match.PlayerHands.Remove(playerId);
+
+        return new DataInfo {Message = $"{playerId} Removed"};
     }
 }

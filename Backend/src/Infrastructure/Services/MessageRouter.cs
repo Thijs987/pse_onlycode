@@ -85,6 +85,40 @@ public class MessageRouter
                     // next turn
                     responseData = matchManager.NextTurn(lobbyId, playerId);
 
+                    // check player card limit and remove player if over the limit
+                    var end = matchManager.CheckCardLimit(lobbyId, playerId);
+                    // Send error if there is an error
+                    if(end.Error != ""){
+                        var errorMessage = new NetworkMessage
+                        {
+                            Action = "ERROR",
+                            PlayerId = playerId,
+                            Data = end
+                        };
+                        await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(errorMessage));
+                    }
+
+                    if(end.Message == "Removed") {
+                        var endPlayerMessage = new NetworkMessage
+                        {
+                            Action = "CARD_LIMIT",
+                            PlayerId = playerId
+                        };
+                        //broadcast remove player
+                        await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(endPlayerMessage));
+                    }
+
+                    var endTurnMessage = new NetworkMessage
+                    {
+                        Action = "CARD_DRAWN",
+                        PlayerId = playerId,
+                        Data = new DataInfo{
+                            NextPlayer = nextPlayer,
+                            Turns = nTurns
+                        }
+                    };
+                    responseData = matchManager.NextTurn(lobbyId, playerId);
+
                     // Broadcast next player and NTurns
                     response = MakeMessage("NEXT_TURN", playerId, responseData);
                     await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
