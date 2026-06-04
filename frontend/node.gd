@@ -21,7 +21,7 @@ func match_tests():
 
 func _on_lobby_joined():
 	print("Connected!")
-	Start_Match()
+	Start_Match("Player_1")
 
 
 # Updates the websocket and checks for incoming messages
@@ -66,12 +66,33 @@ func Draw_Card(PId: String):
 
 
 # Function to start match
-func Start_Match():
-	_Send({
-		"action": "START_MATCH"
-	})
+func Start_Match(PId: String):
+	var message = _Make_Message("", PId)
+	_Send(message)
 	
+func _Make_Data(cardId: String = "",
+				target: String = "",
+				message: String = "",
+				nextPlayer = "",
+				turns: int = 1,
+				error: String = ""):
+	var data = {
+		"cardId": cardId,
+		"target": target,
+		"message": message,
+		"nextPlayer": nextPlayer,
+		"turns": turns,
+		"error": error
+	}
+	return data
 
+func _Make_Message(action: String, PId: String, data: Dictionary = _Make_Data()):
+	var message = {
+		"action": action,
+		"playerId": PId,
+		"data": data
+	}
+	return message
 
 # Helper function to send data
 func _Send(data: Dictionary):
