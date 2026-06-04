@@ -27,6 +27,13 @@ func _ready() -> void:
 		new_card.name = "Card"
 		add_card_to_hand(new_card)
 
+func new_card():
+	var card_scene = preload(CARD_SCENE_PATH)
+	var new_card = card_scene.instantiate()
+	$"../CardLogic".add_child(new_card)
+	new_card.name = "Card"
+	add_card_to_hand(new_card)
+
 func add_card_to_hand(card):
 	if card not in player_hand:
 		player_hand.insert(0, card)
@@ -34,12 +41,18 @@ func add_card_to_hand(card):
 	else:
 		move_to_position(card, card.hand_position)
 
+func remove_card_from_hand(card):
+	if card in player_hand:
+		player_hand.erase(card)
+		update_card_hand_position()
+
 func update_card_hand_position():
 	for i in range(player_hand.size()):
 		var new_position = Vector2(calculate_card_position(i), HAND_Y)
 		var moving_card = player_hand[i]
-		moving_card.hand_position = new_position
-		move_to_position(moving_card, new_position)
+		if moving_card.movable == true:
+			moving_card.hand_position = new_position
+			move_to_position(moving_card, new_position)
 		
 
 func calculate_card_position(position):

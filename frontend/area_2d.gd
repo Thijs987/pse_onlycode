@@ -9,8 +9,11 @@ extends Area2D
 # Maakt CounterLabel node
 @onready var counter_label: Label = $CounterLabel
 
+var hand_reference
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	hand_reference = $"../../PlayerHand"
 	self.input_event.connect(_on_pile_input_event)
 	update_card_text()
 
@@ -26,6 +29,7 @@ func decrease_counter():
 		card_count -= 1
 		# Past card count getal aan
 		update_card_text()
+		hand_reference.new_card()
 	else:
 		print("Pile is empty")
 

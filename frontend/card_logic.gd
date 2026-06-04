@@ -32,6 +32,7 @@ func play_card(card):
 		card.position = play_pile
 		card.movable = false
 		highlight_card(card, false)
+		hand_reference.remove_card_from_hand(card)
 
 func start_dragging(card):
 	card.scale = Vector2(1.0, 1.0)
