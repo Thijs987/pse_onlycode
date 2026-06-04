@@ -11,8 +11,11 @@ func _ready() -> void:
 var card_offsetx
 var card_offsety
 
+var play_area = Vector2(0, 200)
+var play_pile = Vector2(200, 200)
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if dragging_card != null:
 		var mouse_pos = get_global_mouse_position()
 		dragging_card.position = Vector2(clamp(mouse_pos.x + card_offsetx, 0, screen_size.x),
@@ -29,6 +32,16 @@ func _input(event):
 		else:
 			stop_dragging()
 
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			if event.is_released():
+				var card = check_for_card()
+				if card != null:
+					play_card(card)
+				
+func play_card(card):
+	if card.position.y < play_area.y:
+		card.position = play_pile
+
 func start_dragging(card):
 	card.scale = Vector2(1.0, 1.0)
 	dragging_card = card
@@ -40,7 +53,7 @@ func start_dragging(card):
 func stop_dragging():
 	if dragging_card:
 		dragging_card.scale = Vector2(1.1, 1.1)
-		dragging_card = null
+	dragging_card = null
 
 func connect_card_signals(card):
 	card.connect("hovered", hovered_over_card)
