@@ -1,4 +1,4 @@
-When the host calls START_GAME, it creates a match with the current players in the lobby in the turn cycle.
+When the host calls START_GAME, it creates a match with the current players in the lobby in the turn cycle.Test
 
 For testing
 
