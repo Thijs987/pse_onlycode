@@ -34,7 +34,8 @@ public class MessageRouter
                     responseData = matchManager.StartNewMatch(lobbyId, players);
 
                     response = MakeMessage("MATCH_STARTED", playerId, responseData);
-                    await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
+                    // await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
+                    await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
                     break;
 
                 case "PLAY_CARD":
@@ -62,6 +63,7 @@ public class MessageRouter
                     // Normal end to a turn. Grab card (check IH) and broadcast action to lobby.
                     responseData = matchManager.GetFirstCard(lobbyId, message.PlayerId);
                     var card = responseData.CardId;
+                    var newLimit = responseData.Message;
 
                     if (card == "")
                     {
@@ -86,7 +88,7 @@ public class MessageRouter
                     responseData = matchManager.NextTurn(lobbyId, playerId);
 
                     // check player card limit and remove player if over the limit
-                    var end = matchManager.CheckCardLimit(lobbyId, playerId);
+                    var end = matchManager.CheckCardLimit(lobbyId, playerId, newLimit);
                     // Send error if there is an error
                     if(end.Error != ""){
                         var errorMessage = new NetworkMessage
@@ -112,10 +114,7 @@ public class MessageRouter
                     {
                         Action = "CARD_DRAWN",
                         PlayerId = playerId,
-                        Data = new DataInfo{
-                            NextPlayer = nextPlayer,
-                            Turns = nTurns
-                        }
+                        Data = responseData
                     };
                     responseData = matchManager.NextTurn(lobbyId, playerId);
 

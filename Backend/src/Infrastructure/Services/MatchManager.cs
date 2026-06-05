@@ -5,6 +5,7 @@
 */
 using System.Collections.Concurrent;
 using Domain;
+using Application.Interfaces;
 
 public class MatchManager
 {
@@ -199,13 +200,14 @@ public class MatchManager
             return new DataInfo { Error = $"Not your turn" };
         }
 
-        //         Eric check
+        var responseData = new DataInfo{};
+
         if (match.Deck.Count <= 0)
         {
             // Refill deck
             Console.WriteLine("Deck empty");
             GenerateDeck(match);
-            match.CardLimit -= 1;
+            responseData.Message = "1";
         }
 
         // No top card, not possible
@@ -226,7 +228,8 @@ public class MatchManager
 
         Console.WriteLine($"card drawn {card}");
 
-        var responseData = new DataInfo { CardId = card };
+        // var responseData = new DataInfo { CardId = card };
+        responseData.CardId = card;
 
         return responseData;
     }
@@ -272,7 +275,7 @@ public class MatchManager
         return new List<string>();
     }
 
-    public DataInfo CheckCardLimit(string matchId, string playerId)
+    public DataInfo CheckCardLimit(string matchId, string playerId, string newLimit)
     {
         // hands.TryGetValue(playerId, out var hand);
         // var count = hand.Count;
@@ -292,17 +295,22 @@ public class MatchManager
             Console.WriteLine($"{Id}");
         }
 
+        var responseData = new DataInfo {};
+
         // if card count is less then the limit return
         if (hand.Count <= match.CardLimit)
         {
-            return new DataInfo { Message = "Good" };
+            responseData.Message = "Good" ;
+        } else {
+            // remove from cycle
+            match.PlayerIds.Remove(playerId);
+            // remove hand from dict
+            match.PlayerHands.Remove(playerId);
+            responseData.Message = " Removed" ;
         }
-
-        // remove from cycle
-        match.PlayerIds.Remove(playerId);
-        // remove hand from dict
-        match.PlayerHands.Remove(playerId);
-
-        return new DataInfo { Message = $"{playerId} Removed" };
+        if(newLimit == "1") {
+            match.CardLimit--;
+        }
+        return responseData;
     }
 }
