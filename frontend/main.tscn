@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://ddi0wy7qoyp4c" path="res://Table.jpeg" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://card_logic.gd" id="1_uu6xs"]
 [ext_resource type="Texture2D" uid="uid://bglcmj03jm8lb" path="res://Card_deck_sprite.png" id="2_0xm2m"]
-[ext_resource type="Script" uid="uid://bgyrd0wawaoio" path="res://area_2d.gd" id="2_h2yge"]
+[ext_resource type="Script" uid="uid://bkjjiqdqugih7" path="res://pile.gd" id="2_272bh"]
 [ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://player_hand.gd" id="3_r0du0"]
 [ext_resource type="Script" uid="uid://dis0yyp8e3chk" path="res://input_manager.gd" id="6_7mycd"]
 
@@ -18,11 +18,11 @@ scale = Vector2(2.1893203, 2.1893206)
 texture = ExtResource("1_ig7tw")
 
 [node name="Pile" type="Node2D" parent="." unique_id=738463849]
+script = ExtResource("2_272bh")
 
 [node name="Pile_area" type="Area2D" parent="Pile" unique_id=1734952556]
 position = Vector2(579, 275)
 collision_mask = 2
-script = ExtResource("2_h2yge")
 
 [node name="Pile" type="Sprite2D" parent="Pile/Pile_area" unique_id=337770192]
 position = Vector2(-2.0000002, -150.00002)
