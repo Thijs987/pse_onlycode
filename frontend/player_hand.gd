@@ -19,6 +19,7 @@ var center_screen_x
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	GSCHTTP.Create_Lobby("Player_1")
 	center_screen_x = get_viewport().size.x / 2
 	var card_scene = preload(CARD_SCENE_PATH)
 	for i in range(CARD_COUNT):

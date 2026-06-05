@@ -10,10 +10,10 @@ const BASE_URL = "http://localhost:5025"
 
 var P_Name := ""
 
-var GSCWS
+#var GSCWS
 
-func _ready():
-	GSCWS = $"../GSCWS"
+#func _ready():
+	#GSCWS = $"../GSCWS"
 
 
 # Returns the active Lobbies
