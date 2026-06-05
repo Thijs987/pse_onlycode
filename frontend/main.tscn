@@ -6,6 +6,8 @@
 [ext_resource type="Script" uid="uid://bgyrd0wawaoio" path="res://area_2d.gd" id="2_h2yge"]
 [ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://player_hand.gd" id="3_r0du0"]
 [ext_resource type="Script" uid="uid://dis0yyp8e3chk" path="res://input_manager.gd" id="6_7mycd"]
+[ext_resource type="Script" uid="uid://br3mo8m8v4kiw" path="res://gschttp.gd" id="7_5vw27"]
+[ext_resource type="Script" uid="uid://dg8okmsqxxyxb" path="res://gscws.gd" id="8_kek77"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
@@ -48,3 +50,9 @@ script = ExtResource("3_r0du0")
 
 [node name="InputManager" type="Node2D" parent="." unique_id=174033307]
 script = ExtResource("6_7mycd")
+
+[node name="GSCHTTP" type="Node2D" parent="." unique_id=188720182]
+script = ExtResource("7_5vw27")
+
+[node name="GSCWS" type="Node2D" parent="." unique_id=935993471]
+script = ExtResource("8_kek77")
