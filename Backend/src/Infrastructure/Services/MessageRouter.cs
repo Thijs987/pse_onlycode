@@ -34,7 +34,8 @@ public class MessageRouter
                     responseData = matchManager.StartNewMatch(lobbyId, players);
 
                     response = MakeMessage("MATCH_STARTED", playerId, responseData);
-                    await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
+                    // await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
+                    await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
                     break;
 
                 case "PLAY_CARD":
