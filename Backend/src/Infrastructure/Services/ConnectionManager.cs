@@ -29,7 +29,9 @@ public class ConnectionManager
         {
             Action = "PLAYER_JOINED",
             PlayerId = playerId,
-            Data = $"{playerId} has joined the game!"
+            Data = new DataInfo {
+                Message = $"{playerId} has joined the game!"
+            }
         };
 
         await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(joinMessage));
@@ -78,7 +80,9 @@ public class ConnectionManager
             {
                 Action = "PLAYER_LEFT",
                 PlayerId = playerId,
-                Data = $"{playerId} disconnected."
+                Data = new DataInfo {
+                    Message = $"{playerId} disconnected."
+                }
             };
 
             await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));

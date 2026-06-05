@@ -1,7 +1,9 @@
 using Application;
+using Application.Interfaces;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Net.WebSockets;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,14 +12,13 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
-// Voor Sem heh
-/* Services
- * - AuthService: Handles user registration and login
- * - LobbyService: Handles lobby creation and management
- */ /*
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<LobbyService>();
-*/
+var cardTypes = typeof(ICardEffect).Assembly.GetTypes()
+    .Where(t => t.IsClass && !t.IsAbstract && typeof(ICardEffect).IsAssignableFrom(t));
+
+foreach (var type in cardTypes)
+{
+    builder.Services.AddSingleton(typeof(ICardEffect), type);
+}
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
