@@ -8,13 +8,11 @@ extends Node2D
 
 # Maakt CounterLabel node
 @onready var counter_label: Label = $Pile_area/CounterLabel
-
-var hand_reference
+@onready var controller = $"../Controller"
+@onready var hand_reference = $"../PlayerHand"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	hand_reference = $"../PlayerHand"
-	#$"../InputManager".connect("left_mouse_pressed", on_pile_input_event)
 	update_card_text()
 
 # Haalt 1 kaart van de counter
@@ -23,6 +21,7 @@ func decrease_counter():
 		card_count -= 1
 		# Past card count getal aan
 		update_card_text()
+		controller.Draw_Card("Player_1")
 		hand_reference.new_card()
 	else:
 		print("Pile is empty")

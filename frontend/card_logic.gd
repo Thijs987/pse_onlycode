@@ -9,6 +9,8 @@ var card_offsetx
 var card_offsety
 var hand_reference
 
+@onready var controller = $"../Controller"
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	screen_size = get_viewport_rect().size
@@ -33,6 +35,9 @@ func play_card(card):
 		card.movable = false
 		highlight_card(card, false)
 		hand_reference.remove_card_from_hand(card)
+
+		print(card)
+		controller.Play_Card("Player_1", "goto")
 
 func start_dragging(card):
 	card.scale = Vector2(1.0, 1.0)
