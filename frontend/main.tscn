@@ -10,7 +10,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
 
-[node name="blalba" type="Node2D" unique_id=1499448830]
+[node name="main" type="Node2D" unique_id=1499448830]
 
 [node name="Tafel" type="Sprite2D" parent="." unique_id=950271474]
 position = Vector2(575.99994, 270)

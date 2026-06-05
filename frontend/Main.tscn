@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://qekpyka670e2"]
+[gd_scene format=3 uid="uid://2rclrrsuh5tp"]
 
 [ext_resource type="Texture2D" uid="uid://ddi0wy7qoyp4c" path="res://Table.jpeg" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://card_logic.gd" id="1_uu6xs"]
