@@ -9,6 +9,8 @@ var socket := WebSocketPeer.new()
 
 var joined_emitted := false
 
+@onready var Controller = $"../Controller"
+
 
 #func _ready():
 	#lobby_joined.connect(_on_lobby_joined)
@@ -109,12 +111,11 @@ func _Send(data: Dictionary):
 # Interprets the data sent by the server
 func _handle_message(text: String):
 	var msg = JSON.parse_string(text)
-	var data = msg["data"]
 	
-	if (!msg || !data):
+	if (!msg):
 		return
-	print("IN:")
-	print(msg)
+	
+	Controller.Update_From_Server(msg)
 
 	match msg["action"]:
 		"PLAYER_JOINED":
