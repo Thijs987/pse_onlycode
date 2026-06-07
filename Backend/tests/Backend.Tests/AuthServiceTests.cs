@@ -74,6 +74,15 @@ public class AuthServiceTests
             new ConsoleEmailService());
     }
 
+    private static AuthService CreateAuthService(AppDbContext context, IEmailService emailService)
+    {
+        return new AuthService(
+            context,
+            new InMemoryAuditService(),
+            new InMemoryRateLimitService(),
+            emailService);
+    }
+
     // Helper context subclass to simulate a DB constraint failure during SaveChanges
     private class FailingAppDbContext : AppDbContext
     {
@@ -98,6 +107,53 @@ public class AuthServiceTests
         }
     }
 
+    private class RecordingEmailService : IEmailService
+    {
+        public int VerificationEmailCount { get; private set; }
+        public string? LastTo { get; private set; }
+        public string? LastUsername { get; private set; }
+        public string? LastToken { get; private set; }
+        public string? LastLink { get; private set; }
+
+        public Task SendVerificationEmailAsync(string email, string username, string verificationToken, string verificationLink)
+        {
+            VerificationEmailCount++;
+            LastTo = email;
+            LastUsername = username;
+            LastToken = verificationToken;
+            LastLink = verificationLink;
+            return Task.CompletedTask;
+        }
+
+        public Task SendPasswordResetEmailAsync(string email, string username, string resetToken, string resetLink)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task SendNotificationEmailAsync(string email, string subject, string body)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    private class ThrowingEmailService : IEmailService
+    {
+        public Task SendVerificationEmailAsync(string email, string username, string verificationToken, string verificationLink)
+        {
+            throw new InvalidOperationException("Simulated SMTP failure");
+        }
+
+        public Task SendPasswordResetEmailAsync(string email, string username, string resetToken, string resetLink)
+        {
+            throw new InvalidOperationException("Simulated SMTP failure");
+        }
+
+        public Task SendNotificationEmailAsync(string email, string subject, string body)
+        {
+            throw new InvalidOperationException("Simulated SMTP failure");
+        }
+    }
+
     [Fact]
     // Register a valid new user and assert the registration succeeds.
     public async Task Register_Succeeds_WithValidInput()
@@ -111,6 +167,121 @@ public class AuthServiceTests
         Assert.NotNull(result.Value);
         Assert.Equal("test@example.com", result.Value.Email);
         Assert.Equal("testuser", result.Value.Username);
+    }
+
+    [Fact]
+    // Register a specific semvdberge@gmail.com account in the unit test and verify email send behavior.
+    public async Task Register_Succeeds_WithSemvdbergeEmail_AndInvokesVerificationEmail()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var recordingEmail = new RecordingEmailService();
+        var service = CreateAuthService(context, recordingEmail);
+
+        var result = await service.Register("semvdberge@gmail.com", "semvdberge", "Password1!", "127.0.0.1");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("semvdberge@gmail.com", result.Value.Email);
+        Assert.Equal("semvdberge", result.Value.Username);
+        Assert.Equal(1, recordingEmail.VerificationEmailCount);
+        Assert.Equal("semvdberge@gmail.com", recordingEmail.LastTo);
+        Assert.Equal("semvdberge", recordingEmail.LastUsername);
+        Assert.False(string.IsNullOrWhiteSpace(recordingEmail.LastToken));
+        Assert.False(string.IsNullOrWhiteSpace(recordingEmail.LastLink));
+        Assert.Contains(recordingEmail.LastToken!, recordingEmail.LastLink!);
+        Assert.Contains("email=semvdberge%40gmail.com", recordingEmail.LastLink!);
+
+        var user = await context.Users.FirstAsync(u => u.Email == "semvdberge@gmail.com");
+        Assert.NotNull(user);
+        Assert.False(user.IsEmailVerified);
+        Assert.False(string.IsNullOrWhiteSpace(user.VerificationToken));
+        Assert.NotNull(user.VerificationTokenExpiry);
+    }
+
+    [Fact]
+    // Verify email with a valid token succeeds and clears the token state.
+    public async Task VerifyEmailAsync_Succeeds_WithValidToken()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var user = new Domain.AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "verify@example.com",
+            Username = "verifyuser",
+            PasswordHash = Application.PasswordHasher.Hash("Password1!"),
+            IsEmailVerified = false,
+            VerificationToken = "valid-token",
+            VerificationTokenExpiry = DateTime.UtcNow.AddHours(1)
+        };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+
+        var service = CreateAuthService(context);
+        var result = await service.VerifyEmailAsync("verify@example.com", "valid-token");
+
+        Assert.True(result.IsSuccess);
+        var refreshed = await context.Users.FirstAsync(u => u.Email == "verify@example.com");
+        Assert.True(refreshed.IsEmailVerified);
+        Assert.Null(refreshed.VerificationToken);
+        Assert.Null(refreshed.VerificationTokenExpiry);
+    }
+
+    [Fact]
+    // Resend verification email updates the token and sends a new email for unverified users.
+    public async Task ResendVerificationEmailAsync_Succeeds_ForUnverifiedUser()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var user = new Domain.AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "resend@example.com",
+            Username = "resenduser",
+            PasswordHash = Application.PasswordHasher.Hash("Password1!"),
+            IsEmailVerified = false,
+            VerificationToken = "old-token",
+            VerificationTokenExpiry = DateTime.UtcNow.AddHours(-1)
+        };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+
+        var recordingEmail = new RecordingEmailService();
+        var service = CreateAuthService(context, recordingEmail);
+        var result = await service.ResendVerificationEmailAsync("resend@example.com");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, recordingEmail.VerificationEmailCount);
+        Assert.Equal("resend@example.com", recordingEmail.LastTo);
+        Assert.Equal("resenduser", recordingEmail.LastUsername);
+        Assert.False(string.IsNullOrWhiteSpace(recordingEmail.LastToken));
+        Assert.False(string.Equals(recordingEmail.LastToken, "old-token", StringComparison.Ordinal));
+
+        var refreshed = await context.Users.FirstAsync(u => u.Email == "resend@example.com");
+        Assert.False(string.IsNullOrWhiteSpace(refreshed.VerificationToken));
+        Assert.True(refreshed.VerificationTokenExpiry > DateTime.UtcNow);
+    }
+
+    [Fact]
+    // Resend verification email should reject already verified accounts.
+    public async Task ResendVerificationEmailAsync_ReturnsInvalidOperation_WhenAlreadyVerified()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var user = new Domain.AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "verified@example.com",
+            Username = "verifieduser",
+            PasswordHash = Application.PasswordHasher.Hash("Password1!"),
+            IsEmailVerified = true,
+            VerificationToken = null,
+            VerificationTokenExpiry = null
+        };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+
+        var service = CreateAuthService(context);
+        var result = await service.ResendVerificationEmailAsync("verified@example.com");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(Application.Results.ServiceErrorCode.InvalidOperation, result.Error!.Code);
     }
 
     [Fact]
@@ -312,6 +483,23 @@ public class AuthServiceTests
 
         Assert.False(result.IsSuccess);
         Assert.Equal(Application.Results.ServiceErrorCode.InternalError, result.Error!.Code);
+    }
+
+    [Fact]
+    // Registration should still succeed when the email service throws; this proves the current server path can create a user without delivering email.
+    public async Task Register_Succeeds_WhenEmailServiceThrows()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = CreateAuthService(context, new ThrowingEmailService());
+
+        var result = await service.Register("email-failure@example.com", "testuser", "Password1!", "127.0.0.1");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("email-failure@example.com", result.Value.Email);
+        Assert.Equal("testuser", result.Value.Username);
+        var persisted = await context.Users.FirstOrDefaultAsync(u => u.Email == "email-failure@example.com");
+        Assert.NotNull(persisted);
+        Assert.False(persisted!.IsEmailVerified);
     }
 
     [Fact]
