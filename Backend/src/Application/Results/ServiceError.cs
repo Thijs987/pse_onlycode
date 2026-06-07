@@ -23,7 +23,8 @@ public enum ServiceErrorCode
     RateLimited,
     TooManyAttempts,
     InternalError,
-    NotFound
+    NotFound,
+    InvalidOperation
 }
 
 public sealed class ServiceError

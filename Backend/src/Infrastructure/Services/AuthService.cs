@@ -17,6 +17,7 @@ public class AuthService
     private readonly IAuditService _auditService;
     private readonly IRateLimitService _rateLimitService;
     private readonly IEmailService _emailService;
+    //private readonly IConfiguration _config;
     private static readonly string _dummyHash = PasswordHasher.Hash("__dummy_password_for_timing__");
 
     // Configuration
@@ -32,6 +33,7 @@ public class AuthService
         _auditService = auditService;
         _rateLimitService = rateLimitService;
         _emailService = emailService;
+        //_config = config;
     }
 
 
@@ -174,8 +176,8 @@ public class AuthService
         }
 
         // generate email verification token (valid for 24 hours)
-        /*var verificationToken = GenerateVerificationToken();
-        var verificationExpiry = DateTime.UtcNow.AddHours(EmailVerificationTokenExpiryHours);*/
+        var verificationToken = GenerateVerificationToken();
+        var verificationExpiry = DateTime.UtcNow.AddHours(EmailVerificationTokenExpiryHours);
 
         // create user (email not verified yet)
         var user = new AppUser
@@ -184,9 +186,9 @@ public class AuthService
             Email = email,
             Username = username,
             PasswordHash = PasswordHasher.Hash(password),
-            IsEmailVerified = true, // set to false if you want to require email verification before login
-            /*VerificationToken = verificationToken,
-            VerificationTokenExpiry = verificationExpiry*/
+            IsEmailVerified = false, // set to false if you want to require email verification before login
+            VerificationToken = verificationToken,
+            VerificationTokenExpiry = verificationExpiry
         };
 
         _db.Users.Add(user);
@@ -213,7 +215,12 @@ public class AuthService
 
         // send verification email
         // TODO: replace with your actual domain/baseurl from configuration
-        /*var verificationLink = $"https://yourdomain.com/api/auth/verify-email?token={Uri.EscapeDataString(verificationToken)}&email={Uri.EscapeDataString(email)}";
+        var baseUrl = "http://83.96.203.15:5000"; //_config["AppSettings:BaseUrl"];
+
+        var verificationLink =
+            $"{baseUrl}/api/auth/verify-email" +
+            $"?token={Uri.EscapeDataString(verificationToken)}" +
+            $"&email={Uri.EscapeDataString(email)}";
         try
         {
             await _emailService.SendVerificationEmailAsync(email, username, verificationToken, verificationLink);
@@ -222,7 +229,7 @@ public class AuthService
         {
             // log but don't fail registration; user can request resend
             await _auditService.LogAuthEventAsync("register_attempt", email, true, $"Email send failed: {ex.Message}", ipAddress);
-        }*/
+        }
 
         await _auditService.LogAuthEventAsync("register_attempt", email, true, "User created, email verification required", ipAddress);
         await _rateLimitService.RecordAttemptAsync(rateLimitKey);
@@ -281,13 +288,13 @@ public class AuthService
         }
     }
 
-    /*public async Task<bool> VerifyEmailAsync(string email, string token)
+    public async Task<Result> VerifyEmailAsync(string email, string token)
     {
         // basic validation
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
         {
             await _auditService.LogAuthEventAsync("email_verify_attempt", email ?? "unknown", false, "Empty email or token", null);
-            return false;
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Invalid verification request."));
         }
 
         // normalize email + find user by email
@@ -296,21 +303,22 @@ public class AuthService
         if (user == null)
         {
             await _auditService.LogAuthEventAsync("email_verify_attempt", email, false, "User not found", null);
-            return false;
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid verification link."));
         }
 
         // check if already verified
         if (user.IsEmailVerified)
         {
             await _auditService.LogAuthEventAsync("email_verify_attempt", email, false, "Email already verified", null);
-            return false;
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Email already verified."));
         }
 
         // check token and expiry
-        if (user.VerificationToken != token || !user.VerificationTokenExpiry.HasValue || user.VerificationTokenExpiry < DateTime.UtcNow)
+        if (user.VerificationToken != token || !user.VerificationTokenExpiry.HasValue ||
+                                                user.VerificationTokenExpiry < DateTime.UtcNow)
         {
             await _auditService.LogAuthEventAsync("email_verify_attempt", email, false, "Invalid or expired token", null);
-            return false;
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid or expired verification token."));
         }
 
         // mark email as verified and clear token
@@ -329,20 +337,20 @@ public class AuthService
         }
 
         await _auditService.LogAuthEventAsync("email_verify_attempt", email, true, null, null);
-        return true;
+        return Result.Success();
     }
 
-    public async Task<bool> ResendVerificationEmailAsync(string email)
+    public async Task<Result> ResendVerificationEmailAsync(string email)
     {
         // basic validation
         if (string.IsNullOrWhiteSpace(email))
-            return false;
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Email is required."));
 
         // normalize email + find user by email
         email = email.Trim().ToLowerInvariant();
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user == null || user.IsEmailVerified)
-            return false;
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Invalid request."));
 
         // generate new token and expiry
         user.VerificationToken = GenerateVerificationToken();
@@ -350,10 +358,16 @@ public class AuthService
         await _db.SaveChangesAsync();
 
         // send verification email
-        var verificationLink = $"https://yourdomain.com/api/auth/verify-email?token={Uri.EscapeDataString(user.VerificationToken)}&email={Uri.EscapeDataString(email)}";
+        var baseUrl = "http://83.96.203.15:5000"; //_config["AppSettings:BaseUrl"];
+        var verificationLink =
+            $"{baseUrl}/api/auth/verify-email" +
+            $"?token={Uri.EscapeDataString(user.VerificationToken)}" +
+            $"&email={Uri.EscapeDataString(email)}";
+
         await _emailService.SendVerificationEmailAsync(email, user.Username, user.VerificationToken, verificationLink);
         await _auditService.LogAuthEventAsync("resend_verification", email, true, null, null);
-        return true;
+
+        return Result.Success();
     }
 
     private static string GenerateVerificationToken()
@@ -363,5 +377,5 @@ public class AuthService
         var tokenData = new byte[32];
         rng.GetBytes(tokenData);
         return Convert.ToBase64String(tokenData).Replace("+", "-").Replace("/", "_").TrimEnd('=');
-    }*/
+    }
 }
