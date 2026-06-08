@@ -46,6 +46,7 @@ func Update_From_Server(msg: Dictionary):
 	if Last_Message["action"] == "CARD_PLAYED":
 		Player_Hand.erase(Last_Message["data"]["cardId"])
 
+
 func Update_Lobbies(lobbies: Array):
 	Active_Lobbies = lobbies
 
