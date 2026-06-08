@@ -16,12 +16,18 @@ public class SQLInjectionCard : ICardEffect
         }
 
         // TODO: Write the actual logic
+        var target = cardData.Target;
+        matchState.CurrentTurnPlayerId = target;
+        matchState.NTurns = 2;
 
-        // Return a basic response so the game doesn't crash
+        matchState.PlayerHands[playerId].Remove(CardId);
+
         return new DataInfo
         {
             CardId = CardId,
-            Message = $"{playerId} played {CardId}, but the effect is not yet implemented!"
+            NextPlayer = cardData.Target,
+            Turns = 2,
+            Message = $"{playerId} launched a DDos attack! {target} must play {matchState.NTurns} turns."
         };
     }
 }

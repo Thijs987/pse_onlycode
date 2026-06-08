@@ -14,7 +14,7 @@ public class DDosCard : ICardEffect
         string nextPlayer = matchState.PlayerIds[nextIndex];
 
         matchState.CurrentTurnPlayerId = nextPlayer;
-        matchState.NTurns += 1;
+        matchState.NTurns = 2;
 
         matchState.PlayerHands[playerId].Remove(CardId);
 

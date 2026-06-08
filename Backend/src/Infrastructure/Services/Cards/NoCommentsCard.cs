@@ -9,19 +9,70 @@ public class NoCommentsCard : ICardEffect
 
     public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
     {
+        var responseData = new DataInfo{
+            CardId = CardId
+        };
+
+        if (!matchState.PlayerIds.Contains(cardData.Target)){
+            responseData.Error = $"{cardData.Target} not in game.";
+            return responseData;
+        }
+
+        // TODO: Write the actual logic
+        var target = cardData.Target;
+        var send_cards = cardData.Cards;
+        List <string> blank_cards = new List <string> {"goto", "nocom"};
+
+        //check if enough cards are send
+        if(send_cards.Count() != 2) {
+            responseData.Error = $"incorrect number of cards have been used.";
+            return responseData;
+        }
+
+        //check if both cards are valid
+        foreach (var cards in send_cards) {
+            if(!matchState.PlayerHands[playerId].Contains(cards) || !blank_cards.Contains(cards)){
+                responseData.Error = $"Incorrect set of cards have been send";
+                return responseData;
+            }
+        }
+
+        //generate and shuffle deck if empty
+        if (matchState.Deck.Count <= 0)
+        {
+            // Refill deck
+            Console.WriteLine("Deck empty");
+            matchState.Deck = new List<string>(matchState.TableCards);
+            matchState.TableCards = [];
+            var rand = new Random();
+            matchState.Deck = matchState.Deck.OrderBy(_ => rand.Next()).ToList();
+            responseData.Message = "deck regenarated";
+        }
+
+        // No top card, not possible
+        if (matchState.Deck.Count <= 0)
+        {
+            responseData.Error = "Deck could not be generated";
+            return responseData;
+        }
+
+        //give card to player.
+        var card = matchState.Deck[0];
+
+        matchState.Deck.RemoveAt(0);
+        Console.WriteLine($"The first card is {card}");
+
+        matchState.PlayerHands[target].Add(card);
+
+        // Return a basic response so the game doesn't crash
+        responseData.Target = target;
+        responseData.Cards.Add(card);
+
         // Standard Cleanup
         if (matchState.PlayerHands.ContainsKey(playerId))
         {
             matchState.PlayerHands[playerId].Remove(CardId);
         }
-
-        // TODO: Write the actual logic
-
-        // Return a basic response so the game doesn't crash
-        return new DataInfo
-        {
-            CardId = CardId,
-            Message = $"{playerId} played {CardId}, but the effect is not yet implemented!"
-        };
+        return responseData;
     }
 }
