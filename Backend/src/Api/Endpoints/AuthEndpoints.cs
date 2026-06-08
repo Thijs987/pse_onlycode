@@ -10,6 +10,7 @@ public static class AuthEndpoints
     {
         var group = app.MapGroup("/api/auth");
 
+        // GET /api/auth/verify-email?email=...&token=...
         group.MapGet("/verify-email", async (
             string email,
             string token,
