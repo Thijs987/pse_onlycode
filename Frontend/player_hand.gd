@@ -1,5 +1,7 @@
 extends Node2D
 
+@onready var card_logic = $"../CardLogic"
+
 const CARD_COUNT = 5
 const CARD_SCENE_PATH = "res://card.tscn"
 const CARD_WIDTH = 120
@@ -27,6 +29,10 @@ func _ready() -> void:
 		new_card.name = "Card"
 		add_card_to_hand(new_card)
 
+func _process(_delta: float) -> void:
+	if card_logic and card_logic.dragging_card != null:
+		sort_hand()
+
 func new_card():
 	var card_scene = preload(CARD_SCENE_PATH)
 	var new_card = card_scene.instantiate()
@@ -52,8 +58,38 @@ func update_card_hand_position():
 		var moving_card = player_hand[i]
 		if moving_card.movable == true:
 			moving_card.hand_position = new_position
-			move_to_position(moving_card, new_position)
+			if moving_card != card_logic.dragging_card: # Only update non moving cards
+				move_to_position(moving_card, new_position)
 		
+
+func sort_hand():
+	# Ook iets waardoor je alleen de kaart van positie verandert als ie niet te ver van je hand is
+	var mouse_pos = get_global_mouse_position()
+	if mouse_pos.y < 0: # Zoek juiste value hiervoor, miss ook minimum
+		return
+
+	var moving_card = card_logic.dragging_card
+	var moving_index = player_hand.find(moving_card)
+	if moving_index == -1: # Card not found
+		return
+	
+	if moving_index > 0: # Not left most card
+		var left_card = player_hand[moving_index - 1]
+		if mouse_pos.x < left_card.x:
+			player_hand[moving_index] = left_card
+			player_hand[moving_index - 1] = moving_card
+			update_card_hand_position()
+			return
+		
+	if moving_index < player_hand.size() - 1: # Not right most card
+		var right_card = player_hand[moving_index + 1]
+		if mouse_pos.x > right_card.x:
+			player_hand[moving_index] = right_card
+			player_hand[moving_index + 1] = moving_card
+			update_card_hand_position()
+			return
+
+
 
 func calculate_card_position(position):
 	var total_width = (player_hand.size() - 1) * CARD_WIDTH
