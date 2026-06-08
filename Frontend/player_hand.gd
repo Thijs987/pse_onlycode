@@ -56,26 +56,41 @@ func update_card_hand_position():
 	for i in range(player_hand.size()):
 		var new_position = Vector2(calculate_card_position(i), HAND_Y)
 		var moving_card = player_hand[i]
+		
 		if moving_card.movable == true:
 			moving_card.hand_position = new_position
-			if moving_card != card_logic.dragging_card: # Only update non moving cards
+			
+			# 1. BEREKEN DE STANDAARD LAAG: Links (0) ligt onderop, rechts (size) bovenop.
+			# Als je wilt dat links BOVENOP ligt, gebruik je: player_hand.size() - i
+			# Als je wilt dat rechts BOVENOP ligt, gebruik je gewoon: i
+			var basis_z = player_hand.size() - i
+			
+			# 2. CHECK OF DIT DE GESLEEPTE KAART IS
+			if moving_card == card_logic.dragging_card:
+				# De gesleepte kaart krijgt de basis-waarde + een enorme boost (bijv. 100)
+				# Hierdoor blijft de onderlinge sorteervolgorde intact, maar zweeft hij ALTIJD boven de rest!
+				moving_card.z_index = basis_z + 100
+			else:
+				# Normale kaarten krijgen gewoon hun basis z_index
+				moving_card.z_index = basis_z
+				# En alleen de niet-gesleepte kaarten worden getweend
 				move_to_position(moving_card, new_position)
 		
 
 func sort_hand():
 	# Ook iets waardoor je alleen de kaart van positie verandert als ie niet te ver van je hand is
 	var mouse_pos = get_global_mouse_position()
-	if mouse_pos.y < 0: # Zoek juiste value hiervoor, miss ook minimum
+	if mouse_pos.y < 250: # Zoek juiste value hiervoor, miss ook minimum
 		return
 
 	var moving_card = card_logic.dragging_card
 	var moving_index = player_hand.find(moving_card)
 	if moving_index == -1: # Card not found
 		return
-	
+
 	if moving_index > 0: # Not left most card
 		var left_card = player_hand[moving_index - 1]
-		if mouse_pos.x < left_card.x:
+		if mouse_pos.x < left_card.position.x:
 			player_hand[moving_index] = left_card
 			player_hand[moving_index - 1] = moving_card
 			update_card_hand_position()
@@ -83,7 +98,7 @@ func sort_hand():
 		
 	if moving_index < player_hand.size() - 1: # Not right most card
 		var right_card = player_hand[moving_index + 1]
-		if mouse_pos.x > right_card.x:
+		if mouse_pos.x > right_card.position.x:
 			player_hand[moving_index] = right_card
 			player_hand[moving_index + 1] = moving_card
 			update_card_hand_position()

@@ -42,6 +42,7 @@ func play_card(card):
 func start_dragging(card):
 	card.scale = Vector2(1.0, 1.0)
 	dragging_card = card
+	card.z_index = 99
 	var card_pos = dragging_card.position
 	var mouse_pos = get_global_mouse_position()
 	card_offsetx = card_pos.x - mouse_pos.x
