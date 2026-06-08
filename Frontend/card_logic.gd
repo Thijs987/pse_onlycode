@@ -79,10 +79,8 @@ func hovered_away_card(card):
 
 func highlight_card(card, hovered):
 	if hovered:
-		card.z_index = 2
 		card.scale = Vector2(1.1, 1.1)
 	else:
-		card.z_index = 0
 		card.scale = Vector2(1.0, 1.0)
 
 # Checks wether under the current mouse position is a card and returns
