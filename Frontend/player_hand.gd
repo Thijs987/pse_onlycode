@@ -45,7 +45,11 @@ func add_card_to_hand(card):
 		player_hand.insert(0, card)
 		update_card_hand_position()
 	else:
+		var card_index = player_hand.find(card)
+		if card_index != -1:
+			card.z_index = player_hand.size() - card_index
 		move_to_position(card, card.hand_position)
+		
 
 func remove_card_from_hand(card):
 	if card in player_hand:
