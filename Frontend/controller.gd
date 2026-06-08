@@ -8,6 +8,7 @@ var PId := ""
 var Last_Message := {}
 var Last_Data := {}
 var Active_Lobbies := []
+var Player_Hand := []
 
 func Get_Lobbies():
 	GSCHTTP.Get_Lobbies()
@@ -38,6 +39,12 @@ func Start_Match(Player_Id: String):
 func Update_From_Server(msg: Dictionary):
 	Last_Message = msg
 	Last_Data = msg["data"]
+	
+	if Last_Message["action"] == "DRAW_CARD":
+		Player_Hand.append(Last_Message["data"]["cardId"])
+	
+	if Last_Message["action"] == "CARD_PLAYED":
+		Player_Hand.erase(Last_Message["data"]["cardId"])
 
 func Update_Lobbies(lobbies: Array):
 	Active_Lobbies = lobbies
