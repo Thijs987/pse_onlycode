@@ -101,9 +101,6 @@ func _Send(data: Dictionary):
 	if socket.get_ready_state() != WebSocketPeer.STATE_OPEN:
 		print("Socket is not connected.")
 		return
-	print("OUT:")
-	print(data)
-	print("")
 
 	socket.send_text(JSON.stringify(data))
 
@@ -119,20 +116,25 @@ func _handle_message(text: String):
 
 	match msg["action"]:
 		"PLAYER_JOINED":
-			print("PJ")
+			#print("PJ")
 			Start_Match("Player_1")
 
 		"MATCH_STARTED":
-			print("MS")
+			#print("MS")
+			pass
 
 		"ERROR":
-			print("ERR")
+			#print("ERR")
+			pass
 
 		"CARD_PLAYED":
-			print("CP")
+			#print("CP")
+			pass
 
 		"CARD_DRAWN":
-			print("CD")
+			#print("CD")
+			pass
 
 		"NEXT_TURN":
-			print("NT")
+			#print("NT")
+			pass
