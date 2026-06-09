@@ -10,6 +10,7 @@ var card_offsety
 var hand_reference
 
 @onready var controller = $"../Controller"
+@onready var discard_pile = $"../Discard_pile"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -17,9 +18,6 @@ func _ready() -> void:
 	hand_reference = $"../PlayerHand"
 	$"../InputManager".connect("left_mouse_release", on_left_mouse_release)
 
-var play_area = Vector2(0, 200)
-#Location of the play pile
-var play_pile = Vector2(200, 200)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
@@ -30,11 +28,18 @@ func _process(_delta: float) -> void:
 
 ### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
-	if card.position.y < play_area.y:
-		card.position = play_pile
+	var discard_area = discard_pile.get_node("Discard_pile_area")
+
+	if discard_area.overlaps_area(card.get_node("Area2D")):
+
 		card.movable = false
+
+
 		highlight_card(card, false)
+
 		hand_reference.remove_card_from_hand(card)
+
+		discard_pile.add_card(card)
 
 		print(card)
 		controller.Play_Card("Player_1", "goto")
