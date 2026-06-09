@@ -48,7 +48,7 @@ app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManage
 
         if (!connectionManager.IsLobbyAvailable(lobbyId))
         {
-            Console.WriteLine($"Rejected {playerId}: Lobby {lobbyId} is full or doesn't exist. wow take 7");
+            Console.WriteLine($"Rejected {playerId}: Lobby {lobbyId} is full or doesn't exist.");
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
         }
