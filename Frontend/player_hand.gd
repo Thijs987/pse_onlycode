@@ -45,11 +45,9 @@ func add_card_to_hand(card):
 		player_hand.insert(0, card)
 		update_card_hand_position()
 	else:
-		var card_index = player_hand.find(card)
-		if card_index != -1:
-			card.z_index = player_hand.size() - card_index
+		card.movable = true
+		update_card_hand_position()
 		move_to_position(card, card.hand_position)
-		
 
 func remove_card_from_hand(card):
 	if card in player_hand:
@@ -69,12 +67,10 @@ func update_card_hand_position():
 			else:
 				moving_card.z_index = basis_z
 				move_to_position(moving_card, new_position)
-		
 
 func sort_hand():
-	# Ook iets waardoor je alleen de kaart van positie verandert als ie niet te ver van je hand is
 	var mouse_pos = get_global_mouse_position()
-	if mouse_pos.y < 250: # Zoek juiste value hiervoor, miss ook minimum
+	if mouse_pos.y < 250: # Card too high
 		return
 
 	var moving_card = card_logic.dragging_card
@@ -97,8 +93,6 @@ func sort_hand():
 			player_hand[moving_index + 1] = moving_card
 			update_card_hand_position()
 			return
-
-
 
 func calculate_card_position(position):
 	var total_width = (player_hand.size() - 1) * CARD_WIDTH
