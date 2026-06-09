@@ -9,17 +9,21 @@ using Application;
 public class UserController : ControllerBase
 {
     private readonly AuthService _auth;
+    private readonly Microsoft.Extensions.Configuration.IConfiguration _config;
 
-    public UserController(AuthService auth)
+    public UserController(AuthService auth, Microsoft.Extensions.Configuration.IConfiguration config)
     {
         _auth = auth;
+        _config = config;
     }
 
     //register request, for now returns all the users info
     [HttpPost("register")]
     public async Task<IActionResult> CreateUser(RegisterRequest request)
     {
-        var result = await _auth.Register(request.Email, request.Username, request.Password);
+        // Use configured base URL (AppSettings:BaseUrl) so verification links point to the configured server
+        var configuredBase = _config["AppSettings:BaseUrl"];
+        var result = await _auth.Register(request.Email, request.Username, request.Password, ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString(), baseUrl: configuredBase);
         if (!result.IsSuccess)
         {
             // authentication error

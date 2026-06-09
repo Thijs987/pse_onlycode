@@ -6,6 +6,7 @@ public class EmailSettings
     public string Password { get; set; } = string.Empty;
     public bool EnableSsl { get; set; } = true;
     public string FromEmail { get; set; } = string.Empty;
+    public string BaseUrl { get; set; } = string.Empty;
 
     public string From
     {

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 using Application.Services;
+using Microsoft.Extensions.Configuration;
 using Application.Results;
 using Domain;
 using Infrastructure.Persistence;
@@ -27,13 +28,24 @@ public class AuthService
     private const int RegisterAttemptWindowMinutes = 30;
     private const int EmailVerificationTokenExpiryHours = 24;
 
-    public AuthService(AppDbContext db, IAuditService auditService, IRateLimitService rateLimitService, IEmailService emailService)
+    private readonly string _baseUrl;
+
+    public AuthService(AppDbContext db, IAuditService auditService, IRateLimitService rateLimitService, IEmailService emailService, IConfiguration? config = null)
     {
         _db = db;
         _auditService = auditService;
         _rateLimitService = rateLimitService;
         _emailService = emailService;
-        //_config = config;
+
+        // Read base URL from configuration (AppSettings:BaseUrl) or environment variable, fallback to previous hardcoded value
+        var baseUrl = config? ["AppSettings:BaseUrl"] ?? Environment.GetEnvironmentVariable("APP_BASE_URL");
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            baseUrl = "http://83.96.203.15:5000";
+        }
+
+        // ensure no trailing slash
+        _baseUrl = baseUrl.TrimEnd('/');
     }
 
 
@@ -128,7 +140,7 @@ public class AuthService
         return Result<UserDto>.Success(new UserDto { Id = user.Id, Email = user.Email, Username = user.Username });
     }
 
-    public async Task<Result<UserDto>> Register(string email, string username, string password, string? ipAddress = null)
+    public async Task<Result<UserDto>> Register(string email, string username, string password, string? ipAddress = null, string? baseUrl = null)
     {
         // rate limiting: max 3 register attempts per 30 minutes, per IP
         var rateLimitKey = $"register:{ipAddress ?? "unknown"}";
@@ -213,16 +225,15 @@ public class AuthService
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InternalError, "Failed to create user."));
         }
 
-        // send verification email
-        // TODO: replace with your actual domain/baseurl from configuration
-        var baseUrl = "http://83.96.203.15:5000"; //_config["AppSettings:BaseUrl"];
-
+        // determine which base URL to use: prefer the provided baseUrl (from request), then configured _baseUrl
+        var effectiveBase = string.IsNullOrWhiteSpace(baseUrl) ? _baseUrl : baseUrl.TrimEnd('/');
         var verificationLink =
-            $"{baseUrl}/api/auth/verify-email" +
+            $"{effectiveBase}/api/auth/verify-email" +
             $"?token={Uri.EscapeDataString(verificationToken)}" +
             $"&email={Uri.EscapeDataString(email)}";
         try
         {
+            Console.WriteLine($"[VERIFICATION] Link for {email}: {verificationLink}");
             await _emailService.SendVerificationEmailAsync(email, username, verificationToken, verificationLink);
         }
         catch (Exception ex)
@@ -340,7 +351,7 @@ public class AuthService
         return Result.Success();
     }
 
-    public async Task<Result> ResendVerificationEmailAsync(string email)
+    public async Task<Result> ResendVerificationEmailAsync(string email, string? baseUrl = null)
     {
         // basic validation
         if (string.IsNullOrWhiteSpace(email))
@@ -357,13 +368,14 @@ public class AuthService
         user.VerificationTokenExpiry = DateTime.UtcNow.AddHours(EmailVerificationTokenExpiryHours);
         await _db.SaveChangesAsync();
 
-        // send verification email
-        var baseUrl = "http://83.96.203.15:5000"; //_config["AppSettings:BaseUrl"];
+        // determine effective base URL
+        var effectiveBase = string.IsNullOrWhiteSpace(baseUrl) ? _baseUrl : baseUrl.TrimEnd('/');
         var verificationLink =
-            $"{baseUrl}/api/auth/verify-email" +
+            $"{effectiveBase}/api/auth/verify-email" +
             $"?token={Uri.EscapeDataString(user.VerificationToken)}" +
             $"&email={Uri.EscapeDataString(email)}";
 
+        Console.WriteLine($"[VERIFICATION] Resend link for {email}: {verificationLink}");
         await _emailService.SendVerificationEmailAsync(email, user.Username, user.VerificationToken, verificationLink);
         await _auditService.LogAuthEventAsync("resend_verification", email, true, null, null);
 

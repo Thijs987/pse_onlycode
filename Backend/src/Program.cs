@@ -1,4 +1,5 @@
 using Application;
+using Application.Results;
 using Infrastructure.Persistence;
 using Application.Services;
 using Microsoft.EntityFrameworkCore;
@@ -6,10 +7,28 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Net.WebSockets;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+// CORS: allow only configured origins
+var allowedOrigins = builder.Configuration.GetSection("AppSettings:AllowedOrigins").Get<string[]>();
+if (allowedOrigins != null && allowedOrigins.Length > 0)
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    });
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
@@ -63,9 +82,104 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<ConnectionManager>();
 builder.Services.AddSingleton<MessageRouter>();
 
+
+// Authentication - optional and driven by configuration. Add JWT bearer if key is configured.
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "PSE-Green";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "PSE-Green-Clients";
+var enforceAuth = builder.Configuration.GetValue("AppSettings:EnforceAuth", false) ||
+                  (Environment.GetEnvironmentVariable("ENFORCE_AUTH") ?? "false").Equals("true", StringComparison.OrdinalIgnoreCase);
+
+var authEnabled = !string.IsNullOrWhiteSpace(jwtKey);
+if (authEnabled)
+{
+    var keyBytes = Encoding.UTF8.GetBytes(jwtKey!);
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+            ValidateLifetime = true
+        };
+
+        // Allow JWT in query string for WebSocket connections (only if present)
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+    Console.WriteLine("Authentication: JWT bearer registered.");
+}
+
 var app = builder.Build();
 
 app.MapControllers();
+
+// Apply CORS policy if configured
+if (allowedOrigins != null && allowedOrigins.Length > 0)
+{
+    app.UseCors();
+}
+
+// Security middleware
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+app.UseHttpsRedirection();
+
+// Rate limiting middleware (uses IRateLimitService) - enabled via config
+var rateLimitEnabled = builder.Configuration.GetValue("AppSettings:RateLimit:Enabled", false);
+if (rateLimitEnabled)
+{
+    app.Use(async (context, next) =>
+    {
+        var rl = context.RequestServices.GetRequiredService<Application.Services.IRateLimitService>();
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var max = builder.Configuration.GetValue("AppSettings:RateLimit:Requests", 60);
+        var windowSec = builder.Configuration.GetValue("AppSettings:RateLimit:WindowSeconds", 60);
+
+        var allowed = await rl.IsAllowedAsync(ip, max, TimeSpan.FromSeconds(windowSec));
+        await rl.RecordAttemptAsync(ip);
+        if (!allowed)
+        {
+            context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            await context.Response.WriteAsync("Too many requests");
+            return;
+        }
+
+        await next();
+    });
+}
+
+// Authentication & Authorization middleware
+if (authEnabled)
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+}
+
+// Map minimal auth endpoints (email verification)
+app.MapAuthEndpoints();
 
 app.UseWebSockets();
 
