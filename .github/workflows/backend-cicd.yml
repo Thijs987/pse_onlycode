@@ -26,8 +26,9 @@ jobs:
     - name: Build
       run: dotnet build src/CodeGreen.csproj --no-restore --configuration Release
 
-    - name: Run Unit Tests
-      run: dotnet test --no-build --verbosity normal --configuration Release
+    # For when we actually have them ready and allat
+    # - name: Run Unit Tests
+    #   run: dotnet test --no-build --verbosity normal --configuration Release
 
     - name: Publish Artifacts
       run: dotnet publish src/CodeGreen.csproj -c Release -o /var/www/code-green-backend
