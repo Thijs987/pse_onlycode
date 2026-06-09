@@ -36,4 +36,4 @@ jobs:
     - name: Restart Application
       run: |
         echo "Restarting the backend service..."
-        # sudo systemctl restart codegreen
+        sudo systemctl restart codegreen
