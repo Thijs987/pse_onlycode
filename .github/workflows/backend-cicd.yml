@@ -1,0 +1,45 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ "main", "75-pipeline" ]
+    paths:
+      - 'Backend/**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./Backend
+
+jobs:
+  build_test_deploy:
+    name: Build, Test, and Deploy
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Run Unit Tests
+      run: dotnet test --no-build --verbosity normal --configuration Release
+
+    - name: Publish Artifacts
+      # We publish directly to the live web folder now!
+      run: dotnet publish src/CodeGreen.csproj -c Release -o /var/www/code-green-backend
+
+    # - name: Restart Application
+    #   # Whatever command restarts our .NET app
+    #   run: |
+    #     echo "Restarting the backend service..."
+    #     # sudo systemctl restart your-backend-service
