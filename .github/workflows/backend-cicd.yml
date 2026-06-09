@@ -21,16 +21,15 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore src/CodeGreen.csproj
 
     - name: Build
-      run: dotnet build --no-restore --configuration Release
+      run: dotnet build src/CodeGreen.csproj --no-restore --configuration Release
 
     - name: Run Unit Tests
       run: dotnet test --no-build --verbosity normal --configuration Release
 
     - name: Publish Artifacts
-      # We publish directly to the live web folder now!
       run: dotnet publish src/CodeGreen.csproj -c Release -o /var/www/code-green-backend
 
     # - name: Restart Application
