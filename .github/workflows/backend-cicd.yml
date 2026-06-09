@@ -33,8 +33,7 @@ jobs:
     - name: Publish Artifacts
       run: dotnet publish src/CodeGreen.csproj -c Release -o /var/www/code-green-backend
 
-    # - name: Restart Application
-    #   # Whatever command restarts our .NET app
-    #   run: |
-    #     echo "Restarting the backend service..."
-    #     # sudo systemctl restart your-backend-service
+    - name: Restart Application
+      run: |
+        echo "Restarting the backend service..."
+        # sudo systemctl restart codegreen
