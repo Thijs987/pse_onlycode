@@ -38,10 +38,8 @@ func play_card(card):
 		highlight_card(card, false)
 
 		hand_reference.remove_card_from_hand(card)
+		card.visible = false	
 
-		discard_pile.add_card(card)
-
-		print(card)
 		controller.Play_Card("Player_1", "goto")
 
 func start_dragging(card):
