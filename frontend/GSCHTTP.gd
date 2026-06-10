@@ -1,4 +1,4 @@
-extends Node
+extends Node2D
 
 signal Lobbies_Received(data) # Signal for passing a list of lobbies
 signal Game_Created(data) # Signal for passing the created lobby
@@ -9,6 +9,12 @@ signal Leaderboard_Received(data) # Signal that passes the leaderboard
 const BASE_URL = "http://localhost:5025"
 
 var P_Name := ""
+
+var GSCWS
+
+func _ready():
+	GSCWS = $"../GSCWS"
+
 
 # Returns the active Lobbies
 func Get_Lobbies():
@@ -35,6 +41,7 @@ func _On_Lobbies_Received(result, response_code, headers, body):
 
 # Creates a game with as host "PId" and connects "PId" to that game
 func Create_Lobby(PId: String):
+	print("Creating lobby")
 	P_Name = PId
 	var request = HTTPRequest.new()
 	add_child(request)
