@@ -3,6 +3,13 @@ extends Node2D
 @onready var GSCWS = $"../GSCWS"
 @onready var GSCHTTP = $"../GSCHTTP"
 
+# In order to make use of this signal put
+# "Controller.message_updated.connect(_on_message)" in _ready()
+# Then create the function "_on_message" or any other name as long as it
+# Matches what is inbetween the brackets. 
+# This function will get access to the message sent by the server
+signal message_updated(msg)
+
 var PId := ""
 
 var Last_Message := {}
@@ -33,6 +40,13 @@ func Start_Match(Player_Id: String):
 	PId = Player_Id
 	GSCWS.Start_Match(PId)
 
+# From_Hand is a bool that describes whether the given card comes from a player hand
+func Gift_Card(Opponent_Id: String, CardId: String, From_Hand: bool):
+	if From_Hand == true:
+		Player_Hand.erase(CardId)
+	
+	GSCWS.Gift_Card(Opponent_Id, CardId, From_Hand)
+
 # Ask for data 
 # with Controller.Last_Message["action"]
 # or Controller.Last_Message["data"]["cardId"]
@@ -45,6 +59,8 @@ func Update_From_Server(msg: Dictionary):
 	
 	if Last_Message["action"] == "CARD_PLAYED":
 		Player_Hand.erase(Last_Message["data"]["cardId"])
+	
+	message_updated.emit(msg)
 
 
 func Update_Lobbies(lobbies: Array):

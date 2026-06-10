@@ -18,7 +18,7 @@ var joined_emitted := false
 	#Join_Lobby("9B9157", "Player_1")
 
 #func match_tests():
-	##Draw_Card("Player_1")
+	#Draw_Card("Player_1")
 	#pass
 
 func _on_lobby_joined():
@@ -69,6 +69,18 @@ func Draw_Card(PId: String):
 func Start_Match(PId: String):
 	var message = _Make_Message("START_MATCH", PId)
 	_Send(message)
+
+
+# If Pile == true trojan horse was played
+func Gift_Card(OId: String, card_id: String, From_Hand: bool):
+	if From_Hand == true:
+		var data = _Make_Data(card_id)
+		var message = _Make_Message("GIVE_CARD", OId, data)
+		_Send(message)
+	else:
+		var message = _Make_Message("GIVE_CARD", OId)
+		_Send(message)
+
 
 # Make DataInfo
 func _Make_Data(cardId: String = "",
