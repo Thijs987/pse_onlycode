@@ -42,6 +42,7 @@ func play_card(card):
 func start_dragging(card):
 	card.scale = Vector2(1.0, 1.0)
 	dragging_card = card
+	card.z_index = 99 # Above all other cards
 	var card_pos = dragging_card.position
 	var mouse_pos = get_global_mouse_position()
 	card_offsetx = card_pos.x - mouse_pos.x
@@ -50,9 +51,11 @@ func start_dragging(card):
 func stop_dragging():
 	if dragging_card and dragging_card.movable == true:
 		play_card(dragging_card)
-	if dragging_card and dragging_card.movable == true:
-		dragging_card.scale = Vector2(1.1, 1.1)
-		hand_reference.add_card_to_hand(dragging_card)
+	var released_card = dragging_card # Temp variable for add_card_to_hand
+	if released_card and released_card.movable == true:
+		released_card.scale = Vector2(1.1, 1.1)
+		dragging_card = null 
+		hand_reference.add_card_to_hand(released_card)
 	dragging_card = null
 
 func connect_card_signals(card):
@@ -78,10 +81,8 @@ func hovered_away_card(card):
 
 func highlight_card(card, hovered):
 	if hovered:
-		card.z_index = 2
 		card.scale = Vector2(1.1, 1.1)
 	else:
-		card.z_index = 0
 		card.scale = Vector2(1.0, 1.0)
 
 # Checks wether under the current mouse position is a card and returns
