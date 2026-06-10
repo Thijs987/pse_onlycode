@@ -19,7 +19,7 @@ func _ready() -> void:
 	$"../InputManager".connect("left_mouse_release", on_left_mouse_release)
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+# Runs every frame, card is set to current mouse position with offset
 func _process(_delta: float) -> void:
 	if dragging_card != null:
 		var mouse_pos = get_global_mouse_position()
@@ -42,6 +42,8 @@ func play_card(card):
 
 		controller.Play_Card("Player_1", "goto")
 
+# Starts dragging of current card under mouse.
+# input: Card object found using check_at_cursor function
 func start_dragging(card):
 	card.scale = Vector2(1.0, 1.0)
 	dragging_card = card
@@ -51,6 +53,7 @@ func start_dragging(card):
 	card_offsetx = card_pos.x - mouse_pos.x
 	card_offsety = card_pos.y - mouse_pos.y
 
+# Calls logic for case of stopping dragging when left mouse button is released
 func stop_dragging():
 	if dragging_card and dragging_card.movable == true:
 		play_card(dragging_card)
@@ -61,19 +64,24 @@ func stop_dragging():
 		hand_reference.add_card_to_hand(released_card)
 	dragging_card = null
 
+# Connects the signals for various player actions
 func connect_card_signals(card):
 	card.connect("hovered", hovered_over_card)
 	card.connect("hovered_away", hovered_away_card)
 
+# Calls functions for case of releasing left mouse button
 func on_left_mouse_release():
 	stop_dragging()
 	var card = check_for_card()
 
+# sets is_hovering to true and highlights current card
 func hovered_over_card(card):
 	if !is_hovering and card.movable == true:
 		is_hovering = true
 		highlight_card(card, true)
 
+# Checks wether the mouse is currently hovering over a card
+# if not, sets is_hovering to false
 func hovered_away_card(card):
 	highlight_card(card, false)
 	var check_card = check_for_card()
@@ -82,6 +90,7 @@ func hovered_away_card(card):
 	else:
 		is_hovering = false
 
+# Will highlight the card if mouse is hovering over it
 func highlight_card(card, hovered):
 	if hovered:
 		card.scale = Vector2(1.1, 1.1)

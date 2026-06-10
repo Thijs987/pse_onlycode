@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="Frontend"
-run/main_scene="uid://ctined7qq8dh2"
+run/main_scene="uid://bdxchheqi80lr"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+SceneLoader="*uid://1f6ldvtpwwgq"
 
 [display]
 
