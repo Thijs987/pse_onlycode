@@ -33,20 +33,20 @@ public class MatchManager
 
         var allCards = new Dictionary<string, int>()
         {
-            {"blue", 0},
-            {"cm", 0},
-            {"ddos", 0},
-            {"err", 0},
-            {"garb", 0},
-            {"goto", 20},
-            {"imp", 0},
-            {"inf", 0},
-            {"merge", 0},
-            {"miracle", 0},
-            {"nocom", 0},
-            {"sql", 0},
-            {"trojan", 0},
-            {"vibe", 0}
+            {"blue", 1},
+            {"cm", 1},
+            {"ddos", 1},
+            {"err", 1},
+            {"garb", 1},
+            {"goto", 1},
+            {"imp", 1},
+            {"inf", 1},
+            {"merge", 1},
+            {"miracle", 1},
+            {"nocom", 1},
+            {"sql", 1},
+            {"trojan", 1},
+            {"vibe", 1}
         };
 
         foreach (var card in allCards)
