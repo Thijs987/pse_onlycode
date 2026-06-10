@@ -7,15 +7,14 @@ var dragging_card
 var is_hovering
 var card_offsetx
 var card_offsety
-var hand_reference
 
 @onready var controller = $"../Controller"
 @onready var discard_pile = $"../Discard_pile"
+@onready var hand_reference = $"../PlayerHand"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	screen_size = get_viewport_rect().size
-	hand_reference = $"../PlayerHand"
 	$"../InputManager".connect("left_mouse_release", on_left_mouse_release)
 
 

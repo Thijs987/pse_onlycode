@@ -23,7 +23,7 @@ func _process(delta: float) -> void:
 # Play button (Not yet with the right path!!!)
 func _on_play_button_pressed() -> void:
 	# Need to change this to real lobby page location
-	get_tree().change_scene_to_file("res://Lobby.tscn")
+	get_tree().change_scene_to_file("res://MultiLobby.tscn")
 
 # Quit button
 func _on_quit_button_pressed() -> void:
