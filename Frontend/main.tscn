@@ -60,8 +60,8 @@ position = Vector2(575.75, 128)
 shape = SubResource("RectangleShape2D_efxa6")
 
 [node name="Discard_pile_location" type="Area2D" parent="Discard_pile" unique_id=2028668179]
-position = Vector2(500, 200)
-collision_layer = 4
+position = Vector2(436, 179)
+collision_layer = 8
 
 [node name="CardLogic" type="Node2D" parent="." unique_id=1659768658]
 script = ExtResource("1_uu6xs")

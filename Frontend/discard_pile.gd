@@ -4,13 +4,71 @@ extends Node2D
 
 var discarded_cards = []
 
-func add_card(card):
+func _ready():
+	$"../GSCWS".card_played.connect(_on_card_played)
+
+func _on_card_played(player_id, card_id):
+
+	var card_scene = preload("res://card.tscn")
+	var card = card_scene.instantiate()
+
+	add_child(card)
+
+	card.set_card(card_id)
+	card.movable = false
+
+	card.get_node("Area2D").monitoring = false
+	card.get_node("Area2D").monitorable = false
+	
+	Add_Card(card)
+
+func Add_Card(card):
 	discarded_cards.append(card)
 
-	var offset = discarded_cards.size() * 3
+	var target_size = Vector2(300, 450)
+	var card_size = card.get_node("Sprite2D").texture.get_size()
 
-	card.global_position = pile_location.global_position + Vector2(offset, offset)
+	var target_scale = Vector2(
+		target_size.x / card_size.x,
+		target_size.y / card_size.y
+	)
+
+	var target_position = pile_location.global_position + Vector2(
+		randi_range(-5, 5),
+		randi_range(-5, 5)
+	)
+
+	var target_rotation = randi_range(-8, 8)
+
+	card.global_position = Vector2(
+		pile_location.global_position.x,
+		0
+	)
+
+	card.scale = Vector2(1.0, 1.0)
+	card.rotation_degrees = -30
+	var tween = get_tree().create_tween()
+
+	tween.set_trans(Tween.TRANS_LINEAR)
+	tween.parallel().tween_property(
+		card,
+		"global_position",
+		target_position,
+		0.25
+	)
+
+	tween.parallel().tween_property(
+		card,
+		"scale",
+		target_scale,
+		0.25
+	)
+
+	tween.parallel().tween_property(
+		card,
+		"rotation_degrees",
+		target_rotation,
+		0.25
+	)
 
 	card.z_index = discarded_cards.size()
-
-	print("Cards in discard pile:", discarded_cards.size())
