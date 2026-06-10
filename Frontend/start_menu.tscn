@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://ctined7qq8dh2"]
+
+[ext_resource type="Script" uid="uid://64li53p86thf" path="res://start_menu.gd" id="1_jwbto"]
+
+[node name="StartMenu" type="Control" unique_id=1398326018]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+script = ExtResource("1_jwbto")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=100660158]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -21.0
+offset_top = -33.0
+offset_right = 21.0
+offset_bottom = 33.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainMenuButtons" type="VBoxContainer" parent="CenterContainer" unique_id=1260967005]
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="CenterContainer/MainMenuButtons" unique_id=524639565]
+layout_mode = 2
+text = "Play"
+
+[node name="QuitButton" type="Button" parent="CenterContainer/MainMenuButtons" unique_id=1923007763]
+layout_mode = 2
+text = "Quit"
+
+[node name="TopRightContainer" type="MarginContainer" parent="." unique_id=1005440339]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -44.0
+offset_bottom = 40.0
+grow_horizontal = 0
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TopRightContainer" unique_id=2090880296]
+layout_mode = 2
+
+[node name="MuteButton" type="Button" parent="TopRightContainer/HBoxContainer" unique_id=2100532035]
+layout_mode = 2
+text = "Mute"
+
+[node name="TopLeftContainer" type="MarginContainer" parent="." unique_id=1055664539]
+layout_mode = 1
+offset_right = 60.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+
+[node name="LoginLayout" type="HBoxContainer" parent="TopLeftContainer" unique_id=1880022308]
+layout_mode = 2
+
+[node name="LoginButton" type="Button" parent="TopLeftContainer/LoginLayout" unique_id=1524910691]
+layout_mode = 2
+text = "Log in"
+
+[node name="WelcomeLabel" type="Label" parent="TopLeftContainer/LoginLayout" unique_id=830985289]
+layout_mode = 2
+
+[connection signal="pressed" from="CenterContainer/MainMenuButtons/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="CenterContainer/MainMenuButtons/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="pressed" from="TopRightContainer/HBoxContainer/MuteButton" to="." method="_on_mute_button_pressed"]

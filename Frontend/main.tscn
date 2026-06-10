@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://bglcmj03jm8lb" path="res://Card_deck_sprite.png" id="2_0xm2m"]
 [ext_resource type="Script" uid="uid://bkjjiqdqugih7" path="res://pile.gd" id="2_272bh"]
 [ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://player_hand.gd" id="3_r0du0"]
+[ext_resource type="Script" uid="uid://uchns3vel8n1" path="res://discard_pile.gd" id="4_4c57u"]
 [ext_resource type="Script" uid="uid://dis0yyp8e3chk" path="res://input_manager.gd" id="6_7mycd"]
 [ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://controller.gd" id="7_272bh"]
 [ext_resource type="Script" uid="uid://br3mo8m8v4kiw" path="res://gschttp.gd" id="7_kek77"]
@@ -12,6 +13,9 @@
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_efxa6"]
+size = Vector2(421.5, 218)
 
 [node name="main" type="Node2D" unique_id=1499448830]
 
@@ -44,6 +48,20 @@ offset_top = -131.0
 offset_right = 74.0
 offset_bottom = -108.0
 metadata/_edit_use_anchors_ = true
+
+[node name="Discard_pile" type="Node2D" parent="." unique_id=231680211]
+script = ExtResource("4_4c57u")
+
+[node name="Discard_pile_area" type="Area2D" parent="Discard_pile" unique_id=1594361609]
+collision_layer = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Discard_pile/Discard_pile_area" unique_id=403654840]
+position = Vector2(575.75, 128)
+shape = SubResource("RectangleShape2D_efxa6")
+
+[node name="Discard_pile_location" type="Area2D" parent="Discard_pile" unique_id=2028668179]
+position = Vector2(436, 179)
+collision_layer = 8
 
 [node name="CardLogic" type="Node2D" parent="." unique_id=1659768658]
 script = ExtResource("1_uu6xs")
