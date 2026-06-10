@@ -13,6 +13,9 @@ var use_sub_threads: bool = true
 func _ready() -> void:
 	set_process(false)
 
+# Head function to call when wanting to switch between scenes.
+# Calls all other necessary function to switch between scenes
+# input is the uid of the scene
 func load_scene(_scene_path: String) -> void:
 	scene_path = _scene_path
 	
@@ -25,13 +28,14 @@ func load_scene(_scene_path: String) -> void:
 	
 	start_load()
 
+# Sets _process to true to start loading of next scene
 func start_load() -> void:
 	var state = ResourceLoader.load_threaded_request(scene_path, "", use_sub_threads)
 	
 	if state == OK:
 		set_process(true)
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+# Loads the next scene when _process is set to true.
 func _process(_delta: float) -> void:
 	var load_status = ResourceLoader.load_threaded_get_status(scene_path, progress)
 	progress_changed.emit(progress[0])

@@ -14,6 +14,7 @@ func _ready() -> void:
 	card_logic_reference = $"../CardLogic"
 	pile_reference = $"../Pile"
 
+# checks for specific input from player and sends signals
 func _input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.is_pressed():
@@ -22,7 +23,9 @@ func _input(event):
 		else:
 			var mask_id = check_at_cursor(false)
 			emit_signal("left_mouse_release")
-			
+
+# Sends a raycast under the cursor and gives all objects under the cursor.
+# Depending on what the collision mask is, functions will be called
 func check_at_cursor(is_pressed):
 	var space_state = get_world_2d().direct_space_state
 	var parameters = PhysicsPointQueryParameters2D.new()
