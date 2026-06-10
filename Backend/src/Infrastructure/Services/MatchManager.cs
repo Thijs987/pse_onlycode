@@ -109,7 +109,14 @@ public class MatchManager
             return new DataInfo { Error = "Cannot find player {playerId}" };
         }
 
-        if (!match.PlayerHands[playerId].Contains(cardData.CardId))
+        if (!string.IsNullOrEmpty(match.PendingAction) && match.PendingActionPlayerId == playerId)
+        {
+            if (cardData.CardId != match.PendingAction)
+            {
+                return new DataInfo { Error = "You must resolve your current pending action before playing another card." };
+            }
+        }
+        else if (!match.PlayerHands[playerId].Contains(cardData.CardId))
         {
             Console.WriteLine($"{playerId} tried to play a card they don't have: {cardData.CardId}");
             return new DataInfo { Error = "You do not have that card in your hand!" };
@@ -198,6 +205,12 @@ public class MatchManager
         {
             Console.WriteLine($"{playerId} tried to draw, but not their turn!");
             return new DataInfo { Error = $"Not your turn" };
+        }
+
+        if (!string.IsNullOrEmpty(match.PendingAction) && match.PendingActionPlayerId == playerId)
+        {
+            Console.WriteLine($"{playerId} tried to draw, but has a pending action!");
+            return new DataInfo { Error = "You must resolve your current pending action before drawing." };
         }
 
         var responseData = new DataInfo { };

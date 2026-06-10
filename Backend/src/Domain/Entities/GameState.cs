@@ -12,4 +12,8 @@ public class GameState
     public List<string> TableCards { get; set; } = new();
     // Deck on table
     public List<string> Deck { get; set; } = new();
+    
+    // Multi-step card tracking
+    public string PendingAction { get; set; } = string.Empty;
+    public string PendingActionPlayerId { get; set; } = string.Empty;
 }
