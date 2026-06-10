@@ -140,8 +140,11 @@ func _handle_message(text: String):
 			pass
 
 		"CARD_PLAYED":
-			#print("CP")
-			pass
+			print("CP")
+			card_played.emit(
+				msg["playerId"],
+				msg["data"]["cardId"]
+			)
 
 		"CARD_DRAWN":
 			#print("CD")

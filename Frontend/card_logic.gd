@@ -10,6 +10,7 @@ var card_offsety
 var hand_reference
 
 @onready var controller = $"../Controller"
+@onready var discard_pile = $"../Discard_pile"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -17,11 +18,8 @@ func _ready() -> void:
 	hand_reference = $"../PlayerHand"
 	$"../InputManager".connect("left_mouse_release", on_left_mouse_release)
 
-var play_area = Vector2(0, 200)
-#Location of the play pile
-var play_pile = Vector2(200, 200)
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+# Runs every frame, card is set to current mouse position with offset
 func _process(_delta: float) -> void:
 	if dragging_card != null:
 		var mouse_pos = get_global_mouse_position()
@@ -30,44 +28,60 @@ func _process(_delta: float) -> void:
 
 ### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
-	if card.position.y < play_area.y:
-		card.position = play_pile
-		card.movable = false
-		highlight_card(card, false)
-		hand_reference.remove_card_from_hand(card)
+	var discard_area = discard_pile.get_node("Discard_pile_area")
 
-		print(card)
+	if discard_area.overlaps_area(card.get_node("Area2D")):
+
+		card.movable = false
+
+
+		highlight_card(card, false)
+
+		hand_reference.remove_card_from_hand(card)
+		card.visible = false	
+
 		controller.Play_Card("Player_1", "goto")
 
+# Starts dragging of current card under mouse.
+# input: Card object found using check_at_cursor function
 func start_dragging(card):
 	card.scale = Vector2(1.0, 1.0)
 	dragging_card = card
+	card.z_index = 99 # Above all other cards
 	var card_pos = dragging_card.position
 	var mouse_pos = get_global_mouse_position()
 	card_offsetx = card_pos.x - mouse_pos.x
 	card_offsety = card_pos.y - mouse_pos.y
 
+# Calls logic for case of stopping dragging when left mouse button is released
 func stop_dragging():
 	if dragging_card and dragging_card.movable == true:
 		play_card(dragging_card)
-	if dragging_card and dragging_card.movable == true:
-		dragging_card.scale = Vector2(1.1, 1.1)
-		hand_reference.add_card_to_hand(dragging_card)
+	var released_card = dragging_card # Temp variable for add_card_to_hand
+	if released_card and released_card.movable == true:
+		released_card.scale = Vector2(1.1, 1.1)
+		dragging_card = null 
+		hand_reference.add_card_to_hand(released_card)
 	dragging_card = null
 
+# Connects the signals for various player actions
 func connect_card_signals(card):
 	card.connect("hovered", hovered_over_card)
 	card.connect("hovered_away", hovered_away_card)
 
+# Calls functions for case of releasing left mouse button
 func on_left_mouse_release():
 	stop_dragging()
 	var card = check_for_card()
 
+# sets is_hovering to true and highlights current card
 func hovered_over_card(card):
 	if !is_hovering and card.movable == true:
 		is_hovering = true
 		highlight_card(card, true)
 
+# Checks wether the mouse is currently hovering over a card
+# if not, sets is_hovering to false
 func hovered_away_card(card):
 	highlight_card(card, false)
 	var check_card = check_for_card()
@@ -76,12 +90,11 @@ func hovered_away_card(card):
 	else:
 		is_hovering = false
 
+# Will highlight the card if mouse is hovering over it
 func highlight_card(card, hovered):
 	if hovered:
-		card.z_index = 2
 		card.scale = Vector2(1.1, 1.1)
 	else:
-		card.z_index = 0
 		card.scale = Vector2(1.0, 1.0)
 
 # Checks wether under the current mouse position is a card and returns
