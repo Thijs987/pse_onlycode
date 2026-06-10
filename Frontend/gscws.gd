@@ -18,7 +18,7 @@ var joined_emitted := false
 	#Join_Lobby("9B9157", "Player_1")
 
 #func match_tests():
-	##Draw_Card("Player_1")
+	#Draw_Card("Player_1")
 	#pass
 
 func _on_lobby_joined():
@@ -70,6 +70,18 @@ func Start_Match(PId: String):
 	var message = _Make_Message("START_MATCH", PId)
 	_Send(message)
 
+
+# If Pile == true trojan horse was played
+func Gift_Card(OId: String, card_id: String, From_Hand: bool):
+	if From_Hand == true:
+		var data = _Make_Data(card_id)
+		var message = _Make_Message("GIVE_CARD", OId, data)
+		_Send(message)
+	else:
+		var message = _Make_Message("GIVE_CARD", OId)
+		_Send(message)
+
+
 # Make DataInfo
 func _Make_Data(cardId: String = "",
 				target: String = "",
@@ -101,9 +113,6 @@ func _Send(data: Dictionary):
 	if socket.get_ready_state() != WebSocketPeer.STATE_OPEN:
 		print("Socket is not connected.")
 		return
-	print("OUT:")
-	print(data)
-	print("")
 
 	socket.send_text(JSON.stringify(data))
 
@@ -119,14 +128,16 @@ func _handle_message(text: String):
 
 	match msg["action"]:
 		"PLAYER_JOINED":
-			print("PJ")
+			#print("PJ")
 			Start_Match("Player_1")
 
 		"MATCH_STARTED":
-			print("MS")
+			#print("MS")
+			pass
 
 		"ERROR":
-			print("ERR")
+			#print("ERR")
+			pass
 
 		"CARD_PLAYED":
 			print("CP")
@@ -136,7 +147,9 @@ func _handle_message(text: String):
 			)
 
 		"CARD_DRAWN":
-			print("CD")
+			#print("CD")
+			pass
 
 		"NEXT_TURN":
-			print("NT")
+			#print("NT")
+			pass

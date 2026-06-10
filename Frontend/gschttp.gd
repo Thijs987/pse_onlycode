@@ -10,10 +10,8 @@ const BASE_URL = "http://localhost:5025"
 
 var P_Name := ""
 
-var GSCWS
-
-func _ready():
-	GSCWS = $"../GSCWS"
+@onready var Controller = $"../Controller"
+@onready var GSCWS = $"../GSCWS"
 
 
 # Returns the active Lobbies
@@ -31,12 +29,11 @@ func Get_Lobbies():
 # Emits the data received from the server.
 # Use GSCHTTP.lobbies_received.connect(Fnc) to pass them as arguments to Fnc.
 func _On_Lobbies_Received(result, response_code, headers, body):
-	var text = body.get_string_from_utf8()
+	var lobbies = JSON.parse_string(
+		body.get_string_from_utf8()
+	)
 
-	print("Lobbies:")
-	print(text)
-
-	Lobbies_Received.emit(text)
+	Controller.Update_Lobbies(lobbies)
 
 
 # Creates a game with as host "PId" and connects "PId" to that game
