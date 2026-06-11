@@ -19,7 +19,7 @@ const HAND_Y = 500
 var player_hand = []
 var center_screen_x
 
-signal Next_Turn(player)
+signal next_turn(player)
 
 
 # Called when the node enters the scene tree for the first time.
@@ -27,7 +27,7 @@ func _ready() -> void:
 	if controller.Last_Message["action"] == "MATCH_STARTED":
 		var player = controller.Last_Message["data"]["nextPlayer"]
 		if player != null:
-			Next_Turn.emit(player)
+			next_turn.emit(player)
 			turn_label.text = str(player)
 	
 	controller.message_updated.connect(_on_message)
@@ -49,7 +49,7 @@ func _on_message(msg):
 		if msg["action"] == "NEXT_TURN":
 			var player = msg["data"]["nextPlayer"]
 			if player != null:
-				Next_Turn.emit(player)
+				next_turn.emit(player)
 				turn_label.text = str(player)
 
 func add_new_card(card_id):

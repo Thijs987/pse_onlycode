@@ -10,12 +10,12 @@ var dragging_card
 var is_hovering
 var card_offsetx
 var card_offsety
-var Turns
+var turns
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	hand_reference.Next_Turn.connect(_NewTurn)
+	hand_reference.next_turn.connect(_newturn)
 	screen_size = get_viewport_rect().size
 	$"../InputManager".connect("left_mouse_release", on_left_mouse_release)
 
@@ -27,10 +27,14 @@ func _process(_delta: float) -> void:
 		dragging_card.position = Vector2(clamp(mouse_pos.x + card_offsetx, 0, screen_size.x),
 			clamp(mouse_pos.y + card_offsety, 0, screen_size.y))
 
+func _newturn(player):
+	if player != null:
+		turns = player
+
 ### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
 	var discard_area = discard_pile.get_node("DiscardPileArea")
-	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == Turns:
+	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
 
 		card.movable = false
 
@@ -124,7 +128,3 @@ func highest_z(cards):
 			highest_card_z = new_card_z
 			
 	return highest_card
-	
-func _NewTurn(player):
-	if player != null:
-		Turns = player
