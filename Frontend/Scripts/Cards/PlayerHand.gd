@@ -11,7 +11,6 @@ extends Node2D
 @export var y_min := 0
 @export var y_max := -15
 
-const CARD_COUNT = 0
 const CARD_SCENE_PATH = "uid://dlb3crw3qdkv2"
 const CARD_WIDTH = 120
 const HAND_Y = 500
@@ -29,16 +28,11 @@ func _ready() -> void:
 		if player != null:
 			next_turn.emit(player)
 			turn_label.text = str(player)
-	
+
 	controller.message_updated.connect(_on_message)
 	center_screen_x = get_viewport().size.x / 2
-	var card_scene = preload(CARD_SCENE_PATH)
-	for i in range(CARD_COUNT):
-		var new_card = card_scene.instantiate()
-		card_logic.add_child(new_card)
-		new_card.name = "Card"
-		new_card.set_card("goto")
-		add_card_to_hand(new_card)
+	for card_id in controller.Player_Hand:
+		add_new_card(card_id)
 
 func _process(_delta: float) -> void:
 	if card_logic and card_logic.dragging_card != null:

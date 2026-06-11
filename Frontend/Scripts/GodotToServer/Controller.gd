@@ -59,6 +59,9 @@ func Update_From_Server(msg: Dictionary):
 	if Last_Message["action"] == "CARD_PLAYED":
 		Player_Hand.erase(Last_Message["data"]["cardId"])
 	
+	if Last_Message["action"] == "MATCH_STARTED":
+		Player_Hand = Last_Message["data"]["cards"]
+
 	message_updated.emit(msg)
 
 

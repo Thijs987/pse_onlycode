@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ckxbob0rt2rda"
-valid=false
+uid="uid://clao1t88uqaa3"
+path="res://.godot/imported/test.png-6d1e262c03aee4a9d5e1cb00bfe71fd0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://Sprites/CardIcons/test.png"
+dest_files=["res://.godot/imported/test.png-6d1e262c03aee4a9d5e1cb00bfe71fd0.ctex"]
 
 [params]
 

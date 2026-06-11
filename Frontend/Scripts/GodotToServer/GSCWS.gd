@@ -8,8 +8,8 @@ signal match_start
 var socket := WebSocketPeer.new()
 var joined_emitted := false
 
-#const BASE_URL = "http://83.96.203.15:5025"
-const BASE_URL = "ws://localhost:5025"
+const BASE_URL = "ws://83.96.203.15:5025"
+#const BASE_URL = "ws://localhost:5025"
 
 # THIS IS OLD TEST CODE, MAYBE SHOULD BE REMOVED
 #func _ready():
