@@ -50,7 +50,15 @@ public class MessageRouter
                         Console.WriteLine("Card played successfully.");
 
                         response = MakeMessage("CARD_PLAYED", playerId, responseData);
-                        await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
+                        
+                        if (responseData.IsPrivate)
+                        {
+                            await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
+                        }
+                        else
+                        {
+                            await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
+                        }
                     }
                     else
                     {
