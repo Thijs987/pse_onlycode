@@ -18,11 +18,12 @@ var lobby_id
 func _ready() -> void:
 	create_lobby_button.pressed.connect(_on_create_lobby)
 	join_lobby_button.pressed.connect(_on_join_lobby)
+	start_lobby_button.pressed.connect(_on_start_lobby)
 	controller.message_updated.connect(_on_message)
 
 func _on_message(msg):
-	#if msg["action"] == "MATCH_STARTED" and match_started == false:
-		#SceneLoader.load_scene(game_scene)
+	if msg["action"] == "MATCH_STARTED" and match_started == false:
+		SceneLoader.load_scene(game_scene)
 	if msg["action"] == "PLAYER_JOINED":
 		if msg["playerId"] == controller.PId:
 			player_list[player_count] = controller.PId + "\n"
@@ -53,6 +54,11 @@ func _on_join_lobby() -> void:
 	
 	in_lobby.text = "Currently in lobby"
 	match_started = true
+
+func _on_start_lobby():
+	controller.Start_Match(controller.PId)
+	SceneLoader.load_scene(game_scene)
+	
 
 func update_lobby_list() -> void:
 	lobby_list.text = "Current players:\n"
