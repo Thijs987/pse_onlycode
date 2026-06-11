@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://bwt1f1f61krv"]
+
+[ext_resource type="Script" uid="uid://x45d2qtogg0g" path="res://Scripts/Menus/LoginPage.gd" id="1_v0vm3"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_sq1ca"]
+font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
+
+[node name="LoginPage" type="Control" unique_id=884357330]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_v0vm3")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1306938269]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -23.0
+offset_bottom = 23.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer1" type="HBoxContainer" parent="VBoxContainer" unique_id=990090928]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer1" unique_id=914890401]
+layout_mode = 2
+text = "Enter a name (should not be duplicate)"
+label_settings = SubResource("LabelSettings_sq1ca")
+horizontal_alignment = 1
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer" unique_id=1116056025]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="LineEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer2" unique_id=1431110833]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer" unique_id=1177321449]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="Button" type="Button" parent="VBoxContainer/HBoxContainer3" unique_id=1799038425]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Save Name"
