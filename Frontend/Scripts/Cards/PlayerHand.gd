@@ -1,6 +1,7 @@
 extends Node2D
 
 @onready var card_logic = $"../CardLogic"
+@onready var turn_label: Label = $"../Background/TurnLabel"
 
 @export var hand_curve = Curve
 @export var rotation_curve = Curve
@@ -18,9 +19,18 @@ const HAND_Y = 500
 var player_hand = []
 var center_screen_x
 
+signal next_turn(player)
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	if controller.Last_Message["action"] == "MATCH_STARTED":
+		var player = controller.Last_Message["data"]["nextPlayer"]
+		if player != null:
+			next_turn.emit(player)
+			turn_label.text = str(player)
+	
+	controller.message_updated.connect(_on_message)
 	center_screen_x = get_viewport().size.x / 2
 	var card_scene = preload(CARD_SCENE_PATH)
 	for i in range(CARD_COUNT):
@@ -33,6 +43,14 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if card_logic and card_logic.dragging_card != null:
 		sort_hand()
+
+func _on_message(msg):
+	if msg != null:
+		if msg["action"] == "NEXT_TURN":
+			var player = msg["data"]["nextPlayer"]
+			if player != null:
+				next_turn.emit(player)
+				turn_label.text = str(player)
 
 func add_new_card(card_id):
 	var card_scene = preload(CARD_SCENE_PATH)
