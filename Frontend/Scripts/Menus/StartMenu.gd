@@ -46,7 +46,7 @@ func check_login_status() -> void:
 # Button to login page (Not yet with the right path!!!)
 func _on_login_pressed() -> void:
 	# Need to change this to real login page location
-	get_tree().change_scene_to_file("res://LoginPage.tscn")
+	SceneLoader.load_scene("res://LoginPage.tscn")
 
 	# Test to check logic
 	# is_logged_in = true
