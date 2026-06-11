@@ -24,7 +24,7 @@ func _ready() -> void:
 func _on_message(msg):
 	if msg["action"] == "MATCH_STARTED" and match_started == false:
 		SceneLoader.load_scene(game_scene)
-	if msg["action"] == "PLAYER_JOINED":
+	elif msg["action"] == "PLAYER_JOINED":
 		if msg["playerId"] == controller.PId:
 			player_list[player_count] = controller.PId + "\n"
 			player_count += 1
@@ -53,6 +53,7 @@ func _on_join_lobby() -> void:
 
 func _on_start_lobby():
 	controller.Start_Match(controller.PId)
+	match_started = true
 	SceneLoader.load_scene(game_scene)
 	
 
@@ -60,4 +61,3 @@ func update_lobby_list() -> void:
 	lobby_list.text = "Current players:\n"
 	for i in range(player_count):
 		lobby_list.text += player_list[i]
-	match_started = true
