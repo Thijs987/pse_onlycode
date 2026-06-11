@@ -37,7 +37,7 @@ public class MessageRouter
                     // await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
                     await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
                     break;
-
+                    //TODO: WHEN IMP IS PLAYED SET PLAYER TO NEXT AND ALL THAT
                 case "PLAY_CARD":
                     // Let's assume message.Data contains the MatchId and CardId
                     // You'd parse that JSON here, but for simplicity:
@@ -82,16 +82,15 @@ public class MessageRouter
 
                     Console.WriteLine($"Gotten top card {card} succesfully!");
 
-                    // Check for Improved Hardware
-                    if (card == "Improved Hardware")
-                    {
-                        // Not handling that shit yet
-                    }
-
                     // Send card to player.
                     response = MakeMessage("CARD_DRAWN", playerId, responseData);
                     await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
 
+                    // Check for Improved Hardware
+                    if (card == "imp")
+                    {
+                        break;
+                    }
                     // next turn
                     responseData = matchManager.NextTurn(lobbyId, playerId);
 
@@ -108,7 +107,7 @@ public class MessageRouter
                         await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(errorMessage));
                     }
 
-                    if(end.Message == "Removed") {
+                    if (end.Message == "Removed") {
                         var endPlayerMessage = new NetworkMessage
                         {
                             Action = "CARD_LIMIT",
@@ -117,14 +116,6 @@ public class MessageRouter
                         //broadcast remove player
                         await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(endPlayerMessage));
                     }
-
-                    var endTurnMessage = new NetworkMessage
-                    {
-                        Action = "CARD_DRAWN",
-                        PlayerId = playerId,
-                        Data = responseData
-                    };
-                    responseData = matchManager.NextTurn(lobbyId, playerId);
 
                     // Broadcast next player and NTurns
                     response = MakeMessage("NEXT_TURN", playerId, responseData);

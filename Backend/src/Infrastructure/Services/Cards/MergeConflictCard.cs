@@ -10,18 +10,11 @@ public class MergeConflictCard : ICardEffect
     public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
     {
         // Standard Cleanup
-        if (matchState.PlayerHands.ContainsKey(playerId))
-        {
-            matchState.PlayerHands[playerId].Remove(CardId);
-        }
-
-        // TODO: Write the actual logic
-
-        // Return a basic response so the game doesn't crash
-        return new DataInfo
-        {
+        var responseData = new DataInfo{
             CardId = CardId,
-            Message = $"{playerId} played {CardId}, but the effect is not yet implemented!"
+            Error = "Card can only be played after drawing a improved hardware."
         };
+
+        return responseData;
     }
 }
