@@ -366,7 +366,7 @@ public class MatchManager
             match.PlayerIds.Remove(playerId);
             // remove hand from dict
             match.PlayerHands.Remove(playerId);
-            responseData.Message = " Removed";
+            responseData.Message = "Removed";
         }
         if (newLimit == "1")
         {
