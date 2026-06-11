@@ -25,7 +25,7 @@ func _newturn(player):
 
 # Haalt 1 kaart van de counter
 func decrease_counter():
-	if "Player_2" == controller.PId:
+	if turns == controller.PId:
 		if card_count > 0:
 			card_count -= 1
 			# Past card count getal aan
