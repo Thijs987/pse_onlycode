@@ -43,17 +43,13 @@ func _on_message(msg):
 func _on_create_lobby() -> void:
 	controller.Create_Lobby(controller.PId)
 	in_lobby.text = "Currently in lobby"
-	
-	match_started = true
 
 
 func _on_join_lobby() -> void:
 	lobby_id = lobby_input.text
 	if lobby_id:
 		controller.Join_Lobby(lobby_id, controller.PId)
-	
 	in_lobby.text = "Currently in lobby"
-	match_started = true
 
 func _on_start_lobby():
 	controller.Start_Match(controller.PId)
@@ -64,3 +60,4 @@ func update_lobby_list() -> void:
 	lobby_list.text = "Current players:\n"
 	for i in range(player_count):
 		lobby_list.text += player_list[i]
+	match_started = true
