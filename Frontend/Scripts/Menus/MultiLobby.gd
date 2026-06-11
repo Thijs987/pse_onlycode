@@ -59,7 +59,7 @@ func _on_join_lobby() -> void:
 		in_lobby_state = true
 
 func _on_start_lobby():
-	if player_count > 0 and created_lobby == true:
+	if player_count > 1 and created_lobby == true:
 		controller.Start_Match(controller.PId)
 		match_started = true
 		SceneLoader.load_scene(game_scene)
