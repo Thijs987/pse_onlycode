@@ -33,7 +33,7 @@ public class MatchManager
 
         var allCards = new Dictionary<string, int>()
         {
-            {"blue", 0},
+            {"blue", 20},
             {"cm", 0},
             {"ddos", 0},
             {"err", 0},
@@ -121,16 +121,33 @@ public class MatchManager
             return new DataInfo { Error = $"Unknown card: {cardData.CardId}" };
         }
 
-        // Apply the specific card's logic
-        var responseData = cardEffect.ApplyEffect(match, playerId, cardData);
-
-        // If no errors, add it to the table
-        if (string.IsNullOrEmpty(responseData.Error))
+        if (match.PlayerHands[playerId].Contains("imp"))
         {
+            match.TableCards.Add("imp");
             match.TableCards.Add(cardData.CardId);
+            match.PlayerHands[playerId].Remove("imp");
+            match.PlayerHands[playerId].Remove(cardData.CardId);
+
+            var responseData = new DataInfo {
+                CardId = "imp",
+            };
+            responseData.Cards.Add("imp");
+            responseData.Cards.Add(cardData.CardId);
+
+            return responseData;
+        } else {
+            // Apply the specific card's logic
+            var responseData = cardEffect.ApplyEffect(match, playerId, cardData);
+            // Apply the specific card's logic
+
+            // If no errors, add it to the table
+            if (string.IsNullOrEmpty(responseData.Error))
+            {
+                match.TableCards.Add(cardData.CardId);
+            }
+            return responseData;
         }
 
-        return responseData;
     }
 
     // Legendary Artifact
@@ -202,6 +219,12 @@ public class MatchManager
 
         var responseData = new DataInfo { };
 
+        if (match.PlayerHands[playerId].Contains("imp"))
+        {
+            responseData.CardId = "imp";
+            return responseData;
+        }
+
         if (match.Deck.Count <= 0)
         {
             // Refill deck
@@ -221,6 +244,9 @@ public class MatchManager
         match.Deck.RemoveAt(0);
         Console.WriteLine($"The first card is {card}");
 
+        if (card == "imp"){
+            responseData.Message = "improved hardware";
+        }
         if (match.PlayerHands.TryGetValue(playerId, out var hand))
         {
             hand.Add(card);

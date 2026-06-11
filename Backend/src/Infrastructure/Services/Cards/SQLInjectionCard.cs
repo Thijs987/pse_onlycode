@@ -19,14 +19,13 @@ public class SQLInjectionCard : ICardEffect
         var target = cardData.Target;
         matchState.CurrentTurnPlayerId = target;
         matchState.NTurns = 2;
-
         matchState.PlayerHands[playerId].Remove(CardId);
 
         return new DataInfo
         {
             CardId = CardId,
             NextPlayer = cardData.Target,
-            Turns = 2,
+            Turns = matchState.NTurns,
             Message = $"{playerId} launched a DDos attack! {target} must play {matchState.NTurns} turns."
         };
     }

@@ -70,7 +70,9 @@ public class GoToCard : ICardEffect
         // Standard Cleanup
         if (matchState.PlayerHands.ContainsKey(playerId))
         {
-            matchState.PlayerHands[playerId].Remove(CardId);
+            foreach(var cards in send_cards) {
+                matchState.PlayerHands[playerId].Remove(cards);
+            }
         }
         return responseData;
     }
