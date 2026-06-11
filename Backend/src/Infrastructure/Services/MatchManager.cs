@@ -22,7 +22,7 @@ public class MatchManager
         }
     }
 
-    public DataInfo StartNewMatch(string matchId, List<string> players)
+    public GameState StartNewMatch(string matchId, List<string> players)
     {
         var newState = new GameState
         {
@@ -33,20 +33,21 @@ public class MatchManager
 
         var allCards = new Dictionary<string, int>()
         {
-            {"blue", 1},
-            {"cm", 1},
-            {"ddos", 1},
-            {"err", 1},
-            {"garb", 1},
-            {"goto", 1},
-            {"imp", 1},
-            {"inf", 1},
-            {"merge", 1},
-            {"miracle", 1},
-            {"nocom", 1},
-            {"sql", 1},
-            {"trojan", 1},
-            {"vibe", 1}
+            {"blue", 0},
+            {"cm", 0},
+            {"ddos", 0},
+            {"err", 0},
+            {"garb", 0},
+            {"goto", 0},
+            {"imp", 0},
+            {"inf", 0},
+            {"merge", 0},
+            {"miracle", 0},
+            {"nocom", 0},
+            {"sql", 0},
+            {"trojan", 0},
+            {"vibe", 0},
+            {"test", 20}
         };
 
         foreach (var card in allCards)
@@ -78,7 +79,8 @@ public class MatchManager
         _activeMatches.TryAdd(matchId, newState);
         Console.WriteLine($"Match {matchId} started! Handed out initial hands HAHAHAHAHA.");
 
-        return new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
+        // return new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
+        return newState;
     }
 
     //creates a new deck based on the Tablecards
@@ -135,14 +137,17 @@ public class MatchManager
             match.PlayerHands[playerId].Remove("imp");
             match.PlayerHands[playerId].Remove(cardData.CardId);
 
-            var responseData = new DataInfo {
+            var responseData = new DataInfo
+            {
                 CardId = "imp",
             };
             responseData.Cards.Add("imp");
             responseData.Cards.Add(cardData.CardId);
 
             return responseData;
-        } else {
+        }
+        else
+        {
             // Apply the specific card's logic
             var responseData = cardEffect.ApplyEffect(match, playerId, cardData);
             // Apply the specific card's logic
@@ -257,7 +262,8 @@ public class MatchManager
         match.Deck.RemoveAt(0);
         Console.WriteLine($"The first card is {card}");
 
-        if (card == "imp"){
+        if (card == "imp")
+        {
             responseData.Message = "improved hardware";
         }
         if (match.PlayerHands.TryGetValue(playerId, out var hand))
