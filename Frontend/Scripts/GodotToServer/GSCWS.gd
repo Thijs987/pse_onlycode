@@ -44,7 +44,7 @@ func _process(_delta):
 
 func Join_Lobby(LId: String, PId: String):
 	socket.connect_to_url(
-		"ws://localhost:5025/lobby?lobbyId=%s&playerId=%s"
+		"ws://83.96.203.15:5025/lobby?lobbyId=%s&playerId=%s"
 		% [LId, PId]
 	)
 
@@ -118,7 +118,6 @@ func _Send(data: Dictionary):
 # Interprets the data sent by the server
 func _handle_message(text: String):
 	var msg = JSON.parse_string(text)
-	
 	if (!msg):
 		return
 	

@@ -6,7 +6,7 @@ signal Login_Completed(data) # Signal that passes the status of the login
 signal Register_Completed(data) # Signal that passes the status of registering
 signal Leaderboard_Received(data) # Signal that passes the leaderboard
 
-const BASE_URL = "http://localhost:5025"
+const BASE_URL = "http://83.96.203.15:5025"
 
 var P_Name := ""
 
@@ -63,5 +63,4 @@ func _On_Game_Created(result, response_code, headers, body):
 	var lobby_id = json["lobbyId"]
 
 	print("Created lobby:", lobby_id)
-
 	gscws.Join_Lobby(lobby_id, P_Name)
