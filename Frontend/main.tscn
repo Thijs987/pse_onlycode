@@ -18,8 +18,8 @@ size = Vector2(89, 88)
 [node name="Background" type="Node2D" parent="." unique_id=234779892]
 
 [node name="Table" type="Sprite2D" parent="Background" unique_id=950271474]
-position = Vector2(575.99994, 270)
-scale = Vector2(2.1893203, 2.1893206)
+position = Vector2(580, 317)
+scale = Vector2(0.9896042, 0.9524226)
 texture = ExtResource("1_ig7tw")
 
 [node name="Pile" type="Node2D" parent="." unique_id=738463849]
