@@ -53,7 +53,7 @@ func _on_message(msg):
 				turn_label.text = str(player)
 		if msg["action"] == "CARD_PLAYED":
 			var player = msg["data"]["nextPlayer"]
-			if player != null and msg["playerId"] != controller.PId:
+			if player != null and player != "":
 				next_turn.emit(player)
 				turn_label.text = str(player)
 
