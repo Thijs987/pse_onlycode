@@ -8,6 +8,9 @@ signal match_start
 var socket := WebSocketPeer.new()
 var joined_emitted := false
 
+#const BASE_URL = "http://83.96.203.15:5025"
+const BASE_URL = "ws://localhost:5025"
+
 # THIS IS OLD TEST CODE, MAYBE SHOULD BE REMOVED
 #func _ready():
 	#lobby_joined.connect(_on_lobby_joined)
@@ -44,8 +47,8 @@ func _process(_delta):
 
 func Join_Lobby(LId: String, PId: String):
 	socket.connect_to_url(
-		"ws://83.96.203.15:5025/lobby?lobbyId=%s&playerId=%s"
-		% [LId, PId]
+		"%s/lobby?lobbyId=%s&playerId=%s"
+		% [BASE_URL, LId, PId]
 	)
 
 

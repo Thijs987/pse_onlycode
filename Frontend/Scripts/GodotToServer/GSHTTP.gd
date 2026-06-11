@@ -6,7 +6,8 @@ signal Login_Completed(data) # Signal that passes the status of the login
 signal Register_Completed(data) # Signal that passes the status of registering
 signal Leaderboard_Received(data) # Signal that passes the leaderboard
 
-const BASE_URL = "http://83.96.203.15:5025"
+#const BASE_URL = "http://83.96.203.15:5025"
+const BASE_URL = "http://localhost:5025"
 
 var P_Name := ""
 
