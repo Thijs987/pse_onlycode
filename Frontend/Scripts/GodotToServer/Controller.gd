@@ -7,7 +7,7 @@ extends Node2D
 # This function will get access to the message sent by the server
 signal message_updated(msg)
 
-var PId := ""
+var PId := "Player_1" #SHOULD CHANGE THIS BACK TO ""
 
 var Last_Message := {}
 var Last_Data := {}
