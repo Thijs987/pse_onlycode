@@ -31,11 +31,18 @@ public class MessageRouter
                     // Changed matchId to lobbyId
                     var players = connectionManager.GetPlayers(lobbyId);
 
-                    responseData = matchManager.StartNewMatch(lobbyId, players);
+                    GameState newState = matchManager.StartNewMatch(lobbyId, players);
+                    responseData = new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
 
-                    response = MakeMessage("MATCH_STARTED", playerId, responseData);
+                    foreach (var player in players)
+                    {
+                        responseData.Cards = newState.PlayerHands[player];
+                        response = MakeMessage("MATCH_STARTED", player, responseData);
+                        await connectionManager.SendMessageAsync(player, JsonSerializer.Serialize(response));
+                    }
+
                     // await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
-                    await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
+                    // await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
                     break;
 
                 case "PLAY_CARD":
