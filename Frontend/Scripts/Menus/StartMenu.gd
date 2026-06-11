@@ -26,7 +26,7 @@ func _process(delta: float) -> void:
 # Play button (Not yet with the right path!!!)
 func _on_play_button_pressed() -> void:
 	# Need to change this to real lobby page location
-	controller.Create_Lobby("Player_1")
+	controller.Create_Lobby(controller.PId)
 	SceneLoader.load_scene(multi_lobby)
 
 # Quit button
