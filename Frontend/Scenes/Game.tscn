@@ -26,6 +26,12 @@ position = Vector2(575.99994, 270)
 scale = Vector2(2.1893203, 2.1893206)
 texture = ExtResource("1_71axn")
 
+[node name="TurnLabel" type="Label" parent="Background" unique_id=110888612]
+offset_left = 684.0
+offset_top = 184.0
+offset_right = 766.0
+offset_bottom = 207.0
+
 [node name="Pile" type="Node2D" parent="." unique_id=738463849]
 script = ExtResource("2_dahhg")
 
