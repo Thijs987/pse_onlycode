@@ -25,7 +25,8 @@ func _process(delta: float) -> void:
 
 # Play button (Not yet with the right path!!!)
 func _on_play_button_pressed() -> void:
-	SceneLoader.load_scene(multi_lobby)
+	if controller.PId != "":
+		SceneLoader.load_scene(multi_lobby)
 
 # Quit button
 func _on_quit_button_pressed() -> void:

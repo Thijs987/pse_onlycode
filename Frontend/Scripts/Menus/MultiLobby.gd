@@ -13,6 +13,8 @@ var player_list = ["", "", "", ""]
 var player_count = 0
 var match_started = false
 var lobby_id
+var in_lobby_state = false
+var created_lobby = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -41,20 +43,26 @@ func _on_message(msg):
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _on_create_lobby() -> void:
-	controller.Create_Lobby(controller.PId)
-	in_lobby.text = "Currently in lobby"
+	if in_lobby_state == false:
+		controller.Create_Lobby(controller.PId)
+		in_lobby.text = "Currently in lobby"
+		in_lobby_state = true
+		created_lobby = true
 
 
 func _on_join_lobby() -> void:
-	lobby_id = lobby_input.text
-	if lobby_id:
-		controller.Join_Lobby(lobby_id, controller.PId)
-	in_lobby.text = "Currently in lobby"
+	if in_lobby_state == false:
+		lobby_id = lobby_input.text
+		if lobby_id:
+			controller.Join_Lobby(lobby_id, controller.PId)
+		in_lobby.text = "Currently in lobby"
+		in_lobby_state = true
 
 func _on_start_lobby():
-	controller.Start_Match(controller.PId)
-	match_started = true
-	SceneLoader.load_scene(game_scene)
+	if player_count > 1 and created_lobby == true:
+		controller.Start_Match(controller.PId)
+		match_started = true
+		SceneLoader.load_scene(game_scene)
 	
 
 func update_lobby_list() -> void:
