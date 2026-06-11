@@ -11,7 +11,7 @@ extends Node2D
 @export var y_min := 0
 @export var y_max := -15
 
-const CARD_COUNT = 5
+const CARD_COUNT = 0
 const CARD_SCENE_PATH = "uid://dlb3crw3qdkv2"
 const CARD_WIDTH = 120
 const HAND_Y = 500
@@ -49,6 +49,11 @@ func _on_message(msg):
 		if msg["action"] == "NEXT_TURN":
 			var player = msg["data"]["nextPlayer"]
 			if player != null:
+				next_turn.emit(player)
+				turn_label.text = str(player)
+		if msg["action"] == "CARD_PLAYED":
+			var player = msg["data"]["nextPlayer"]
+			if player != null and player != controller.PId:
 				next_turn.emit(player)
 				turn_label.text = str(player)
 

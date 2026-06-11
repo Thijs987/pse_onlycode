@@ -50,6 +50,7 @@ func Gift_Card(Opponent_Id: String, CardId: String, From_Hand: bool):
 # or Controller.Last_Message["data"]["cardId"]
 func Update_From_Server(msg: Dictionary):
 	Last_Message = msg
+	print(Last_Message)
 	Last_Data = msg["data"]
 	
 	if Last_Message["action"] == "CARD_DRAWN":
