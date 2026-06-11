@@ -31,13 +31,20 @@ public class MessageRouter
                     // Changed matchId to lobbyId
                     var players = connectionManager.GetPlayers(lobbyId);
 
-                    responseData = matchManager.StartNewMatch(lobbyId, players);
+                    GameState newState = matchManager.StartNewMatch(lobbyId, players);
+                    responseData = new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
 
-                    response = MakeMessage("MATCH_STARTED", playerId, responseData);
+                    foreach (var player in players)
+                    {
+                        responseData.Cards = newState.PlayerHands[player];
+                        response = MakeMessage("MATCH_STARTED", player, responseData);
+                        await connectionManager.SendMessageAsync(player, JsonSerializer.Serialize(response));
+                    }
+
                     // await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
-                    await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
+                    // await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
                     break;
-                    //TODO: WHEN IMP IS PLAYED SET PLAYER TO NEXT AND ALL THAT
+                //TODO: WHEN IMP IS PLAYED SET PLAYER TO NEXT AND ALL THAT
                 case "PLAY_CARD":
                     // Let's assume message.Data contains the MatchId and CardId
                     // You'd parse that JSON here, but for simplicity:
@@ -50,7 +57,7 @@ public class MessageRouter
                         Console.WriteLine("Card played successfully.");
 
                         response = MakeMessage("CARD_PLAYED", playerId, responseData);
-                        
+
                         if (responseData.IsPrivate)
                         {
                             await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
@@ -97,7 +104,8 @@ public class MessageRouter
                     // check player card limit and remove player if over the limit
                     var end = matchManager.CheckCardLimit(lobbyId, playerId, newLimit);
                     // Send error if there is an error
-                    if(end.Error != ""){
+                    if (end.Error != "")
+                    {
                         var errorMessage = new NetworkMessage
                         {
                             Action = "ERROR",
@@ -107,7 +115,8 @@ public class MessageRouter
                         await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(errorMessage));
                     }
 
-                    if (end.Message == "Removed") {
+                    if (end.Message == "Removed")
+                    {
                         var endPlayerMessage = new NetworkMessage
                         {
                             Action = "CARD_LIMIT",

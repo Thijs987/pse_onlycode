@@ -22,7 +22,7 @@ public class MatchManager
         }
     }
 
-    public DataInfo StartNewMatch(string matchId, List<string> players)
+    public GameState StartNewMatch(string matchId, List<string> players)
     {
         var newState = new GameState
         {
@@ -79,7 +79,8 @@ public class MatchManager
         _activeMatches.TryAdd(matchId, newState);
         Console.WriteLine($"Match {matchId} started! Handed out initial hands HAHAHAHAHA.");
 
-        return new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
+        // return new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
+        return newState;
     }
 
     //creates a new deck based on the Tablecards
