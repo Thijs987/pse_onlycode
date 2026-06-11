@@ -16,6 +16,11 @@ public class TrojanCard : ICardEffect
             CardId = CardId
         };
 
+        if(card.Count != 1 ) {
+            responseData.Error = "No card assigned";
+            return responseData;
+        }
+
         // if players hand contains card send it to the other player.
         if(matchState.PlayerHands[playerId].Contains(card[0])){
             matchState.PlayerHands[target].Add(card[0]);

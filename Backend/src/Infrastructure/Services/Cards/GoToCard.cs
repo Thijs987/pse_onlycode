@@ -24,7 +24,7 @@ public class GoToCard : ICardEffect
         List <string> blank_cards = new List <string> {"goto", "vibe", "inf", "nocom"};
 
         //check if enough cards are send
-        if(send_cards.Count() != 2) {
+        if(send_cards.Count != 2) {
             responseData.Error = $"incorrect number of cards have been used.";
             return responseData;
         }

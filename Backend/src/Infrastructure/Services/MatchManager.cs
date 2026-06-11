@@ -128,8 +128,28 @@ public class MatchManager
             return new DataInfo { Error = $"Unknown card: {cardData.CardId}" };
         }
 
-        if (match.PlayerHands[playerId].Contains("imp"))
+        if (!match.PlayerHands[playerId].Contains("imp"))
         {
+            // Apply the specific card's logic
+            var responseData = cardEffect.ApplyEffect(match, playerId, cardData);
+            // Apply the specific card's logic
+
+            // If no errors, add it to the table
+            if (string.IsNullOrEmpty(responseData.Error))
+            {
+                match.TableCards.Add(cardData.CardId);
+            }
+            return responseData;
+        } else if (match.PlayerHands[playerId].Count < 2) {
+            match.TableCards.Add(cardData.CardId);
+            match.PlayerHands[playerId].Remove(cardData.CardId);
+            var responseData = new DataInfo {
+                CardId = cardData.CardId
+            };
+            responseData.Cards.Add(cardData.CardId);
+
+            return responseData;
+        } else if(cardData.CardId != "imp") {
             match.TableCards.Add("imp");
             match.TableCards.Add(cardData.CardId);
             match.PlayerHands[playerId].Remove("imp");
@@ -143,15 +163,10 @@ public class MatchManager
 
             return responseData;
         } else {
-            // Apply the specific card's logic
-            var responseData = cardEffect.ApplyEffect(match, playerId, cardData);
-            // Apply the specific card's logic
-
-            // If no errors, add it to the table
-            if (string.IsNullOrEmpty(responseData.Error))
-            {
-                match.TableCards.Add(cardData.CardId);
-            }
+            var responseData = new DataInfo {
+                CardId = "imp",
+                Error  = "illigal play"
+            };
             return responseData;
         }
 
