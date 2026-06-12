@@ -37,6 +37,8 @@ func _process(_delta):
 	):
 		joined_emitted = true
 		lobby_joined.emit()
+	elif socket.get_ready_state() == WebSocketPeer.STATE_CLOSED:
+		joined_emitted = false
 
 	while socket.get_available_packet_count() > 0:
 		var packet = socket.get_packet()

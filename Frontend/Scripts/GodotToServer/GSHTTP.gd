@@ -27,11 +27,16 @@ func Get_Lobbies():
 # Emits the data received from the server.
 # Use GSCHTTP.lobbies_received.connect(Fnc) to pass them as arguments to Fnc.
 func _On_Lobbies_Received(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to get lobbies. Error code: ", response_code)
+		return
+		
 	var lobbies = JSON.parse_string(
 		body.get_string_from_utf8()
 	)
 
-	controller.Update_Lobbies(lobbies)
+	if lobbies != null:
+		controller.Update_Lobbies(lobbies)
 
 
 # Creates a game with as host "PId" and connects "PId" to that game
@@ -57,9 +62,17 @@ func Create_Lobby(PId: String):
 # Emits the data received from the server
 # use GSCHTTP.game_created.connect(Fnc) to pass them as arguments to Fnc.
 func _On_Game_Created(result, response_code, headers, body):
+	if response_code != 200:
+		print("Failed to create lobby. Error code: ", response_code)
+		return
+		
 	var json = JSON.parse_string(
 		body.get_string_from_utf8()
 	)
+
+	if json == null or not json.has("lobbyId"):
+		print("Invalid JSON response when creating lobby")
+		return
 
 	var lobby_id = json["lobbyId"]
 

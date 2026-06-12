@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Frontend"
-run/main_scene="uid://qekpyka670e2"
+run/main_scene="uid://ctined7qq8dh2"
 config/features=PackedStringArray("4.6", "Forward Plus")
 
 [autoload]
@@ -20,9 +20,6 @@ SceneLoader="*uid://1f6ldvtpwwgq"
 gschttp="*uid://br3mo8m8v4kiw"
 gscws="*uid://dg8okmsqxxyxb"
 controller="*uid://bb627jh3g5wj5"
-
-[autoload]
-
 GSCWS="*uid://dpuhn7q6mnrth"
 GSCHTTP="*uid://cvcwuxk0ribeo"
 
