@@ -29,7 +29,8 @@ public class ConnectionManager
         {
             Action = "PLAYER_JOINED",
             PlayerId = playerId,
-            Data = new DataInfo {
+            Data = new DataInfo
+            {
                 Message = $"{playerId} has joined the game!"
             }
         };
@@ -74,15 +75,15 @@ public class ConnectionManager
         finally
         {
             RemoveFromLobby(playerId);
+            var responseData = matchManager.RemoveFromMatch(playerId);
+            responseData.Message = $"{playerId} disconnected.";
             _sockets.TryRemove(playerId, out _);
 
             var leaveMessage = new NetworkMessage
             {
                 Action = "PLAYER_LEFT",
                 PlayerId = playerId,
-                Data = new DataInfo {
-                    Message = $"{playerId} disconnected."
-                }
+                Data = responseData
             };
 
             await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));

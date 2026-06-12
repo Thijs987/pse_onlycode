@@ -9,19 +9,29 @@ public class SQLInjectionCard : ICardEffect
 
     public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
     {
+        // TODO: Write the actual logic
+        var responseData = new DataInfo{
+            CardId = CardId
+        };
+
+        if (!matchState.PlayerIds.Contains(cardData.Target)){
+            responseData.Error = $"{cardData.Target} not in game.";
+            return responseData;
+        }
+
+        matchState.NTurns = 2;
+        matchState.PlayerHands[playerId].Remove(CardId);
+
         // Standard Cleanup
         if (matchState.PlayerHands.ContainsKey(playerId))
         {
             matchState.PlayerHands[playerId].Remove(CardId);
         }
 
-        // TODO: Write the actual logic
+        responseData.NextPlayer = cardData.Target;
+        responseData.Turns = matchState.NTurns;
+        responseData.Message = $"{playerId} launched a DDos attack! {cardData.Target} must play {matchState.NTurns} turns.";
 
-        // Return a basic response so the game doesn't crash
-        return new DataInfo
-        {
-            CardId = CardId,
-            Message = $"{playerId} played {CardId}, but the effect is not yet implemented!"
-        };
+        return responseData;
     }
 }

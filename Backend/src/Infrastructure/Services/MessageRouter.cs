@@ -31,11 +31,18 @@ public class MessageRouter
                     // Changed matchId to lobbyId
                     var players = connectionManager.GetPlayers(lobbyId);
 
-                    responseData = matchManager.StartNewMatch(lobbyId, players);
+                    GameState newState = matchManager.StartNewMatch(lobbyId, players);
+                    responseData = new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
 
-                    response = MakeMessage("MATCH_STARTED", playerId, responseData);
+                    foreach (var player in players)
+                    {
+                        responseData.Cards = newState.PlayerHands[player];
+                        response = MakeMessage("MATCH_STARTED", player, responseData);
+                        await connectionManager.SendMessageAsync(player, JsonSerializer.Serialize(response));
+                    }
+
                     // await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
-                    await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
+                    // await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
                     break;
 
                 case "PLAY_CARD":
@@ -50,8 +57,9 @@ public class MessageRouter
                         Console.WriteLine("Card played successfully.");
 
                         response = MakeMessage("CARD_PLAYED", playerId, responseData);
-                        
-                        if (responseData.IsPrivate)
+                        if (responseData.CardId == "imp") {
+                            await Next_player(lobbyId, playerId, "0", connectionManager, matchManager);
+                        } else if (responseData.IsPrivate)
                         {
                             await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
                         }
@@ -75,61 +83,24 @@ public class MessageRouter
 
                     if (card == "")
                     {
-                        response = MakeMessage("Error", playerId, responseData);
+                        response = MakeMessage("ERROR", playerId, responseData);
                         await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
                         break;
                     }
 
                     Console.WriteLine($"Gotten top card {card} succesfully!");
 
-                    // Check for Improved Hardware
-                    if (card == "Improved Hardware")
-                    {
-                        // Not handling that shit yet
-                    }
-
                     // Send card to player.
                     response = MakeMessage("CARD_DRAWN", playerId, responseData);
                     await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
 
-                    // next turn
-                    responseData = matchManager.NextTurn(lobbyId, playerId);
-
-                    // check player card limit and remove player if over the limit
-                    var end = matchManager.CheckCardLimit(lobbyId, playerId, newLimit);
-                    // Send error if there is an error
-                    if(end.Error != ""){
-                        var errorMessage = new NetworkMessage
-                        {
-                            Action = "ERROR",
-                            PlayerId = playerId,
-                            Data = end
-                        };
-                        await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(errorMessage));
-                    }
-
-                    if(end.Message == "Removed") {
-                        var endPlayerMessage = new NetworkMessage
-                        {
-                            Action = "CARD_LIMIT",
-                            PlayerId = playerId
-                        };
-                        //broadcast remove player
-                        await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(endPlayerMessage));
-                    }
-
-                    var endTurnMessage = new NetworkMessage
+                    // Check for Improved Hardware
+                    if (card == "imp")
                     {
-                        Action = "CARD_DRAWN",
-                        PlayerId = playerId,
-                        Data = responseData
-                    };
-                    responseData = matchManager.NextTurn(lobbyId, playerId);
-
-                    // Broadcast next player and NTurns
-                    response = MakeMessage("NEXT_TURN", playerId, responseData);
-                    await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
-
+                        break;
+                    }
+                    // Switch to next player
+                    await Next_player(lobbyId, playerId, newLimit, connectionManager, matchManager);
                     break;
             }
         }
@@ -148,5 +119,28 @@ public class MessageRouter
             Data = messageData
         };
         return message;
+    }
+
+    public async Task Next_player(string lobbyId, string playerId, string newLimit, ConnectionManager connectionManager, MatchManager matchManager) {
+        // next turn
+        var responseData = matchManager.NextTurn(lobbyId, playerId);
+
+        // check player card limit and remove player if over the limit
+        var end = matchManager.CheckCardLimit(lobbyId, playerId, newLimit);
+        // Send error if there is an error
+        if(end.Error != ""){
+            var errorMessage = MakeMessage("ERROR", playerId, end);
+            await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(errorMessage));
+        }
+
+        if (end.Message == "Removed") {
+            var endPlayerMessage = MakeMessage("CARD_LIMIT", playerId, end);
+            //broadcast remove player
+            await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(endPlayerMessage));
+        }
+
+        // Broadcast next player and NTurns
+        var response = MakeMessage("NEXT_TURN", playerId, responseData);
+        await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
     }
 }

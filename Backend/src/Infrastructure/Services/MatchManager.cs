@@ -6,6 +6,7 @@
 using System.Collections.Concurrent;
 using Domain;
 using Application.Interfaces;
+using System.Text.RegularExpressions;
 
 public class MatchManager
 {
@@ -22,7 +23,7 @@ public class MatchManager
         }
     }
 
-    public DataInfo StartNewMatch(string matchId, List<string> players)
+    public GameState StartNewMatch(string matchId, List<string> players)
     {
         var newState = new GameState
         {
@@ -33,20 +34,21 @@ public class MatchManager
 
         var allCards = new Dictionary<string, int>()
         {
-            {"blue", 1},
-            {"cm", 1},
-            {"ddos", 1},
-            {"err", 1},
-            {"garb", 1},
-            {"goto", 1},
-            {"imp", 1},
-            {"inf", 1},
-            {"merge", 1},
-            {"miracle", 1},
-            {"nocom", 1},
-            {"sql", 1},
-            {"trojan", 1},
-            {"vibe", 1}
+            {"blue", 0},
+            {"cm", 0},
+            {"ddos", 0},
+            {"err", 0},
+            {"garb", 0},
+            {"goto", 0},
+            {"imp", 0},
+            {"inf", 0},
+            {"merge", 0},
+            {"miracle", 0},
+            {"nocom", 0},
+            {"sql", 0},
+            {"trojan", 0},
+            {"vibe", 0},
+            {"test", 20}
         };
 
         foreach (var card in allCards)
@@ -78,7 +80,8 @@ public class MatchManager
         _activeMatches.TryAdd(matchId, newState);
         Console.WriteLine($"Match {matchId} started! Handed out initial hands HAHAHAHAHA.");
 
-        return new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
+        // return new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
+        return newState;
     }
 
     //creates a new deck based on the Tablecards
@@ -128,16 +131,57 @@ public class MatchManager
             return new DataInfo { Error = $"Unknown card: {cardData.CardId}" };
         }
 
-        // Apply the specific card's logic
-        var responseData = cardEffect.ApplyEffect(match, playerId, cardData);
+        if (!match.PlayerHands[playerId].Contains("imp"))
+        {
+            // Apply the specific card's logic
+            var responseData = cardEffect.ApplyEffect(match, playerId, cardData);
+            // Apply the specific card's logic
 
-        // If no errors, add it to the table
-        if (string.IsNullOrEmpty(responseData.Error))
+            // If no errors, add it to the table
+            if (string.IsNullOrEmpty(responseData.Error))
+            {
+                match.TableCards.Add(cardData.CardId);
+            }
+            return responseData;
+        }
+        else if (match.PlayerHands[playerId].Count < 2)
         {
             match.TableCards.Add(cardData.CardId);
+            match.PlayerHands[playerId].Remove(cardData.CardId);
+            var responseData = new DataInfo
+            {
+                CardId = cardData.CardId
+            };
+            responseData.Cards.Add(cardData.CardId);
+
+            return responseData;
+        }
+        else if (cardData.CardId != "imp")
+        {
+            match.TableCards.Add("imp");
+            match.TableCards.Add(cardData.CardId);
+            match.PlayerHands[playerId].Remove("imp");
+            match.PlayerHands[playerId].Remove(cardData.CardId);
+
+            var responseData = new DataInfo
+            {
+                CardId = "imp",
+            };
+            responseData.Cards.Add("imp");
+            responseData.Cards.Add(cardData.CardId);
+
+            return responseData;
+        }
+        else
+        {
+            var responseData = new DataInfo
+            {
+                CardId = "imp",
+                Error = "illigal play"
+            };
+            return responseData;
         }
 
-        return responseData;
     }
 
     // Legendary Artifact
@@ -215,6 +259,12 @@ public class MatchManager
 
         var responseData = new DataInfo { };
 
+        if (match.PlayerHands[playerId].Contains("imp"))
+        {
+            responseData.CardId = "imp";
+            return responseData;
+        }
+
         if (match.Deck.Count <= 0)
         {
             // Refill deck
@@ -234,6 +284,10 @@ public class MatchManager
         match.Deck.RemoveAt(0);
         Console.WriteLine($"The first card is {card}");
 
+        if (card == "imp")
+        {
+            responseData.Message = "improved hardware";
+        }
         if (match.PlayerHands.TryGetValue(playerId, out var hand))
         {
             hand.Add(card);
@@ -321,12 +375,64 @@ public class MatchManager
             match.PlayerIds.Remove(playerId);
             // remove hand from dict
             match.PlayerHands.Remove(playerId);
-            responseData.Message = " Removed";
+            responseData.Message = "Removed";
         }
         if (newLimit == "1")
         {
             match.CardLimit--;
         }
         return responseData;
+    }
+
+    // Get the match from the playerId.
+    public DataInfo RemoveFromMatch(string playerId, string matchId = "")
+    {
+        if (string.IsNullOrEmpty(matchId))
+        {
+            matchId = GetMatchFromPlayer(playerId);
+        }
+
+        // Check if lookup found something
+        if (string.IsNullOrEmpty(matchId))
+        {
+            return new DataInfo();
+        }
+
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            Console.WriteLine($"Cannot find match {matchId}");
+            return new DataInfo { Error = $"Cannot find match {matchId}" };
+        }
+
+        // Check who the next player is and change
+        if (match.CurrentTurnPlayerId == playerId)
+        {
+            // Advance the turn to the next player if current has none
+            int currentIndex = match.PlayerIds.IndexOf(playerId);
+            int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
+            match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
+
+            // Set NTrns to 1
+            match.NTurns = 1;
+        }
+
+        // remove from cycle
+        match.PlayerIds.Remove(playerId);
+        // remove hand from dict
+        match.PlayerHands.Remove(playerId);
+        Console.WriteLine($"Removed {playerId} from {matchId}. Cycle: {match.PlayerIds.Count}");
+
+        var responseData = new DataInfo
+        {
+            NextPlayer = match.CurrentTurnPlayerId,
+            Turns = match.NTurns
+        };
+        return responseData;
+    }
+
+    public string GetMatchFromPlayer(string playerId)
+    {
+        string match = _activeMatches.FirstOrDefault(m => m.Value.PlayerIds.Contains(playerId)).Key;
+        return match;
     }
 }
