@@ -94,6 +94,13 @@ public class MessageRouter
                     response = MakeMessage("CARD_DRAWN", playerId, responseData);
                     await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
 
+                    // Send card message to all other players
+                    var Data = new DataInfo{
+                        Target = playerId
+                    };
+                    response = MakeMessage("DRAWN", playerId,Data);
+                    await connectionManager.BroadcastToLobbyExceptAsync(playerId, JsonSerializer.Serialize(response), playerId);
+
                     // Check for Improved Hardware
                     if (card == "imp")
                     {

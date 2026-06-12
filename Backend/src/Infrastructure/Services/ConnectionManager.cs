@@ -142,6 +142,25 @@ public class ConnectionManager
         }
     }
 
+    public async Task BroadcastToLobbyExceptAsync(string lobbyId, string message, string playerId)
+    {
+        if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
+        {
+            var bytes = Encoding.UTF8.GetBytes(message);
+            var buffer = new ArraySegment<byte>(bytes);
+
+            foreach (var connectionId in lobbyConnections.Keys)
+            {
+                if (_sockets.TryGetValue(connectionId, out var socket) && socket.State == WebSocketState.Open
+                && connectionId != playerId)
+                {
+                    await socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                }
+            }
+        }
+    }
+
+
     public async Task SendMessageAsync(string connectionId, string message)
     {
         if (_sockets.TryGetValue(connectionId, out var socket) && socket.State == WebSocketState.Open)
