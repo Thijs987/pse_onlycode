@@ -39,7 +39,7 @@ func decrease_counter():
 
 # Past card count getal aan
 func update_card_text():
-	counter_label.text = str(card_count)
+	counter_label.text = ""#str(card_count)
 
 # Hier moet een functie die de volgende kaart uit de string/array pakt
 # func ...
