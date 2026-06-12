@@ -28,4 +28,8 @@ public class DataInfo
     // Used for sending hands or multiple cards
     [JsonPropertyName("cards")]
     public List<string> Cards { get; set; } = new();
+
+    // Determines if this message should only be sent to the specific player
+    [JsonPropertyName("isPrivate")]
+    public bool IsPrivate { get; set; } = false;
 }

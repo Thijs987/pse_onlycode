@@ -9,19 +9,32 @@ public class TrojanCard : ICardEffect
 
     public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
     {
+        // TODO: Write the actual logic
+        var target = cardData.Target;
+        var card = cardData.Cards;
+        var responseData = new DataInfo{
+            CardId = CardId
+        };
+
+        if(card.Count != 1 ) {
+            responseData.Error = "No card assigned";
+            return responseData;
+        }
+
+        // if players hand contains card send it to the other player.
+        if(matchState.PlayerHands[playerId].Contains(card[0])){
+            matchState.PlayerHands[target].Add(card[0]);
+            matchState.PlayerHands[playerId].Remove(card[0]);
+        } else {
+            responseData.Error = $"{playerId} doesn't have {card} in hand";
+        }
+
         // Standard Cleanup
         if (matchState.PlayerHands.ContainsKey(playerId))
         {
             matchState.PlayerHands[playerId].Remove(CardId);
         }
-
-        // TODO: Write the actual logic
-
         // Return a basic response so the game doesn't crash
-        return new DataInfo
-        {
-            CardId = CardId,
-            Message = $"{playerId} played {CardId}, but the effect is not yet implemented!"
-        };
+        return responseData;
     }
 }

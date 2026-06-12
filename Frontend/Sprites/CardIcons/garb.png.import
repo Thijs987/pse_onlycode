@@ -2,16 +2,12 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://oj43q25kb2kc"
-path="res://.godot/imported/Miracle.webp-a94d6d25d7541cd3be40907d3c70f62b.ctex"
-metadata={
-"vram_texture": false
-}
+uid="uid://b7emk4xlxb2tm"
+valid=false
 
 [deps]
 
-source_file="res://cards/Miracle.webp"
-dest_files=["res://.godot/imported/Miracle.webp-a94d6d25d7541cd3be40907d3c70f62b.ctex"]
+source_file="res://Sprites/CardIcons/garb.png"
 
 [params]
 

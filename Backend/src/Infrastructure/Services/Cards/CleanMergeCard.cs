@@ -10,12 +10,20 @@ public class CleanMergeCard : ICardEffect
 
     public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
     {
-        int currentIndex = matchState.PlayerIds.IndexOf(playerId);
-        int nextIndex = (currentIndex + 1) % matchState.PlayerIds.Count;
-        string nextPlayer = matchState.PlayerIds[nextIndex];
+        matchState.NTurns--;
+        var nextPlayer = playerId;
 
-        matchState.CurrentTurnPlayerId = nextPlayer;
-        matchState.NTurns = 1;
+        // Attack card can cause NTurns > 1
+        if (matchState.NTurns <= 0)
+        {
+            // Advance the turn to the next player if current has none
+            int currentIndex = matchState.PlayerIds.IndexOf(playerId);
+            int nextIndex = (currentIndex + 1) % matchState.PlayerIds.Count;
+            matchState.CurrentTurnPlayerId = matchState.PlayerIds[nextIndex];
+            nextPlayer = matchState.PlayerIds[nextIndex];
+            // Set NTrns to 1
+            matchState.NTurns = 1;
+        }
 
         matchState.PlayerHands[playerId].Remove(CardId);
 
@@ -23,7 +31,7 @@ public class CleanMergeCard : ICardEffect
         {
             CardId = CardId,
             NextPlayer = nextPlayer,
-            Turns = 1,
+            Turns = matchState.NTurns,
             Message = $"{playerId} played Clean Merge! Turn skipped."
         };
     }

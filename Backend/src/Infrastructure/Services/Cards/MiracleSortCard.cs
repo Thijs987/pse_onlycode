@@ -16,13 +16,16 @@ public class MiracleSortCard : ICardEffect
             matchState.PlayerHands[playerId].Remove(CardId);
         }
 
-        // TODO: Write the actual logic
+        var rand = new Random();
+        
+        // Shuffle deck
+        matchState.Deck = matchState.Deck.OrderBy(_ => rand.Next()).ToList();
+        string resultMessage = $"{playerId} played Miracle Sort! The deck has been shuffled.";
 
-        // Return a basic response so the game doesn't crash
         return new DataInfo
         {
             CardId = CardId,
-            Message = $"{playerId} played {CardId}, but the effect is not yet implemented!"
+            Message = resultMessage
         };
     }
 }

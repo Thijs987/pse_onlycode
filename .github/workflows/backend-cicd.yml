@@ -1,0 +1,39 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ "main", "78-cicd" ]
+    paths:
+      - 'Backend/**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./Backend
+
+jobs:
+  build_test_deploy:
+    name: Build, Test, and Deploy
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Restore dependencies
+      run: dotnet restore src/CodeGreen.csproj
+
+    - name: Build
+      run: dotnet build src/CodeGreen.csproj --no-restore --configuration Release
+
+    # For when we actually have them ready and allat
+    # - name: Run Unit Tests
+    #   run: dotnet test --no-build --verbosity normal --configuration Release
+
+    - name: Publish Artifacts
+      run: dotnet publish src/CodeGreen.csproj -c Release -o /var/www/code-green-backend
+
+    - name: Restart Application
+      run: |
+        echo "Restarting the backend service..."
+        sudo systemctl restart codegreen

@@ -1,4 +1,4 @@
-extends Node
+extends Node2D
 
 signal card_played(player_id, card_id)
 signal card_drawn(player_id, card_count)
@@ -8,6 +8,8 @@ signal match_start
 var socket := WebSocketPeer.new()
 
 var joined_emitted := false
+
+@onready var Controller = $"../Controller"
 
 
 #func _ready():
@@ -99,8 +101,9 @@ func _Send(data: Dictionary):
 	if socket.get_ready_state() != WebSocketPeer.STATE_OPEN:
 		print("Socket is not connected.")
 		return
-		
+	print("OUT:")
 	print(data)
+	print("")
 
 	socket.send_text(JSON.stringify(data))
 
@@ -108,104 +111,28 @@ func _Send(data: Dictionary):
 # Interprets the data sent by the server
 func _handle_message(text: String):
 	var msg = JSON.parse_string(text)
-	var data = msg["data"]
 	
-	if (!msg || !data):
+	if (!msg):
 		return
 	
-#{
-  #"action": "PLAYER_JOINED",
-  #"playerId": "Player_1",
-  #"data": {
-	#"cardId": "",
-	#"target": "",
-	#"message": "Player_1 has joined the game!",
-	#"nextPlayer": "",
-	#"turns": 1,
-	#"error": ""
-  #}
-#}
-	
-	#{
-  #"action": "MATCH_STARTED",
-  #"playerId": "Player_1",
-  #"data": {
-	#"cardId": "",
-	#"target": "",
-	#"message": "",
-	#"nextPlayer": "Player_1",
-	#"turns": 1,
-	#"error": ""
-  #}
-#}
-
-#{
-  #"action": "CARD_DRAWN",
-  #"playerId": "Player_1",
-  #"data": {
-	#"cardId": "1",
-	#"target": "",
-	#"message": "",
-	#"nextPlayer": "",
-	#"turns": 1,
-	#"error": ""
-  #}
-#}
-
-#{
-  #"action": "NEXT_TURN",
-  #"playerId": "Player_1",
-  #"data": {
-	#"cardId": "",
-	#"target": "",
-	#"message": "",
-	#"nextPlayer": "Player_1",
-	#"turns": 1,
-	#"error": ""
-  #}
-#}
-
-#{
-  #"action": "CARD_PLAYED",
-  #"playerId": "Player_1",
-  #"data": {
-	#"cardId": "nor",
-	#"target": "",
-	#"message": "",
-	#"nextPlayer": "",
-	#"turns": 1,
-	#"error": ""
-  #}
-#}
-
-#{
-  #"action": "ERROR",
-  #"playerId": "Player_1",
-  #"data": {
-	#"cardId": "",
-	#"target": "",
-	#"message": "",
-	#"nextPlayer": "",
-	#"turns": 1,
-	#"error": "Invalid card"
-  #}
-#}
+	Controller.Update_From_Server(msg)
 
 	match msg["action"]:
 		"PLAYER_JOINED":
+			print("PJ")
 			Start_Match("Player_1")
 
 		"MATCH_STARTED":
-			Play_Card("Player_1", "wrong")
+			print("MS")
 
 		"ERROR":
-			Play_Card("Player_1", "nor")
+			print("ERR")
 
 		"CARD_PLAYED":
-			Draw_Card("Player_1")
+			print("CP")
 
 		"CARD_DRAWN":
-			print(data["cardId"])
+			print("CD")
 
 		"NEXT_TURN":
-			print("YYYYYYEEEEEEEESSSSSSSSS")
+			print("NT")

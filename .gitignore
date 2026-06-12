@@ -6,3 +6,7 @@ obj/
 # Common node modules locations
 /Backend/src/node_modules
 /Backend/src/wwwroot/node_modules
+
+# Godot 4+ specific ignores
+.godot/
+/android/
