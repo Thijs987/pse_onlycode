@@ -125,24 +125,7 @@ public class ConnectionManager
         }
     }
 
-    public async Task BroadcastToLobbyAsync(string lobbyId, string message)
-    {
-        if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
-        {
-            var bytes = Encoding.UTF8.GetBytes(message);
-            var buffer = new ArraySegment<byte>(bytes);
-
-            foreach (var connectionId in lobbyConnections.Keys)
-            {
-                if (_sockets.TryGetValue(connectionId, out var socket) && socket.State == WebSocketState.Open)
-                {
-                    await socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
-                }
-            }
-        }
-    }
-
-    public async Task BroadcastToLobbyExceptAsync(string lobbyId, string message, string playerId)
+    public async Task BroadcastToLobbyAsync(string lobbyId, string message, string exception = "")
     {
         if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
         {
@@ -152,14 +135,13 @@ public class ConnectionManager
             foreach (var connectionId in lobbyConnections.Keys)
             {
                 if (_sockets.TryGetValue(connectionId, out var socket) && socket.State == WebSocketState.Open
-                && connectionId != playerId)
+                && connectionId != exception)
                 {
                     await socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
                 }
             }
         }
     }
-
 
     public async Task SendMessageAsync(string connectionId, string message)
     {

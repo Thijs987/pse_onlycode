@@ -99,7 +99,7 @@ public class MessageRouter
                         Target = playerId
                     };
                     response = MakeMessage("DRAWN", playerId,Data);
-                    await connectionManager.BroadcastToLobbyExceptAsync(playerId, JsonSerializer.Serialize(response), playerId);
+                    await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response), playerId);
 
                     // Check for Improved Hardware
                     if (card == "imp")
