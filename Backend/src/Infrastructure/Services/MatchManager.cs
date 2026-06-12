@@ -6,6 +6,7 @@
 using System.Collections.Concurrent;
 using Domain;
 using Application.Interfaces;
+using System.Text.RegularExpressions;
 
 public class MatchManager
 {
@@ -142,16 +143,21 @@ public class MatchManager
                 match.TableCards.Add(cardData.CardId);
             }
             return responseData;
-        } else if (match.PlayerHands[playerId].Count < 2) {
+        }
+        else if (match.PlayerHands[playerId].Count < 2)
+        {
             match.TableCards.Add(cardData.CardId);
             match.PlayerHands[playerId].Remove(cardData.CardId);
-            var responseData = new DataInfo {
+            var responseData = new DataInfo
+            {
                 CardId = cardData.CardId
             };
             responseData.Cards.Add(cardData.CardId);
 
             return responseData;
-        } else if(cardData.CardId != "imp") {
+        }
+        else if (cardData.CardId != "imp")
+        {
             match.TableCards.Add("imp");
             match.TableCards.Add(cardData.CardId);
             match.PlayerHands[playerId].Remove("imp");
@@ -165,10 +171,13 @@ public class MatchManager
             responseData.Cards.Add(cardData.CardId);
 
             return responseData;
-        } else {
-            var responseData = new DataInfo {
+        }
+        else
+        {
+            var responseData = new DataInfo
+            {
                 CardId = "imp",
-                Error  = "illigal play"
+                Error = "illigal play"
             };
             return responseData;
         }
@@ -373,5 +382,51 @@ public class MatchManager
             match.CardLimit--;
         }
         return responseData;
+    }
+
+    // Get the match from the playerId.
+    public DataInfo RemoveFromMatch(string playerId, string matchId = "")
+    {
+        if (string.IsNullOrEmpty(matchId))
+        {
+            matchId = GetMatchFromPlayer(playerId);
+        }
+
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            Console.WriteLine($"Cannot find match {matchId}");
+            return new DataInfo { Error = $"Cannot find match {matchId}" };
+        }
+
+        // Check who the next player is and change
+        if (match.CurrentTurnPlayerId == playerId)
+        {
+            // Advance the turn to the next player if current has none
+            int currentIndex = match.PlayerIds.IndexOf(playerId);
+            int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
+            match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
+
+            // Set NTrns to 1
+            match.NTurns = 1;
+        }
+
+        // remove from cycle
+        match.PlayerIds.Remove(playerId);
+        // remove hand from dict
+        match.PlayerHands.Remove(playerId);
+        Console.WriteLine($"Removed {playerId} from {matchId}. Cycle: {match.PlayerIds.Count}");
+
+        var responseData = new DataInfo
+        {
+            NextPlayer = match.CurrentTurnPlayerId,
+            Turns = match.NTurns
+        };
+        return responseData;
+    }
+
+    public string GetMatchFromPlayer(string playerId)
+    {
+        string match = _activeMatches.FirstOrDefault(m => m.Value.PlayerIds.Contains(playerId)).Key;
+        return match;
     }
 }
