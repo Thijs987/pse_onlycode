@@ -392,6 +392,12 @@ public class MatchManager
             matchId = GetMatchFromPlayer(playerId);
         }
 
+        // Check if lookup found something
+        if (string.IsNullOrEmpty(matchId))
+        {
+            return new DataInfo();
+        }
+
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
             Console.WriteLine($"Cannot find match {matchId}");
