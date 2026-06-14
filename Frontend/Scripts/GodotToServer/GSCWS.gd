@@ -8,19 +8,12 @@ signal match_start
 var socket := WebSocketPeer.new()
 var joined_emitted := false
 
-const BASE_URL = "ws://83.96.203.15:5025"
-#const BASE_URL = "ws://localhost:5025"
+# Local 
+#const BASE_URL = "ws://localhost:6767"
+const BASE_URL = "wss://localhost:6969"
 
-# THIS IS OLD TEST CODE, MAYBE SHOULD BE REMOVED
-#func _ready():
-	#lobby_joined.connect(_on_lobby_joined)
-	#match_start.connect(match_tests)
-	#Join_Lobby("9B9157", "Player_1")
-
-#func match_tests():
-	#Draw_Card("Player_1")
-	#pass
-#END OLD TEST CODE
+# Pointing to a No-IP.com domain. Its an A record that points towards the server ip.
+#const BASE_URL = "wss://codegreen-uva.ddns.net"
 
 
 func _on_lobby_joined():
@@ -48,9 +41,13 @@ func _process(_delta):
 
 
 func Join_Lobby(LId: String, PId: String):
+	# Tells Godot to trust our Nginx certificate heh
+	var tls_options = TLSOptions.client_unsafe()
+	
 	socket.connect_to_url(
-		"%s/lobby?lobbyId=%s&playerId=%s"
-		% [BASE_URL, LId, PId]
+        "%s/lobby?lobbyId=%s&playerId=%s"
+		% [BASE_URL, LId, PId],
+		tls_options # <-- Pass the bypass here!
 	)
 
 
@@ -63,7 +60,6 @@ func Play_Card(PId: String, card_id: String):
 
 # Function to draw a card
 func Draw_Card(PId: String):
-	
 	var message = _Make_Message("DRAW_CARD", PId)
 	_Send(message)
 
