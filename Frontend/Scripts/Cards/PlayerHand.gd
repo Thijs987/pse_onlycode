@@ -24,7 +24,7 @@ signal next_turn(player)
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	if controller.Last_Message.has("action") and controller.Last_Message["action"] == "MATCH_STARTED":
-		var player = controller.Last_Message["data"]["nextPlayer"]
+		var player = controller.Last_Message.get("data", {}).get("nextPlayer")
 		if player != null:
 			next_turn.emit(player)
 			if turn_label != null:
@@ -42,13 +42,13 @@ func _process(_delta: float) -> void:
 func _on_message(msg):
 	if msg != null:
 		if msg["action"] == "NEXT_TURN":
-			var player = msg["data"]["nextPlayer"]
+			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
 		if msg["action"] == "CARD_PLAYED":
-			var player = msg["data"]["nextPlayer"]
+			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null and player != "":
 				next_turn.emit(player)
 				if turn_label != null:

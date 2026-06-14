@@ -52,59 +52,29 @@ func Join_Lobby(LId: String, PId: String):
 
 
 # Function to play a card
-func Play_Card(PId: String, card_id: String):
-	var data = _Make_Data(card_id)
-	var message = _Make_Message("PLAY_CARD", PId, data)
-	_Send(message)
-
+func Play_Card(card_id: String):
+	_Send(_Make_Message("PLAY_CARD", { "cardId": card_id }))
 
 # Function to draw a card
-func Draw_Card(PId: String):
-	var message = _Make_Message("DRAW_CARD", PId)
-	_Send(message)
-
+func Draw_Card():
+	_Send(_Make_Message("DRAW_CARD"))
 
 # Function to start match
-func Start_Match(PId: String):
-	var message = _Make_Message("START_MATCH", PId)
-	_Send(message)
-
+func Start_Match():
+	_Send(_Make_Message("START_MATCH"))
 
 # If Pile == true trojan horse was played
 func Gift_Card(OId: String, card_id: String, From_Hand: bool):
 	if From_Hand == true:
-		var data = _Make_Data(card_id)
-		var message = _Make_Message("GIVE_CARD", OId, data)
-		_Send(message)
+		_Send(_Make_Message("GIVE_CARD", { "cardId": card_id, "target": OId }))
 	else:
-		var message = _Make_Message("GIVE_CARD", OId)
-		_Send(message)
+		_Send(_Make_Message("GIVE_CARD", { "target": OId }))
 
-
-# Make DataInfo
-func _Make_Data(cardId: String = "",
-				target: String = "",
-				message: String = "",
-				nextPlayer = "",
-				turns: int = 1,
-				error: String = ""):
-	var data = {
-		"cardId": cardId,
-		"target": target,
-		"message": message,
-		"nextPlayer": nextPlayer,
-		"turns": turns,
-		"error": error
-	}
-	return data
-
-# Make outer message and set data to empty DataInfo
-func _Make_Message(action: String, PId: String, data: Dictionary = _Make_Data()):
-	var message = {
-		"action": action,
-		"playerId": PId,
-		"data": data
-	}
+# Make outer message
+func _Make_Message(action: String, data: Dictionary = {}):
+	var message = { "action": action }
+	if not data.is_empty():
+		message["data"] = data
 	return message
 
 # Helper function to send data
