@@ -1,14 +1,14 @@
 [gd_scene format=3 uid="uid://qekpyka670e2"]
 
-[ext_resource type="Texture2D" uid="uid://ddi0wy7qoyp4c" path="res://Table.jpeg" id="1_ig7tw"]
-[ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://card_logic.gd" id="1_uu6xs"]
-[ext_resource type="Texture2D" uid="uid://bglcmj03jm8lb" path="res://Card_deck_sprite.png" id="2_0xm2m"]
-[ext_resource type="Script" uid="uid://bkjjiqdqugih7" path="res://pile.gd" id="2_272bh"]
-[ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://player_hand.gd" id="3_r0du0"]
-[ext_resource type="Script" uid="uid://dis0yyp8e3chk" path="res://input_manager.gd" id="6_7mycd"]
-[ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://controller.gd" id="7_272bh"]
-[ext_resource type="Script" uid="uid://br3mo8m8v4kiw" path="res://gschttp.gd" id="7_kek77"]
-[ext_resource type="Script" uid="uid://dg8okmsqxxyxb" path="res://gscws.gd" id="8_4c57u"]
+[ext_resource type="Texture2D" uid="uid://ddi0wy7qoyp4c" path="res://Sprites/Table.jpeg" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://Scripts/Cards/CardLogic.gd" id="1_uu6xs"]
+[ext_resource type="Texture2D" uid="uid://bglcmj03jm8lb" path="res://Sprites/Card_deck_sprite.png" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://bkjjiqdqugih7" path="res://Scripts/ClickLogic/Pile.gd" id="2_272bh"]
+[ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://Scripts/Cards/PlayerHand.gd" id="3_r0du0"]
+[ext_resource type="Script" uid="uid://dis0yyp8e3chk" path="res://Scripts/ClickLogic/InputManager.gd" id="6_7mycd"]
+[ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://Scripts/GodotToServer/Controller.gd" id="7_272bh"]
+[ext_resource type="Script" uid="uid://br3mo8m8v4kiw" path="res://Scripts/GodotToServer/GSHTTP.gd" id="7_kek77"]
+[ext_resource type="Script" uid="uid://dg8okmsqxxyxb" path="res://Scripts/GodotToServer/GSCWS.gd" id="8_4c57u"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
