@@ -27,7 +27,8 @@ func _ready() -> void:
 		var player = controller.Last_Message["data"]["nextPlayer"]
 		if player != null:
 			next_turn.emit(player)
-			turn_label.text = str(player)
+			if turn_label != null:
+				turn_label.text = str(player)
 
 	controller.message_updated.connect(_on_message)
 	center_screen_x = get_viewport().size.x / 2
@@ -44,12 +45,14 @@ func _on_message(msg):
 			var player = msg["data"]["nextPlayer"]
 			if player != null:
 				next_turn.emit(player)
-				turn_label.text = str(player)
+				if turn_label != null:
+					turn_label.text = str(player)
 		if msg["action"] == "CARD_PLAYED":
 			var player = msg["data"]["nextPlayer"]
 			if player != null and player != "":
 				next_turn.emit(player)
-				turn_label.text = str(player)
+				if turn_label != null:
+					turn_label.text = str(player)
 
 func add_new_card(card_id):
 	var card_scene = preload(CARD_SCENE_PATH)
