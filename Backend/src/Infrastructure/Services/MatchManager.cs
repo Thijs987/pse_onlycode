@@ -32,6 +32,10 @@ public class MatchManager
             CurrentTurnPlayerId = players[0]
         };
 
+        foreach (var player in players) {
+            newState.PlayerStatuses[player] = PlayerStatus.Active;
+        }
+
         var allCards = new Dictionary<string, int>()
         {
             {"blue", 0},
@@ -107,7 +111,7 @@ public class MatchManager
         if (!_activeMatches.TryGetValue(matchId, out var match))
             return new DataInfo { Error = "Match not found!" };
 
-        if (match.PlayerIds.Count <= 1)
+        if (GetActive(match).Count <= 1)
             return new DataInfo { Error = "The game has already ended." };
 
         if (!match.PlayerHands.TryGetValue(playerId, out var hands))
@@ -248,7 +252,7 @@ public class MatchManager
             return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
 
-        if (match.PlayerIds.Count <= 1)
+        if (GetActive(match).Count <= 1)
             return new DataInfo { Error = "The game has already ended." };
 
         if (!match.PlayerHands.ContainsKey(playerId))
@@ -323,10 +327,11 @@ public class MatchManager
         // Attack card can cause NTurns > 1
         if (match.NTurns <= 0)
         {
+            var currentCycle = GetActive(match);
             // Advance the turn to the next player if current has none
-            int currentIndex = match.PlayerIds.IndexOf(playerId);
-            int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
-            match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
+            int currentIndex = currentCycle. IndexOf(playerId);
+            int nextIndex = (currentIndex + 1) % currentCycle.Count;
+            match.CurrentTurnPlayerId = currentCycle[nextIndex];
 
             // Set NTrns to 1
             match.NTurns = 1;
@@ -382,11 +387,6 @@ public class MatchManager
             return new DataInfo { Error = $"Cannot find player {playerId}" };
         }
 
-        foreach (string Id in match.PlayerIds)
-        {
-            Console.WriteLine($"{Id}");
-        }
-
         var responseData = new DataInfo { };
 
         // if card count is less then the limit return
@@ -397,7 +397,7 @@ public class MatchManager
         else
         {
             // remove from cycle
-            match.PlayerIds.Remove(playerId);
+            match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
             // remove hand from dict
             match.PlayerHands.Remove(playerId);
             responseData.Message = "Removed";
@@ -410,7 +410,7 @@ public class MatchManager
     }
 
     // Get the match from the playerId.
-    public DataInfo RemoveFromMatch(string playerId, string matchId = "")
+    public DataInfo RemoveFromMatch(string playerId, string matchId = "", PlayerStatus status = PlayerStatus.Eliminated)
     {
         if (string.IsNullOrEmpty(matchId))
         {
@@ -429,23 +429,30 @@ public class MatchManager
             return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
 
+        var currentCycle = GetActive(match);
         // Check who the next player is and change
         if (match.CurrentTurnPlayerId == playerId)
         {
             // Advance the turn to the next player if current has none
-            int currentIndex = match.PlayerIds.IndexOf(playerId);
-            int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
-            match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
+            int currentIndex = currentCycle. IndexOf(playerId);
+            int nextIndex = (currentIndex + 1) % currentCycle.Count;
+            match.CurrentTurnPlayerId = currentCycle[nextIndex];
 
             // Set NTrns to 1
             match.NTurns = 1;
         }
 
         // remove from cycle
-        match.PlayerIds.Remove(playerId);
+        match.PlayerStatuses[playerId] = status;
         // remove hand from dict
-        match.PlayerHands.Remove(playerId);
-        Console.WriteLine($"Removed {playerId} from {matchId}. Cycle: {match.PlayerIds.Count}");
+        if (status == PlayerStatus.Eliminated) {
+            foreach (var card in match.PlayerHands[playerId]) {
+                match.TableCards.Add(card);
+            }
+            match.PlayerHands.Remove(playerId);
+        }
+
+        Console.WriteLine($"Removed {playerId} from {matchId}. Cycle: {currentCycle.Count}");
 
         var responseData = new DataInfo
         {
@@ -453,6 +460,28 @@ public class MatchManager
             Turns = match.NTurns
         };
         return responseData;
+    }
+
+    public bool Rejoin (string playerId) {
+        var matchId = GetMatchFromPlayer(playerId);
+
+        // Check if lookup found something
+        if (string.IsNullOrEmpty(matchId))
+        {
+            return false;
+        }
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            Console.WriteLine($"Cannot find match {matchId}");
+            return false;
+        }
+
+        if(match.PlayerStatuses.TryGetValue(playerId, out var status)
+            && match.PlayerStatuses[playerId] == PlayerStatus.Disconnected){
+            match.PlayerStatuses[playerId] = PlayerStatus.Active;
+            return true;
+        }
+        return false;
     }
 
     public string GetMatchFromPlayer(string playerId)
@@ -463,13 +492,25 @@ public class MatchManager
 
     public string GetWinner(string matchId)
     {
-        if (_activeMatches.TryGetValue(matchId, out var match))
+        if (!_activeMatches.TryGetValue(matchId, out var match))
         {
-            if (match.PlayerIds.Count == 1)
-            {
-                return match.PlayerIds[0];
-            }
+            return string.Empty;
         }
-        return string.Empty;
+
+        var activePlayers = GetActive(match);
+
+        if (activePlayers.Count == 1) {
+            return activePlayers[0];
+        } else {
+            return string.Empty;
+        }
+    }
+
+    public List<string> GetActive(GameState match) {
+        var activePlayers = match.PlayerIds
+            .Where (id =>
+                match.PlayerStatuses.TryGetValue(id, out var status) &&
+                status == PlayerStatus.Active).ToList();
+        return activePlayers;
     }
 }

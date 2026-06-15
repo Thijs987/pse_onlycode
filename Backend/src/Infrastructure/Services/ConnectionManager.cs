@@ -38,19 +38,37 @@ public class ConnectionManager
         }
         catch { }
 
-        AddToLobby(playerId, lobbyId);
-        Console.WriteLine($"Socket Connected: {playerId} joined Lobby {lobbyId}");
+        var rejoin = false;
+        if (existingPlayers.Contains(playerId)) {
+            rejoin = true;
+        }
 
-        var joinMessage = new NetworkMessage
+        var joinMessage = new NetworkMessage {};
+
+        string action;
+        string message;
+
+        if(rejoin == true) {
+            matchManager.Rejoin(playerId);
+            Console.WriteLine($"Socket Connected: {playerId} rejoined Lobby {lobbyId}");
+            action = "PLAYER_REJOINED";
+            message = $"{playerId} has rejoined the game!";
+        } else {
+            AddToLobby(playerId, lobbyId);
+            Console.WriteLine($"Socket Connected: {playerId} joined Lobby {lobbyId}");
+            action = "PLAYER_JOINED";
+            message = $"{playerId} has joined the game!";
+        }
+
+        joinMessage = new NetworkMessage
         {
-            Action = "PLAYER_JOINED",
+            Action = action,
             PlayerId = playerId,
             Data = new DataInfo
             {
-                Message = $"{playerId} has joined the game!"
+                Message = message
             }
         };
-
         await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(joinMessage));
 
         foreach (var existingPlayer in existingPlayers)
@@ -107,8 +125,8 @@ public class ConnectionManager
         }
         finally
         {
-            RemoveFromLobby(playerId);
-            var responseData = matchManager.RemoveFromMatch(playerId);
+            // RemoveFromLobby(playerId);
+            var responseData = matchManager.RemoveFromMatch(playerId, "", PlayerStatus.Disconnected);
             responseData.Message = $"{playerId} disconnected.";
             _sockets.TryRemove(playerId, out _);
 
