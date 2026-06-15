@@ -332,6 +332,22 @@ public class MatchManager
         return responseData;
     }
 
+    // True once StartNewMatch has created an in-memory match for this id.
+    public bool IsMatchActive(string matchId)
+    {
+        return _activeMatches.ContainsKey(matchId);
+    }
+
+    // Returns whose turn it currently is, or empty if the match is unknown.
+    public string GetCurrentTurnPlayer(string matchId)
+    {
+        if (_activeMatches.TryGetValue(matchId, out var match))
+        {
+            return match.CurrentTurnPlayerId;
+        }
+        return string.Empty;
+    }
+
     //Safely gets a single player's hand without exposing the whole GameState
     public List<string> GetPlayerHand(string matchId, string playerId)
     {

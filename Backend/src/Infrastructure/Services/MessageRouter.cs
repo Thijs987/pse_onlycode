@@ -8,6 +8,13 @@ using Microsoft.VisualBasic;
 
 public class MessageRouter
 {
+    private readonly BotService _botService;
+
+    public MessageRouter(BotService botService)
+    {
+        _botService = botService;
+    }
+
     public async Task RouteMessageAsync(string playerId, string lobbyId, string rawJson, ConnectionManager connectionManager, MatchManager matchManager)
     {
         try
@@ -26,6 +33,32 @@ public class MessageRouter
             // TODO: add actual logic
             switch (message.Action)
             {
+                case "ADD_BOT":
+                    // Can't add a bot to a match that's already running.
+                    if (matchManager.IsMatchActive(lobbyId))
+                    {
+                        responseData = new DataInfo { Error = "Cannot add a bot after the match has started." };
+                        response = MakeMessage("ERROR", playerId, responseData);
+                        await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
+                        break;
+                    }
+
+                    // Reject if the lobby is already full.
+                    if (!connectionManager.IsLobbyAvailable(lobbyId))
+                    {
+                        responseData = new DataInfo { Error = "Lobby is full." };
+                        response = MakeMessage("ERROR", playerId, responseData);
+                        await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
+                        break;
+                    }
+
+                    // Registers a new bot in the lobby. AddBotAsync adds it to the
+                    // ConnectionManager lobby (so START_MATCH includes it) and
+                    // broadcasts PLAYER_JOINED for the new bot itself.
+                    string botId = await _botService.AddBotAsync(lobbyId);
+                    Console.WriteLine($"Bot {botId} requested by {playerId} for lobby {lobbyId}");
+                    break;
+
                 case "START_MATCH":
                     // matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
                     // Changed matchId to lobbyId
@@ -40,6 +73,9 @@ public class MessageRouter
                         response = MakeMessage("MATCH_STARTED", player, responseData);
                         await connectionManager.SendMessageAsync(player, JsonSerializer.Serialize(response));
                     }
+
+                    // If the first player up is a bot, let it play immediately.
+                    await DriveBotsAsync(lobbyId, connectionManager, matchManager);
 
                     // await connectionManager.SendMessageAsync(playerId, JsonSerializer.Serialize(response));
                     // await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
@@ -142,5 +178,37 @@ public class MessageRouter
         // Broadcast next player and NTurns
         var response = MakeMessage("NEXT_TURN", playerId, responseData);
         await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
+
+        // If the turn now lands on one (or several) bots, play them out.
+        await DriveBotsAsync(lobbyId, connectionManager, matchManager);
+    }
+
+    // Plays out every bot whose turn it currently is, chaining through
+    // consecutive bots until the turn lands on a human (or the match ends).
+    // Each bot's own turn advance + broadcasts happen inside ProcessBotTurnAsync;
+    // this loop only decides whether the *next* player up is another bot.
+    private async Task DriveBotsAsync(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
+    {
+        // Don't drive bots if there's no human left to play against,
+        // otherwise bots would pass the turn among themselves forever.
+        bool hasHuman;
+        try
+        {
+            hasHuman = connectionManager.GetPlayers(lobbyId).Any(p => !_botService.IsBot(p));
+        }
+        catch
+        {
+            return;
+        }
+        if (!hasHuman) return;
+
+        // Safety cap in case the last human is eliminated mid-chain.
+        int safety = 1000;
+        var current = matchManager.GetCurrentTurnPlayer(lobbyId);
+        while (safety-- > 0 && !string.IsNullOrEmpty(current) && _botService.IsBot(current))
+        {
+            await _botService.ProcessBotTurnAsync(lobbyId, current);
+            current = matchManager.GetCurrentTurnPlayer(lobbyId);
+        }
     }
 }
