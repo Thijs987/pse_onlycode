@@ -117,11 +117,18 @@ if (authEnabled)
         {
             OnMessageReceived = context =>
             {
+                // Prefer token from query string (WebSocket fallback), otherwise read from cookie named 'access_token'
                 var accessToken = context.Request.Query["access_token"].FirstOrDefault();
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    accessToken = context.Request.Cookies["access_token"];
+                }
+
                 if (!string.IsNullOrEmpty(accessToken))
                 {
                     context.Token = accessToken;
                 }
+
                 return Task.CompletedTask;
             }
         };
