@@ -17,16 +17,41 @@ var in_lobby_state = false
 var created_lobby = false
 
 # Called when the node enters the scene tree for the first time.
+var list_container: VBoxContainer
+var add_bot_btn: Button
+
 func _ready() -> void:
+	list_container = VBoxContainer.new()
+	list_container.position = Vector2(842, 200)
+	add_child(list_container)
+
+	add_bot_btn = Button.new()
+	add_bot_btn.text = "Add Bot"
+	add_bot_btn.pressed.connect(_on_add_bot)
+	add_bot_btn.visible = false
+	list_container.add_child(add_bot_btn)
+
 	create_lobby_button.pressed.connect(_on_create_lobby)
 	join_lobby_button.pressed.connect(_on_join_lobby)
 	start_lobby_button.pressed.connect(_on_start_lobby)
 	controller.message_updated.connect(_on_message)
 	gscws.lobby_joined.connect(_on_lobby_joined_success)
+	gscws.lobby_left.connect(_on_lobby_left)
+
+func _on_add_bot():
+	controller.Add_Bot()
 
 func _on_lobby_joined_success() -> void:
 	in_lobby.text = "Currently in lobby"
 	in_lobby_state = true
+
+func _on_lobby_left() -> void:
+	in_lobby.text = "Not in lobby"
+	in_lobby_state = false
+	created_lobby = false
+	player_count = 0
+	player_list = ["", "", "", ""]
+	update_lobby_list()
 
 func _on_message(msg):
 	if msg["action"] == "MATCH_STARTED" and match_started == false:
@@ -75,6 +100,33 @@ func _on_start_lobby():
 	
 
 func update_lobby_list() -> void:
-	lobby_list.text = "Current players:\n"
+	lobby_list.text = "Current players:"
+	
+	for child in list_container.get_children():
+		if child != add_bot_btn:
+			child.queue_free()
+			
+	add_bot_btn.visible = in_lobby_state and created_lobby
+	
 	for i in range(player_count):
-		lobby_list.text += player_list[i]
+		var pid = player_list[i].strip_edges()
+		if pid == "":
+			continue
+			
+		var row = HBoxContainer.new()
+		var lbl = Label.new()
+		lbl.text = pid
+		var settings = LabelSettings.new()
+		settings.font_color = Color(0, 0, 0, 1)
+		lbl.label_settings = settings
+		row.add_child(lbl)
+		
+		if pid != controller.PId and created_lobby:
+			var kick_btn = Button.new()
+			kick_btn.text = "Kick"
+			kick_btn.pressed.connect(controller.Kick_Player.bind(pid))
+			row.add_child(kick_btn)
+			
+		list_container.add_child(row)
+		
+	list_container.move_child(add_bot_btn, -1)

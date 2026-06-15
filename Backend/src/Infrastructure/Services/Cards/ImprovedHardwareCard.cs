@@ -9,19 +9,36 @@ public class ImprovedHardwareCard : ICardEffect
 
     public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
     {
-        // Standard Cleanup
-        if (matchState.PlayerHands.ContainsKey(playerId))
+        var responseData = new DataInfo { CardId = CardId, Cards = new List<string> { CardId } };
+
+        if (matchState.PlayerHands.TryGetValue(playerId, out var hand))
         {
-            matchState.PlayerHands[playerId].Remove(CardId);
+            hand.Remove(CardId);
+
+            string? cardToDiscard = null;
+            if (cardData.Cards != null && cardData.Cards.Count > 0)
+            {
+                cardToDiscard = cardData.Cards.FirstOrDefault(c => c != CardId && hand.Contains(c));
+            }
+
+            if (cardToDiscard == null)
+            {
+                cardToDiscard = hand.FirstOrDefault(c => c != CardId);
+            }
+
+            if (cardToDiscard != null)
+            {
+                hand.Remove(cardToDiscard);
+                matchState.TableCards.Add(cardToDiscard);
+                responseData.Cards.Add(cardToDiscard);
+                responseData.Message = $"{playerId} discarded {CardId} and {cardToDiscard}.";
+            }
+            else
+            {
+                responseData.Message = $"{playerId} discarded {CardId}.";
+            }
         }
 
-        // TODO: Write the actual logic
-
-        // Return a basic response so the game doesn't crash
-        return new DataInfo
-        {
-            CardId = CardId,
-            Message = $"{playerId} played {CardId}, but the effect is not yet implemented!"
-        };
+        return responseData;
     }
 }

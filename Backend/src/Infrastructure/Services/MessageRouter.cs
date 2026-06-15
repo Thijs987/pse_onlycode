@@ -69,6 +69,18 @@ public class MessageRouter
                     Console.WriteLine($"Bot {botId} requested by {playerId} for lobby {lobbyId}");
                     break;
 
+                case "KICK_PLAYER":
+                    var target = message.Data?.Target;
+                    if (!string.IsNullOrEmpty(target))
+                    {
+                        if (_botService.IsBot(target))
+                        {
+                            _botService.RemoveBot(target);
+                        }
+                        await connectionManager.KickPlayerAsync(target, lobbyId, matchManager);
+                    }
+                    break;
+
                 case "START_MATCH":
                     // matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
                     // Changed matchId to lobbyId
@@ -86,10 +98,9 @@ public class MessageRouter
 
                     // If the first player up is a bot, let it play immediately.
                     await DriveBotsAsync(lobbyId, connectionManager, matchManager);
-
-                    // await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
-                    // await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                     break;
+
+
 
                 case "PLAY_CARD":
                     // Let's assume message.Data contains the MatchId and CardId
@@ -114,6 +125,11 @@ public class MessageRouter
                         else
                         {
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
+                        }
+
+                        if (responseData.CardId != "imp" && matchManager.GetCurrentTurnPlayer(lobbyId) != playerId)
+                        {
+                            await DriveBotsAsync(lobbyId, connectionManager, matchManager);
                         }
                     }
                     else

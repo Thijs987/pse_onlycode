@@ -65,6 +65,11 @@ public class BotService
         return botId;
     }
 
+    public void RemoveBot(string botId)
+    {
+        _bots.TryRemove(botId, out _);
+    }
+
     // True when the given player id belongs to a bot. Use this when a turn
     // advances to decide whether to call ProcessBotTurnAsync.
     public bool IsBot(string playerId) => _bots.ContainsKey(playerId);
@@ -75,38 +80,71 @@ public class BotService
 
     public async Task ProcessBotTurnAsync(string lobbyId, string botId)
     {
-        var hand = _matchManager.GetPlayerHand(lobbyId, botId);
+        await Task.Delay(1500);
 
-        // Improved Hardware lets the bot dump any other card from its hand "for free".
-        if (hand.Contains("imp"))
+        var pendingAction = _matchManager.GetPendingAction(lobbyId, botId);
+        if (!string.IsNullOrEmpty(pendingAction))
         {
-            var cardId = hand.Count < 2 ? "imp" : hand.First(c => c != "imp");
-            var responseData = _matchManager.TryPlayCard(lobbyId, botId, new DataInfo { CardId = cardId });
-
-            if (responseData.Error == "")
+            if (pendingAction == "os")
             {
-                await SendCardPlayed(lobbyId, botId, responseData);
-                return;
-            }
-        }
-        else
-        {
-            foreach (var cardId in hand.Distinct().ToList())
-            {
-                var cardData = BuildCardData(lobbyId, botId, cardId, hand);
-                if (cardData == null)
+                var target = _random.Next(2) == 0 ? "take" : "top";
+                var responseData = _matchManager.TryPlayCard(lobbyId, botId, new DataInfo { CardId = "os", Target = target });
+                if (responseData.Error == "")
                 {
-                    continue;
+                    await SendCardPlayed(lobbyId, botId, responseData);
+                }
+            }
+            return;
+        }
+
+        bool playedCard = true;
+        while (playedCard)
+        {
+            playedCard = false;
+            var hand = _matchManager.GetPlayerHand(lobbyId, botId);
+
+            if (hand.Contains("imp"))
+            {
+                var cardToDiscard = hand.FirstOrDefault(c => c != "imp");
+                var cardData = new DataInfo { CardId = "imp" };
+                if (cardToDiscard != null)
+                {
+                    cardData.Cards = new List<string> { cardToDiscard };
                 }
 
                 var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
-                if (responseData.Error != "")
+                if (responseData.Error == "")
                 {
+                    await SendCardPlayed(lobbyId, botId, responseData);
+                    
+                    if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
+                        return;
+
+                    playedCard = true;
+                    await Task.Delay(1500);
                     continue;
                 }
+            }
 
-                await SendCardPlayed(lobbyId, botId, responseData);
-                return;
+            foreach (var cardId in hand.Distinct().ToList())
+            {
+                if (cardId == "imp") continue;
+
+                var cardData = BuildCardData(lobbyId, botId, cardId, hand);
+                if (cardData == null) continue;
+
+                var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
+                if (responseData.Error == "")
+                {
+                    await SendCardPlayed(lobbyId, botId, responseData);
+
+                    if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
+                        return;
+
+                    playedCard = true;
+                    await Task.Delay(1500);
+                    break;
+                }
             }
         }
 
@@ -139,7 +177,11 @@ public class BotService
             cardData.Cards = new List<string> { sendCard };
         }
 
-        if (TargetCardIds.Contains(cardId) || cardId == "trojan" || ComboCardOptions.ContainsKey(cardId))
+        if (cardId == "os")
+        {
+            cardData.Target = "view";
+        }
+        else if (TargetCardIds.Contains(cardId) || cardId == "trojan" || ComboCardOptions.ContainsKey(cardId))
         {
             var target = GetRandomOpponent(lobbyId, botId);
             if (target == null)
@@ -181,7 +223,7 @@ public class BotService
         {
             await NextPlayer(lobbyId, botId, "0");
         }
-        else if (responseData.IsPrivate)
+        else if (responseData.IsPrivate == true)
         {
             await _connectionManager.SendMessageAsync(botId, JsonSerializer.Serialize(response));
         }
@@ -202,8 +244,9 @@ public class BotService
             return;
         }
 
-        var response = MakeMessage("CARD_DRAWN", botId, responseData);
-        await _connectionManager.SendMessageAsync(botId, JsonSerializer.Serialize(response));
+        var publicData = new DataInfo { Target = botId };
+        var response = MakeMessage("CARD_DRAWN", botId, publicData);
+        await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
 
         if (responseData.CardId != "imp")
         {

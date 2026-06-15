@@ -38,21 +38,21 @@ public class MatchManager
 
         var allCards = new Dictionary<string, int>()
         {
-            {"blue", 0},
-            {"cm", 0},
-            {"ddos", 0},
-            {"err", 0},
-            {"garb", 0},
-            {"goto", 0},
-            {"imp", 0},
-            {"inf", 0},
-            {"merge", 0},
-            {"miracle", 0},
-            {"nocom", 0},
-            {"sql", 0},
-            {"trojan", 0},
-            {"vibe", 0},
-            {"test", 20}
+            {"blue", 2},
+            {"cm", 4},
+            {"ddos", 4},
+            {"err", 2},
+            {"garb", 4},
+            {"goto", 4},
+            {"imp", 4},
+            {"inf", 4},
+            {"merge", 2},
+            {"miracle", 4},
+            {"nocom", 4},
+            {"sql", 4},
+            {"trojan", 4},
+            {"vibe", 4},
+            {"test", 0}
         };
 
         foreach (var card in allCards)
@@ -138,56 +138,15 @@ public class MatchManager
             return new DataInfo { Error = $"Unknown card: {cardData.CardId}" };
         }
 
-        if (!match.PlayerHands[playerId].Contains("imp"))
-        {
-            // Apply the specific card's logic
-            var responseData = cardEffect.ApplyEffect(match, playerId, cardData);
-            // Apply the specific card's logic
+        // Apply the specific card's logic
+        var responseData = cardEffect.ApplyEffect(match, playerId, cardData);
 
-            // If no errors, add it to the table
-            if (string.IsNullOrEmpty(responseData.Error))
-            {
-                match.TableCards.Add(cardData.CardId);
-            }
-            return responseData;
-        }
-        else if (match.PlayerHands[playerId].Count < 2)
+        // If no errors, add it to the table
+        if (string.IsNullOrEmpty(responseData.Error))
         {
             match.TableCards.Add(cardData.CardId);
-            match.PlayerHands[playerId].Remove(cardData.CardId);
-            var responseData = new DataInfo
-            {
-                CardId = cardData.CardId
-            };
-            responseData.Cards.Add(cardData.CardId);
-
-            return responseData;
         }
-        else if (cardData.CardId != "imp")
-        {
-            match.TableCards.Add("imp");
-            match.TableCards.Add(cardData.CardId);
-            match.PlayerHands[playerId].Remove("imp");
-            match.PlayerHands[playerId].Remove(cardData.CardId);
-
-            var responseData = new DataInfo
-            {
-                CardId = "imp",
-            };
-            responseData.Cards.Add("imp");
-            responseData.Cards.Add(cardData.CardId);
-
-            return responseData;
-        }
-        else
-        {
-            var responseData = new DataInfo
-            {
-                CardId = "imp",
-                Error = "illigal play"
-            };
-            return responseData;
-        }
+        return responseData;
 
     }
 
@@ -358,6 +317,15 @@ public class MatchManager
         if (_activeMatches.TryGetValue(matchId, out var match))
         {
             return match.CurrentTurnPlayerId;
+        }
+        return string.Empty;
+    }
+
+    public string GetPendingAction(string matchId, string playerId)
+    {
+        if (_activeMatches.TryGetValue(matchId, out var match) && match.PendingActionPlayerId == playerId)
+        {
+            return match.PendingAction;
         }
         return string.Empty;
     }

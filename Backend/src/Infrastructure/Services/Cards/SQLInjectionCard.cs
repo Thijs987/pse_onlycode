@@ -19,10 +19,9 @@ public class SQLInjectionCard : ICardEffect
             return responseData;
         }
 
+        matchState.CurrentTurnPlayerId = cardData.Target;
         matchState.NTurns = 2;
-        matchState.PlayerHands[playerId].Remove(CardId);
 
-        // Standard Cleanup
         if (matchState.PlayerHands.ContainsKey(playerId))
         {
             matchState.PlayerHands[playerId].Remove(CardId);
@@ -30,7 +29,7 @@ public class SQLInjectionCard : ICardEffect
 
         responseData.NextPlayer = cardData.Target;
         responseData.Turns = matchState.NTurns;
-        responseData.Message = $"{playerId} launched a DDos attack! {cardData.Target} must play {matchState.NTurns} turns.";
+        responseData.Message = $"{playerId} launched an SQL Injection! {cardData.Target} must play {matchState.NTurns} turns.";
 
         return responseData;
     }

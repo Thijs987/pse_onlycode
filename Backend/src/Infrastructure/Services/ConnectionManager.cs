@@ -39,21 +39,25 @@ public class ConnectionManager
         catch { }
 
         var rejoin = false;
-        if (existingPlayers.Contains(playerId)) {
+        if (existingPlayers.Contains(playerId))
+        {
             rejoin = true;
         }
 
-        var joinMessage = new NetworkMessage {};
+        var joinMessage = new NetworkMessage { };
 
         string action;
         string message;
 
-        if(rejoin == true) {
+        if (rejoin == true)
+        {
             matchManager.Rejoin(playerId);
             Console.WriteLine($"Socket Connected: {playerId} rejoined Lobby {lobbyId}");
             action = "PLAYER_REJOINED";
             message = $"{playerId} has rejoined the game!";
-        } else {
+        }
+        else
+        {
             AddToLobby(playerId, lobbyId);
             Console.WriteLine($"Socket Connected: {playerId} joined Lobby {lobbyId}");
             action = "PLAYER_JOINED";
@@ -125,7 +129,7 @@ public class ConnectionManager
         }
         finally
         {
-            // RemoveFromLobby(playerId);
+            RemoveFromLobby(playerId);
             var responseData = matchManager.RemoveFromMatch(playerId, "", PlayerStatus.Disconnected);
             responseData.Message = $"{playerId} disconnected.";
             _sockets.TryRemove(playerId, out _);
@@ -177,6 +181,32 @@ public class ConnectionManager
         }
     }
 
+    public async Task KickPlayerAsync(string connectionId, string lobbyId, MatchManager matchManager)
+    {
+        if (_sockets.TryGetValue(connectionId, out var socket))
+        {
+            // Human player
+            if (socket.State == WebSocketState.Open)
+            {
+                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Kicked from lobby", CancellationToken.None);
+            }
+        }
+        else
+        {
+            // Bot player
+            RemoveFromLobby(connectionId);
+            matchManager.RemoveFromMatch(connectionId, "", PlayerStatus.Disconnected);
+            
+            var leaveMessage = new NetworkMessage
+            {
+                Action = "PLAYER_LEFT",
+                PlayerId = connectionId,
+                Data = new DataInfo { Message = $"{connectionId} was kicked." }
+            };
+            await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
+        }
+    }
+
     public async Task BroadcastToLobbyAsync(string lobbyId, string message, string exception = "")
     {
         if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
@@ -212,7 +242,7 @@ public class ConnectionManager
         _lobbies.TryAdd(newLobbyId, new ConcurrentDictionary<string, bool>());
         if (!string.IsNullOrEmpty(hostId))
             _lobbyHosts.TryAdd(newLobbyId, hostId);
-            
+
         Console.WriteLine($"Lobby {newLobbyId} created by {hostId} via HTTP.");
 
         return newLobbyId;

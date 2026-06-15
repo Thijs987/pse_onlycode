@@ -43,6 +43,12 @@ func Start_Match(Player_Id: String):
 	PId = Player_Id
 	gscws.Start_Match()
 
+func Add_Bot():
+	gscws.Add_Bot()
+
+func Kick_Player(target_id: String):
+	gscws.Kick_Player(target_id)
+
 # From_Hand is a bool that describes whether the given card comes from a player hand
 func Gift_Card(Opponent_Id: String, CardId: String, From_Hand: bool):
 	if From_Hand == true:

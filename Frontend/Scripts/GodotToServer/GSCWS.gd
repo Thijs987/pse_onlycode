@@ -3,6 +3,7 @@ extends Node2D
 signal card_played(player_id, card_id)
 signal card_drawn(player_id, card_count)
 signal lobby_joined()
+signal lobby_left()
 signal match_start
 
 var socket := WebSocketPeer.new()
@@ -31,7 +32,9 @@ func _process(_delta):
 		joined_emitted = true
 		lobby_joined.emit()
 	elif socket.get_ready_state() == WebSocketPeer.STATE_CLOSED:
-		joined_emitted = false
+		if joined_emitted:
+			joined_emitted = false
+			lobby_left.emit()
 
 	while socket.get_available_packet_count() > 0:
 		var packet = socket.get_packet()
@@ -62,6 +65,14 @@ func Draw_Card():
 # Function to start match
 func Start_Match():
 	_Send(_Make_Message("START_MATCH"))
+
+# Function to add bot
+func Add_Bot():
+	_Send(_Make_Message("ADD_BOT"))
+
+# Function to kick a player
+func Kick_Player(target_id: String):
+	_Send(_Make_Message("KICK_PLAYER", { "target": target_id }))
 
 # If Pile == true trojan horse was played
 func Gift_Card(OId: String, card_id: String, From_Hand: bool):
