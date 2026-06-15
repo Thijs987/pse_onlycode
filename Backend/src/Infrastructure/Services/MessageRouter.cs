@@ -98,7 +98,7 @@ public class MessageRouter
                     var Data = new DataInfo{
                         Target = playerId
                     };
-                    response = MakeMessage("DRAWN", playerId,Data);
+                    response = MakeMessage("CARD_DRAWN", playerId,Data);
                     await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response), playerId);
 
                     // Check for Improved Hardware
