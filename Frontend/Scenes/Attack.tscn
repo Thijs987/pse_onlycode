@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://ciu4iea0emhrl"]
+
+[node name="Attack" type="Control" unique_id=1544603584]
+layout_mode = 3
+anchors_preset = 0

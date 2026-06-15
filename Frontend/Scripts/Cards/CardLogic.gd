@@ -11,6 +11,7 @@ var is_hovering
 var card_offsetx
 var card_offsety
 var turns
+var first_combo_card = null
 
 
 # Called when the node enters the scene tree for the first time.
@@ -45,15 +46,75 @@ func play_card(card):
 		return
 		
 	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
-
 		card.movable = false
-
 		highlight_card(card, false)
 
-		hand_reference.remove_card_from_hand(card)
-		card.visible = false
+		var current_id = card.own_card_id
+		var played_cards = []
+		var target_id = ""
+		var blanco = ["nocom", "goto", "inf", "vibe"]
 
-		controller.Play_Card(controller.PId, card.own_card_id)
+		if current_id in blanco:
+			if first_combo_card == null: # No blanco card played yet
+				if has_another_blanco(current_id): #maak func
+					print("Waiting for second card")
+					first_combo_card = card
+					hand_reference.remove_card_from_hand(card) # Uit de hand halen
+					card.visible = false
+					return true
+				else:
+					print("Only 1 blanco card in your hand")
+					# Reset card
+					card.movable = true
+					hand_reference.add_card_to_hand(card)
+					return false
+			else: # If 1 blanco is played already
+				if current_id == "nocom" or current_id == first_combo_card.own_card_id:
+					played_cards = [first_combo_card.own_card_id, current_id]
+					
+					# We ruimen de eerste kaart nu pas definitief op
+					first_combo_card.queue_free()
+					first_combo_card = null # Reset voor de volgende beurt
+					
+					# Haal de tweede kaart visueel weg
+					hand_reference.remove_card_from_hand(card)
+					card.queue_free()
+					
+					# TODO: Eventueel hier je target_id ophalen voor de combo!
+				else:
+					print("Wrong blanco card, card has to be of same type or a no comment")
+					card.movable = true
+					hand_reference.add_card_to_hand(card)
+					return false
+
+		elif current_id == "sql":
+			played_cards = [current_id]
+			hand_reference.remove_card_from_hand(card)
+			card.queue_free()
+			# pass -> Target selecteren
+
+		else:
+			hand_reference.remove_card_from_hand(card)
+			card.queue_free()
+			played_cards = [current_id]
+
+		controller.Play_Card(controller.PId, played_cards, target_id)
+		return true
+	return false
+
+
+func sql_attack():
+	pass 
+
+
+# Checks if you have a second blanco card
+func has_another_blanco(card_type: String) -> bool:
+	var count = 0
+	for c in hand_reference.player_hand:
+		if c.own_card_id == card_type:
+			count += 1
+	return count >= 1
+
 
 # Starts dragging of current card under mouse.
 # input: Card object found using check_at_cursor function
@@ -71,12 +132,16 @@ func start_dragging(card):
 # Calls logic for case of stopping dragging when left mouse button is released
 func stop_dragging():
 	if dragging_card and dragging_card.movable == true:
-		play_card(dragging_card)
+		# Als play_card true teruggeeft, stoppen we HIER direct!
+		if play_card(dragging_card):
+			dragging_card = null
+			return 
+			
 	var released_card = dragging_card # Temp variable for add_card_to_hand
 	if released_card and released_card.movable == true:
 		released_card.scale = Vector2(1.1, 1.1)
 		dragging_card = null 
-		hand_reference.add_card_to_hand(released_card)
+		hand_reference.add_card_to_hand(released_card) # REGEL 99: Wordt nu overgeslagen bij succes!
 	dragging_card = null
 
 # Connects the signals for various player actions
