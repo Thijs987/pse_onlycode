@@ -8,19 +8,12 @@ signal match_start
 var socket := WebSocketPeer.new()
 var joined_emitted := false
 
-const BASE_URL = "ws://83.96.203.15:5025"
-#const BASE_URL = "ws://localhost:5025"
+# Local
+#const BASE_URL = "ws://localhost:6767"
+const BASE_URL = "wss://localhost:6969"
 
-# THIS IS OLD TEST CODE, MAYBE SHOULD BE REMOVED
-#func _ready():
-	#lobby_joined.connect(_on_lobby_joined)
-	#match_start.connect(match_tests)
-	#Join_Lobby("9B9157", "Player_1")
-
-#func match_tests():
-	#Draw_Card("Player_1")
-	#pass
-#END OLD TEST CODE
+# Pointing to a No-IP.com domain. Its an A record that points towards the server ip.
+#const BASE_URL = "wss://codegreen-uva.ddns.net"
 
 
 func _on_lobby_joined():
@@ -30,13 +23,15 @@ func _on_lobby_joined():
 # Updates the websocket and checks for incoming messages
 func _process(_delta):
 	socket.poll()
-	
+
 	if (
 		socket.get_ready_state() == WebSocketPeer.STATE_OPEN
 		and not joined_emitted
 	):
 		joined_emitted = true
 		lobby_joined.emit()
+	elif socket.get_ready_state() == WebSocketPeer.STATE_CLOSED:
+		joined_emitted = false
 
 	while socket.get_available_packet_count() > 0:
 		var packet = socket.get_packet()
@@ -46,67 +41,40 @@ func _process(_delta):
 
 
 func Join_Lobby(LId: String, PId: String):
+	# Tells Godot to trust our Nginx certificate heh
+	var tls_options = TLSOptions.client_unsafe()
+
 	socket.connect_to_url(
-		"%s/lobby?lobbyId=%s&playerId=%s"
-		% [BASE_URL, LId, PId]
+        "%s/lobby?lobbyId=%s&playerId=%s"
+		% [BASE_URL, LId, PId],
+		tls_options # <-- Pass the bypass here!
 	)
 
 
 # Function to play a card
-func Play_Card(PId: String, card_id: String):
-	var data = _Make_Data(card_id)
-	var message = _Make_Message("PLAY_CARD", PId, data)
-	_Send(message)
-
+func Play_Card(card_id: String):
+	_Send(_Make_Message("PLAY_CARD", {"cardId": card_id}))
 
 # Function to draw a card
-func Draw_Card(PId: String):
-	
-	var message = _Make_Message("DRAW_CARD", PId)
-	_Send(message)
-
+func Draw_Card():
+	_Send(_Make_Message("DRAW_CARD"))
 
 # Function to start match
-func Start_Match(PId: String):
-	var message = _Make_Message("START_MATCH", PId)
-	_Send(message)
-
+func Start_Match():
+	_Send(_Make_Message("START_MATCH"))
 
 # If Pile == true trojan horse was played
 func Gift_Card(OId: String, card_id: String, From_Hand: bool):
 	if From_Hand == true:
-		var data = _Make_Data(card_id)
-		var message = _Make_Message("GIVE_CARD", OId, data)
-		_Send(message)
+		_Send(_Make_Message("GIVE_CARD", {"cardId": card_id, "target": OId}))
 	else:
-		var message = _Make_Message("GIVE_CARD", OId)
-		_Send(message)
+		_Send(_Make_Message("GIVE_CARD", {"target": OId}))
 
-
-# Make DataInfo
-func _Make_Data(cardId: String = "",
-				target: String = "",
-				message: String = "",
-				nextPlayer = "",
-				turns: int = 1,
-				error: String = ""):
-	var data = {
-		"cardId": cardId,
-		"target": target,
-		"message": message,
-		"nextPlayer": nextPlayer,
-		"turns": turns,
-		"error": error
-	}
-	return data
-
-# Make outer message and set data to empty DataInfo
-func _Make_Message(action: String, PId: String, data: Dictionary = _Make_Data()):
-	var message = {
-		"action": action,
-		"playerId": PId,
-		"data": data
-	}
+# Make outer message
+func _Make_Message(action: String, data: Dictionary = {}):
+	var message = {"action": action}
+	if not data.is_empty():
+		message["data"] = data
 	return message
 
 # Helper function to send data
@@ -123,7 +91,7 @@ func _handle_message(text: String):
 	var msg = JSON.parse_string(text)
 	if (!msg):
 		return
-	
+
 	controller.Update_From_Server(msg)
 
 	match msg["action"]:

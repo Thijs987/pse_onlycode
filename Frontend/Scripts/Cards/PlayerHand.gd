@@ -23,11 +23,12 @@ signal next_turn(player)
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	if controller.Last_Message["action"] == "MATCH_STARTED":
-		var player = controller.Last_Message["data"]["nextPlayer"]
+	if controller.Last_Message.has("action") and controller.Last_Message["action"] == "MATCH_STARTED":
+		var player = controller.Last_Message.get("data", {}).get("nextPlayer")
 		if player != null:
 			next_turn.emit(player)
-			turn_label.text = str(player)
+			if turn_label != null:
+				turn_label.text = str(player)
 
 	controller.message_updated.connect(_on_message)
 	center_screen_x = get_viewport().size.x / 2
@@ -41,15 +42,17 @@ func _process(_delta: float) -> void:
 func _on_message(msg):
 	if msg != null:
 		if msg["action"] == "NEXT_TURN":
-			var player = msg["data"]["nextPlayer"]
+			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
 				next_turn.emit(player)
-				turn_label.text = str(player)
+				if turn_label != null:
+					turn_label.text = str(player)
 		if msg["action"] == "CARD_PLAYED":
-			var player = msg["data"]["nextPlayer"]
+			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null and player != "":
 				next_turn.emit(player)
-				turn_label.text = str(player)
+				if turn_label != null:
+					turn_label.text = str(player)
 
 func add_new_card(card_id):
 	var card_scene = preload(CARD_SCENE_PATH)
@@ -104,7 +107,7 @@ func sort_hand():
 			player_hand[moving_index - 1] = moving_card
 			update_card_hand_position()
 			return
-		
+
 	if moving_index < player_hand.size() - 1: # Not right most card
 		var right_card = player_hand[moving_index + 1]
 		if mouse_pos.x > right_card.hand_position.x:

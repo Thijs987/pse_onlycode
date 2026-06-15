@@ -19,9 +19,25 @@ public class ConnectionManager
     // Tracks which lobby a connection is currently in (ConnectionId -> LobbyId) for cleanup
     private readonly ConcurrentDictionary<string, string> _connectionToLobby = new();
 
+    // Tracks the host of each lobby (LobbyId -> HostId)
+    private readonly ConcurrentDictionary<string, string> _lobbyHosts = new();
+
     public async Task HandleConnectionAsync(string playerId, string lobbyId, WebSocket socket, MessageRouter router, MatchManager matchManager, CancellationToken cancellationToken)
     {
+        if (_sockets.TryGetValue(playerId, out var oldSocket))
+        {
+            try { await oldSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Reconnected", CancellationToken.None); } catch { }
+            _sockets.TryRemove(playerId, out _);
+            RemoveFromLobby(playerId);
+        }
         _sockets.TryAdd(playerId, socket);
+        List<string> existingPlayers = new List<string>();
+        try
+        {
+            existingPlayers = GetPlayers(lobbyId);
+        }
+        catch { }
+
         AddToLobby(playerId, lobbyId);
         Console.WriteLine($"Socket Connected: {playerId} joined Lobby {lobbyId}");
 
@@ -36,6 +52,23 @@ public class ConnectionManager
         };
 
         await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(joinMessage));
+
+        foreach (var existingPlayer in existingPlayers)
+        {
+            if (existingPlayer != playerId)
+            {
+                var existingPlayerMessage = new NetworkMessage
+                {
+                    Action = "PLAYER_JOINED",
+                    PlayerId = existingPlayer,
+                    Data = new DataInfo
+                    {
+                        Message = $"{existingPlayer} is in the game!"
+                    }
+                };
+                await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(existingPlayerMessage));
+            }
+        }
 
         var buffer = new byte[1024 * 4];
 
@@ -126,7 +159,7 @@ public class ConnectionManager
         }
     }
 
-    public async Task BroadcastToLobbyAsync(string lobbyId, string message)
+    public async Task BroadcastToLobbyAsync(string lobbyId, string message, string exception = "")
     {
         if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
         {
@@ -135,7 +168,8 @@ public class ConnectionManager
 
             foreach (var connectionId in lobbyConnections.Keys)
             {
-                if (_sockets.TryGetValue(connectionId, out var socket) && socket.State == WebSocketState.Open)
+                if (_sockets.TryGetValue(connectionId, out var socket) && socket.State == WebSocketState.Open
+                && connectionId != exception)
                 {
                     await socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
                 }
@@ -153,12 +187,15 @@ public class ConnectionManager
     }
 
     // HTTP things
-    public string CreateLobby()
+    public string CreateLobby(string hostId)
     {
         string newLobbyId = Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
 
         _lobbies.TryAdd(newLobbyId, new ConcurrentDictionary<string, bool>());
-        Console.WriteLine($"Lobby {newLobbyId} created via HTTP.");
+        if (!string.IsNullOrEmpty(hostId))
+            _lobbyHosts.TryAdd(newLobbyId, hostId);
+            
+        Console.WriteLine($"Lobby {newLobbyId} created by {hostId} via HTTP.");
 
         return newLobbyId;
     }

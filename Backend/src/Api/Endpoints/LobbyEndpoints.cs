@@ -16,7 +16,7 @@ public static class LobbyEndpoints
         // POST /api/lobbies/create?hostId=PLayer_x
         group.MapPost("/create", (string hostId, ConnectionManager manager) =>
         {
-            string newLobbyId = manager.CreateLobby();
+            string newLobbyId = manager.CreateLobby(hostId);
             return Results.Ok(new { LobbyId = newLobbyId });
         });
     }

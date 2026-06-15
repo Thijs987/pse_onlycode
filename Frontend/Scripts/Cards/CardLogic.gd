@@ -33,9 +33,18 @@ func _newturn(player):
 
 ### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
-	var discard_area = discard_pile.get_node("DiscardPileArea")
-	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
+	if controller.interaction_disabled:
+		return
+	if discard_pile == null:
+		print("Error: DiscardPile node not found!")
+		return
 
+	var discard_area = discard_pile.get_node_or_null("DiscardPileArea")
+	if discard_area == null:
+		print("Error: DiscardPileArea node not found!")
+		return
+
+	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
 		card.movable = false
 
 		highlight_card(card, false)
@@ -48,6 +57,8 @@ func play_card(card):
 # Starts dragging of current card under mouse.
 # input: Card object found using check_at_cursor function
 func start_dragging(card):
+	if controller.interaction_disabled:
+		return
 	card.scale = Vector2(1.0, 1.0)
 	dragging_card = card
 	card.z_index = 99 # Above all other cards
@@ -63,7 +74,7 @@ func stop_dragging():
 	var released_card = dragging_card # Temp variable for add_card_to_hand
 	if released_card and released_card.movable == true:
 		released_card.scale = Vector2(1.1, 1.1)
-		dragging_card = null 
+		dragging_card = null
 		hand_reference.add_card_to_hand(released_card)
 	dragging_card = null
 
@@ -119,12 +130,12 @@ func check_for_card():
 func highest_z(cards):
 	var highest_card = cards[0].collider.get_parent()
 	var highest_card_z = highest_card.z_index
-	
+
 	for i in range(0, cards.size()):
 		var new_card = cards[i].collider.get_parent()
 		var new_card_z = new_card.z_index
 		if new_card_z > highest_card_z:
 			highest_card = new_card
 			highest_card_z = new_card_z
-			
+
 	return highest_card
