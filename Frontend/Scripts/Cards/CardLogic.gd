@@ -33,7 +33,17 @@ func _newturn(player):
 
 ### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
-	var discard_area = discard_pile.get_node("DiscardPileArea")
+	if controller.interaction_disabled:
+		return
+	if discard_pile == null:
+		print("Error: DiscardPile node not found!")
+		return
+	
+	var discard_area = discard_pile.get_node_or_null("DiscardPileArea")
+	if discard_area == null:
+		print("Error: DiscardPileArea node not found!")
+		return
+		
 	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
 
 		card.movable = false
@@ -48,6 +58,8 @@ func play_card(card):
 # Starts dragging of current card under mouse.
 # input: Card object found using check_at_cursor function
 func start_dragging(card):
+	if controller.interaction_disabled:
+		return
 	card.scale = Vector2(1.0, 1.0)
 	dragging_card = card
 	card.z_index = 99 # Above all other cards

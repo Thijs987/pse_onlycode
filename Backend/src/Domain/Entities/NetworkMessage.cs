@@ -8,9 +8,9 @@ public class NetworkMessage
 
     // Who sent this?
     [JsonPropertyName("playerId")]
-    public string PlayerId { get; set; } = string.Empty;
+    public string? PlayerId { get; set; }
 
     // The actual data, example: "cardPlayed": "Garbage Collector"
     [JsonPropertyName("data")]
-    public DataInfo Data { get; set; } = new();
+    public DataInfo? Data { get; set; } = new();
 }

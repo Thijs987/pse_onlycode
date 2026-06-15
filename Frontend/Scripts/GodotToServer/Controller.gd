@@ -14,29 +14,34 @@ var Last_Data := {}
 var Active_Lobbies := []
 var Player_Hand := []
 
+var interaction_disabled := false
+
 
 func Get_Lobbies():
 	gschttp.Get_Lobbies()
 
 func Create_Lobby(Player_Id: String):
+	interaction_disabled = false
 	PId = Player_Id
 	gschttp.Create_Lobby(PId)
 
 func Join_Lobby(Lobby_Id: String, Player_Id: String):
+	interaction_disabled = false
 	PId = Player_Id
 	gscws.Join_Lobby(Lobby_Id, PId)
 
 func Play_Card(Player_Id: String, card_id: String):
 	PId = Player_Id
-	gscws.Play_Card(PId, card_id)
+	gscws.Play_Card(card_id)
 
 func Draw_Card(Player_Id: String):
 	PId = Player_Id
-	gscws.Draw_Card(PId)
+	gscws.Draw_Card()
 
 func Start_Match(Player_Id: String):
+	interaction_disabled = false
 	PId = Player_Id
-	gscws.Start_Match(PId)
+	gscws.Start_Match()
 
 # From_Hand is a bool that describes whether the given card comes from a player hand
 func Gift_Card(Opponent_Id: String, CardId: String, From_Hand: bool):
@@ -51,16 +56,25 @@ func Gift_Card(Opponent_Id: String, CardId: String, From_Hand: bool):
 func Update_From_Server(msg: Dictionary):
 	Last_Message = msg
 	print(Last_Message)
-	Last_Data = msg["data"]
+	Last_Data = msg.get("data", {})
 	
-	if Last_Message["action"] == "CARD_DRAWN":
-		Player_Hand.append(Last_Message["data"]["cardId"])
+	if Last_Message.get("action") == "CARD_DRAWN":
+		if Last_Data.has("cardId"):
+			Player_Hand.append(Last_Data["cardId"])
 	
-	if Last_Message["action"] == "CARD_PLAYED":
-		Player_Hand.erase(Last_Message["data"]["cardId"])
+	if Last_Message.get("action") == "CARD_PLAYED":
+		if Last_Data.has("cardId"):
+			Player_Hand.erase(Last_Data["cardId"])
 	
-	if Last_Message["action"] == "MATCH_STARTED":
-		Player_Hand = Last_Message["data"]["cards"]
+	if Last_Message.get("action") == "MATCH_STARTED":
+		if Last_Data.has("cards"):
+			Player_Hand = Last_Data["cards"]
+			
+	if Last_Message.get("action") == "GAME_OVER":
+		interaction_disabled = true
+
+	if Last_Message.get("action") == "CARD_LIMIT" and msg.get("playerId") == PId:
+		interaction_disabled = true
 
 	message_updated.emit(msg)
 

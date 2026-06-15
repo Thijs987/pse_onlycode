@@ -107,9 +107,12 @@ public class MatchManager
         if (!_activeMatches.TryGetValue(matchId, out var match))
             return new DataInfo { Error = "Match not found!" };
 
+        if (match.PlayerIds.Count <= 1)
+            return new DataInfo { Error = "The game has already ended." };
+
         if (!match.PlayerHands.TryGetValue(playerId, out var hands))
         {
-            return new DataInfo { Error = "Cannot find player {playerId}" };
+            return new DataInfo { Error = "You have been eliminated or are not in the game." };
         }
 
         if (!string.IsNullOrEmpty(match.PendingAction) && match.PendingActionPlayerId == playerId)
@@ -244,6 +247,12 @@ public class MatchManager
             Console.WriteLine($"Cannot find match {matchId}");
             return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
+
+        if (match.PlayerIds.Count <= 1)
+            return new DataInfo { Error = "The game has already ended." };
+
+        if (!match.PlayerHands.ContainsKey(playerId))
+            return new DataInfo { Error = "You have been eliminated or are not in the game." };
 
         if (match.CurrentTurnPlayerId != playerId)
         {
@@ -450,5 +459,17 @@ public class MatchManager
     {
         string match = _activeMatches.FirstOrDefault(m => m.Value.PlayerIds.Contains(playerId)).Key;
         return match;
+    }
+
+    public string GetWinner(string matchId)
+    {
+        if (_activeMatches.TryGetValue(matchId, out var match))
+        {
+            if (match.PlayerIds.Count == 1)
+            {
+                return match.PlayerIds[0];
+            }
+        }
+        return string.Empty;
     }
 }

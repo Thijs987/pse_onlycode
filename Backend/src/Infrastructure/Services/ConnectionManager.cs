@@ -159,7 +159,7 @@ public class ConnectionManager
         }
     }
 
-    public async Task BroadcastToLobbyAsync(string lobbyId, string message)
+    public async Task BroadcastToLobbyAsync(string lobbyId, string message, string exception = "")
     {
         if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
         {
@@ -168,7 +168,8 @@ public class ConnectionManager
 
             foreach (var connectionId in lobbyConnections.Keys)
             {
-                if (_sockets.TryGetValue(connectionId, out var socket) && socket.State == WebSocketState.Open)
+                if (_sockets.TryGetValue(connectionId, out var socket) && socket.State == WebSocketState.Open
+                && connectionId != exception)
                 {
                     await socket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
                 }

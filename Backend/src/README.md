@@ -1,3 +1,5 @@
+To run the backend you can either do 'dotnet run' or dotnet run --launch-profile "https".
+
 When the host calls START_GAME, it creates a match with the current players in the lobby in the turn cycle.
 
 For testing
