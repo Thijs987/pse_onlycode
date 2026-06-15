@@ -103,6 +103,13 @@ public class MessageRouter
                     response = MakeMessage("CARD_DRAWN", playerId, responseData);
                     await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
 
+                    // Send card message to all other players
+                    var Data = new DataInfo{
+                        Target = playerId
+                    };
+                    response = MakeMessage("CARD_DRAWN", playerId,Data);
+                    await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response), playerId);
+
                     // Check for Improved Hardware
                     if (card == "imp")
                     {
