@@ -4,32 +4,32 @@ public class DataInfo
 {
     // which card is it?
     [JsonPropertyName("cardId")]
-    public string CardId { get; set; } = string.Empty;
+    public string? CardId { get; set; }
 
     // who should the card target?
     [JsonPropertyName("target")]
-    public string Target { get; set; } = string.Empty;
+    public string? Target { get; set; }
 
     [JsonPropertyName("message")]
-    public string Message { get; set; } = string.Empty;
+    public string? Message { get; set; }
 
     // Next player
     [JsonPropertyName("nextPlayer")]
-    public string NextPlayer { get; set; } = string.Empty;
+    public string? NextPlayer { get; set; }
 
     //Amount of moves for next player
     [JsonPropertyName("turns")]
-    public int Turns { get; set; } = 1;
+    public int? Turns { get; set; } = 1;
 
     //Error message
     [JsonPropertyName("error")]
-    public string Error { get; set; } = string.Empty;
+    public string? Error { get; set; }
 
     // Used for sending hands or multiple cards
     [JsonPropertyName("cards")]
-    public List<string> Cards { get; set; } = new();
+    public List<string>? Cards { get; set; } = new();
 
     // Determines if this message should only be sent to the specific player
     [JsonPropertyName("isPrivate")]
-    public bool IsPrivate { get; set; } = false;
+    public bool? IsPrivate { get; set; } = false;
 }
