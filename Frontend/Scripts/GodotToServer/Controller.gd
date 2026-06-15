@@ -30,10 +30,8 @@ func Join_Lobby(Lobby_Id: String, Player_Id: String):
 	PId = Player_Id
 	gscws.Join_Lobby(Lobby_Id, PId)
 
-func Play_Card(Player_Id: String, card1: String, card2: String,  OId: String):
+func Play_Card(Player_Id: String, Arr: Array,  OId: String):
 	PId = Player_Id
-	var Arr = [card1, card2]
-	
 	gscws.Play_Card(Arr, OId)
 
 func Draw_Card(Player_Id: String):

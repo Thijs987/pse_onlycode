@@ -3,3 +3,19 @@
 [node name="Attack" type="Control" unique_id=1544603584]
 layout_mode = 3
 anchors_preset = 0
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1497221270]
+layout_mode = 0
+offset_right = 335.0
+offset_bottom = 270.0
+
+[node name="Label" type="Label" parent="." unique_id=647703600]
+layout_mode = 0
+offset_right = 167.0
+offset_bottom = 23.0
+text = "Choose your target"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=673732035]
+layout_mode = 0
+offset_right = 232.0
+offset_bottom = 212.0

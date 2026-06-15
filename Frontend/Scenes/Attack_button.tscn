@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://cjm53s7d4wsft"]
+
+[node name="AttackButton" type="Control" unique_id=805811435]
+layout_mode = 3
+anchors_preset = 0
