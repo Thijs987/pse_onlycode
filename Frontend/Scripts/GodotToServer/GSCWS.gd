@@ -9,7 +9,7 @@ signal match_start
 var socket := WebSocketPeer.new()
 var joined_emitted := false
 
-# Local 
+# Local
 #const BASE_URL = "ws://localhost:6767"
 const BASE_URL = "wss://localhost:6969"
 
@@ -24,7 +24,6 @@ func _on_lobby_joined():
 # Updates the websocket and checks for incoming messages
 func _process(_delta):
 	socket.poll()
-	
 	if (
 		socket.get_ready_state() == WebSocketPeer.STATE_OPEN
 		and not joined_emitted
@@ -46,7 +45,6 @@ func _process(_delta):
 func Join_Lobby(LId: String, PId: String):
 	# Tells Godot to trust our Nginx certificate heh
 	var tls_options = TLSOptions.client_unsafe()
-	
 	socket.connect_to_url(
         "%s/lobby?lobbyId=%s&playerId=%s"
 		% [BASE_URL, LId, PId],
@@ -56,7 +54,7 @@ func Join_Lobby(LId: String, PId: String):
 
 # Function to play a card
 func Play_Card(card_id: String):
-	_Send(_Make_Message("PLAY_CARD", { "cardId": card_id }))
+	_Send(_Make_Message("PLAY_CARD", {"cardId": card_id}))
 
 # Function to draw a card
 func Draw_Card():
@@ -77,13 +75,13 @@ func Kick_Player(target_id: String):
 # If Pile == true trojan horse was played
 func Gift_Card(OId: String, card_id: String, From_Hand: bool):
 	if From_Hand == true:
-		_Send(_Make_Message("GIVE_CARD", { "cardId": card_id, "target": OId }))
+		_Send(_Make_Message("GIVE_CARD", {"cardId": card_id, "target": OId}))
 	else:
-		_Send(_Make_Message("GIVE_CARD", { "target": OId }))
+		_Send(_Make_Message("GIVE_CARD", {"target": OId}))
 
 # Make outer message
 func _Make_Message(action: String, data: Dictionary = {}):
-	var message = { "action": action }
+	var message = {"action": action}
 	if not data.is_empty():
 		message["data"] = data
 	return message
@@ -102,7 +100,6 @@ func _handle_message(text: String):
 	var msg = JSON.parse_string(text)
 	if (!msg):
 		return
-	
 	controller.Update_From_Server(msg)
 
 	match msg["action"]:
