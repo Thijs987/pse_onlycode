@@ -1,5 +1,17 @@
 [gd_scene format=3 uid="uid://cjm53s7d4wsft"]
 
-[node name="AttackButton" type="Control" unique_id=805811435]
-layout_mode = 3
-anchors_preset = 0
+[ext_resource type="Texture2D" uid="uid://dsraw4aeh8oml" path="res://Sprites/image(1).jpeg" id="1_8ur36"]
+
+[node name="AttackButton" type="TextureButton" unique_id=2116415103]
+offset_left = 99.0
+offset_top = 125.0
+offset_right = 702.0
+offset_bottom = 263.0
+texture_normal = ExtResource("1_8ur36")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="." unique_id=1118913983]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
