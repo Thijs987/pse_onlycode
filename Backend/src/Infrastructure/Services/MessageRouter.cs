@@ -13,7 +13,8 @@ public class MessageRouter
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
     };
 
-    private string SerializeMsg(NetworkMessage msg) {
+    private string SerializeMsg(NetworkMessage msg)
+    {
         return JsonSerializer.Serialize(msg, _jsonOptions);
     }
 
@@ -66,9 +67,11 @@ public class MessageRouter
                         Console.WriteLine("Card played successfully.");
 
                         response = MakeMessage("CARD_PLAYED", playerId, responseData);
-                        if (responseData.CardId == "imp") {
+                        if (responseData.CardId == "imp")
+                        {
                             await Next_player(lobbyId, playerId, "0", connectionManager, matchManager);
-                        } else if (responseData.IsPrivate == true)
+                        }
+                        else if (responseData.IsPrivate == true)
                         {
                             await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         }
@@ -104,10 +107,11 @@ public class MessageRouter
                     await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
 
                     // Send card message to all other players
-                    var Data = new DataInfo{
+                    var Data = new DataInfo
+                    {
                         Target = playerId
                     };
-                    response = MakeMessage("CARD_DRAWN", playerId,Data);
+                    response = MakeMessage("CARD_DRAWN", playerId, Data);
                     await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response), playerId);
 
                     // Check for Improved Hardware
@@ -137,14 +141,16 @@ public class MessageRouter
         return message;
     }
 
-    public async Task Next_player(string lobbyId, string playerId, string newLimit, ConnectionManager connectionManager, MatchManager matchManager) {
+    public async Task Next_player(string lobbyId, string playerId, string newLimit, ConnectionManager connectionManager, MatchManager matchManager)
+    {
         // next turn
         var responseData = matchManager.NextTurn(lobbyId, playerId);
 
         // check player card limit and remove player if over the limit
         var end = matchManager.CheckCardLimit(lobbyId, playerId, newLimit);
         // Send error if there is an error
-        if(!string.IsNullOrEmpty(end.Error)){
+        if (!string.IsNullOrEmpty(end.Error))
+        {
             var errorMessage = MakeMessage("ERROR", playerId, end);
             await connectionManager.SendMessageAsync(playerId, SerializeMsg(errorMessage));
         }
@@ -166,7 +172,8 @@ public class MessageRouter
 
             // Check if there is a winner
             string winnerId = matchManager.GetWinner(lobbyId);
-            if (!string.IsNullOrEmpty(winnerId)) {
+            if (!string.IsNullOrEmpty(winnerId))
+            {
                 var winnerData = new DataInfo { NextPlayer = winnerId };
                 var gameOverMessage = MakeMessage("GAME_OVER", winnerId, winnerData);
                 await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(gameOverMessage));
