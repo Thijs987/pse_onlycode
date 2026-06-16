@@ -456,4 +456,12 @@ public class MatchManager
         }
         return string.Empty;
     }
+
+    public int GetDeckSize(string matchId) {
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            return -1;
+        }
+        return match.Deck.Count;
+    }
 }
