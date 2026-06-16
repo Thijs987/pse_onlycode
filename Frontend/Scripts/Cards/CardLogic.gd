@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var discard_pile = $"../DiscardPile"
 @onready var hand_reference = $"../PlayerHand"
+const ATTACK_SCENE = preload("res://Scenes/Attack.tscn")
 
 const CARD_COLLISION_MASK = 1
 
@@ -91,7 +92,7 @@ func play_card(card):
 			played_cards = [current_id]
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
-			# pass -> Target selecteren
+			target_id = await sql_attack()
 
 		else:
 			hand_reference.remove_card_from_hand(card)
@@ -103,8 +104,20 @@ func play_card(card):
 	return false
 
 
-func sql_attack():
-	pass 
+func sql_attack() -> String:
+	var attack_screen = ATTACK_SCENE.instantiate()
+	get_tree().root.add_child(attack_screen)
+	
+	var filtered_enemies = []
+	
+	# We gebruiken nu de schone lijst uit de controller!
+	for p_id in controller.All_Player_Ids:
+		if p_id != controller.PId:
+			filtered_enemies.append(p_id)
+			
+	attack_screen.setup_targets(filtered_enemies)
+	var gekozen_id = await attack_screen.target_selected
+	return gekozen_id
 
 
 # Checks if you have a second blanco card
@@ -133,7 +146,7 @@ func start_dragging(card):
 func stop_dragging():
 	if dragging_card and dragging_card.movable == true:
 		# Als play_card true teruggeeft, stoppen we HIER direct!
-		if play_card(dragging_card):
+		if await play_card(dragging_card):
 			dragging_card = null
 			return 
 			

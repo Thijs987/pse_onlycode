@@ -1,21 +1,30 @@
 [gd_scene format=3 uid="uid://ciu4iea0emhrl"]
 
+[ext_resource type="Script" uid="uid://cw874aty7cxbr" path="res://Scripts/SQLInject/Attack.gd" id="1_usets"]
+
 [node name="Attack" type="Control" unique_id=1544603584]
 layout_mode = 3
 anchors_preset = 0
+script = ExtResource("1_usets")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1497221270]
 layout_mode = 0
 offset_right = 1154.0
 offset_bottom = 648.0
+mouse_filter = 2
+color = Color(0.24705882, 0.24705882, 0.24705882, 0.39215687)
 
 [node name="Label" type="Label" parent="." unique_id=647703600]
 layout_mode = 0
-offset_right = 167.0
-offset_bottom = 23.0
+offset_right = 1151.0
+offset_bottom = 55.0
+theme_override_font_sizes/font_size = 40
 text = "Choose your target"
+horizontal_alignment = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=673732035]
 layout_mode = 1
 offset_right = 1151.0
 offset_bottom = 645.0
+theme_override_constants/separation = 30
+alignment = 1

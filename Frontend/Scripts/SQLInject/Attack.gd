@@ -1,11 +1,20 @@
-extends Node
+extends Control
 
+signal target_selected(player_id)
+const ATTACK_BUTTON_TEMPLATE = preload("res://Scenes/Attack_button.tscn")
+@onready var player_container = $HBoxContainer
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass # Replace with function body.
+	# Optioneel: we zorgen dat de container leeg begint
+	for child in player_container.get_children():
+		child.queue_free()
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func setup_targets(enemies_list: Array) -> void:
+	for enemy in enemies_list:
+		var new_box = ATTACK_BUTTON_TEMPLATE.instantiate()
+		player_container.add_child(new_box)
+		new_box.setup_box(enemy)
+		new_box.button_clicked.connect(func(gekozen_id):
+			target_selected.emit(gekozen_id)
+			queue_free()
+		)
