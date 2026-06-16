@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var card_logic = $"../CardLogic"
 @onready var turn_label: Label = $"../Background/TurnLabel"
+@onready var turn_timer: Timer = $"../TurnTimer"
 
 @export var hand_curve = Curve
 @export var rotation_curve = Curve
@@ -30,6 +31,7 @@ func _ready() -> void:
 			if turn_label != null:
 				turn_label.text = str(player)
 
+	turn_timer.timeout.connect(_on_timeout)
 	controller.message_updated.connect(_on_message)
 	center_screen_x = get_viewport().size.x / 2
 	for card_id in controller.Player_Hand:
@@ -41,18 +43,40 @@ func _process(_delta: float) -> void:
 
 func _on_message(msg):
 	if msg != null:
+
 		if msg["action"] == "NEXT_TURN":
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
+				if player == controller.PId:
+					turn_timer.start()
+				else:
+					turn_timer.stop()
+
 		if msg["action"] == "CARD_PLAYED":
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null and player != "":
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
+
+		if msg["action"] == "MATCH_STARTED":
+			var player = msg.get("data", {}).get("nextPlayer")
+			if player == controller.PId:
+				turn_timer.start()
+			else:
+				turn_timer.stop()
+
+		if msg["action"] == "CARD_DRAWN":
+			var player = msg.get("data", {}).get("playerId")
+			if player == controller.PId:
+				var drawn_card = msg.get("data", {}).get("cardId")
+				add_new_card(drawn_card)
+
+func _on_timeout():
+	controller.Draw_Card(controller.PId)
 
 func add_new_card(card_id):
 	var card_scene = preload(CARD_SCENE_PATH)

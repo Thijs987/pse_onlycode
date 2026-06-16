@@ -33,9 +33,6 @@ func decrease_counter():
 			# Past card count getal aan
 			update_card_text()
 			controller.Draw_Card(controller.PId)
-			await get_tree().create_timer(0.25).timeout # DIT KAN EEN BUG WORDEN
-			#DAN MOET JE DE TIMER LANGER MAKEN, OF EEN ANDERE MANIER OM TE WACHTEN OM _ON_MESSAGE
-			hand_reference.add_new_card(drawn_card)
 		else:
 			print("Pile is empty")
 
