@@ -18,8 +18,6 @@ const HAND_Y = 500
 var player_hand = []
 var center_screen_x
 
-var turn_timer
-
 signal next_turn(player)
 
 
@@ -44,20 +42,24 @@ func _process(_delta: float) -> void:
 func _on_message(msg):
 	if msg != null:
 		if msg["action"] == "NEXT_TURN":
+<<<<<<< HEAD
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
+=======
+			var player = msg["data"]["nextPlayer"]
+			if player != null:
+				next_turn.emit(player)
+				turn_label.text = str(player)
+>>>>>>> parent of 53c472b (Code voor turn timer)
 		if msg["action"] == "CARD_PLAYED":
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null and player != "":
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
-
-func _on_timeout():
-	controller.Draw_Card(controller.PId)
 
 func add_new_card(card_id):
 	var card_scene = preload(CARD_SCENE_PATH)

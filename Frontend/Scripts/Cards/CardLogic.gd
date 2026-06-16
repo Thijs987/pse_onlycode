@@ -10,7 +10,7 @@ var dragging_card
 var is_hovering
 var card_offsetx
 var card_offsety
-var turn = false
+var turns
 
 
 # Called when the node enters the scene tree for the first time.
@@ -29,12 +29,11 @@ func _process(_delta: float) -> void:
 
 func _newturn(player):
 	if player != null:
-		if controller.PId == player:
-			turn = true
-			
+		turns = player
 
 ### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
+<<<<<<< HEAD
 	if controller.interaction_disabled:
 		return
 	if discard_pile == null:
@@ -44,6 +43,10 @@ func play_card(card):
 	if discard_area == null:
 		print("Error: DiscardPileArea node not found!")
 		return
+=======
+	var discard_area = discard_pile.get_node("DiscardPileArea")
+	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
+>>>>>>> parent of 53c472b (Code voor turn timer)
 
 	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
 		card.movable = false
