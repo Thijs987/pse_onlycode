@@ -114,9 +114,21 @@ public class MatchManager
         if (GetActive(match).Count <= 1)
             return new DataInfo { Error = "The game has already ended." };
 
+        if (match.CurrentTurnPlayerId != playerId)
+        {
+            Console.WriteLine($"{playerId} tried to play, but not their turn!");
+            return new DataInfo { Error = "Not your turn" };
+        }
+
         if (!match.PlayerHands.TryGetValue(playerId, out var hands))
         {
             return new DataInfo { Error = "You have been eliminated or are not in the game." };
+        }
+
+        // Look up the card in registry
+        if (!_cardRegistry.TryGetValue(cardData.CardId, out var cardEffect))
+        {
+            return new DataInfo { Error = $"Unknown card: {cardData.CardId}" };
         }
 
         if (!string.IsNullOrEmpty(match.PendingAction) && match.PendingActionPlayerId == playerId)
@@ -130,12 +142,6 @@ public class MatchManager
         {
             Console.WriteLine($"{playerId} tried to play a card they don't have: {cardData.CardId}");
             return new DataInfo { Error = "You do not have that card in your hand!" };
-        }
-
-        // Look up the card in registry
-        if (!_cardRegistry.TryGetValue(cardData.CardId, out var cardEffect))
-        {
-            return new DataInfo { Error = $"Unknown card: {cardData.CardId}" };
         }
 
         if (!match.PlayerHands[playerId].Contains("imp"))
@@ -540,5 +546,13 @@ public class MatchManager
                 match.PlayerStatuses.TryGetValue(id, out var status) &&
                 status == PlayerStatus.Active).ToList();
         return activePlayers;
+    }
+
+    public int GetDeckSize(string matchId) {
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            return -1;
+        }
+        return match.Deck.Count;
     }
 }

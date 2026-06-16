@@ -18,6 +18,8 @@ const HAND_Y = 500
 var player_hand = []
 var center_screen_x
 
+var turn_timer
+
 signal next_turn(player)
 
 
@@ -53,6 +55,9 @@ func _on_message(msg):
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
+
+func _on_timeout():
+	controller.Draw_Card(controller.PId)
 
 func add_new_card(card_id):
 	var card_scene = preload(CARD_SCENE_PATH)
@@ -107,7 +112,6 @@ func sort_hand():
 			player_hand[moving_index - 1] = moving_card
 			update_card_hand_position()
 			return
-		
 	if moving_index < player_hand.size() - 1: # Not right most card
 		var right_card = player_hand[moving_index + 1]
 		if mouse_pos.x > right_card.hand_position.x:

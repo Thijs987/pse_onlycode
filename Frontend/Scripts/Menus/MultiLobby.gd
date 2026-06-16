@@ -54,7 +54,6 @@ func _on_message(msg):
 	elif msg["action"] == "ERROR":
 		if msg["playerId"] == controller.PId:
 			print("ik poep in mijn broek")
-		
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _on_create_lobby() -> void:
@@ -72,7 +71,6 @@ func _on_join_lobby() -> void:
 func _on_start_lobby():
 	if player_count > 1 and created_lobby == true:
 		controller.Start_Match(controller.PId)
-	
 
 func update_lobby_list() -> void:
 	lobby_list.text = "Current players:\n"
