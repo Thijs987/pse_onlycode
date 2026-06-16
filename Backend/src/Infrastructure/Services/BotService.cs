@@ -146,6 +146,7 @@ public class BotService
             }
         } else 
         {
+            // TODO: maybe check for combo pairs?
             // Prevent it from playing the unplayable (green) cards.
             var playableCards = hand.Where(c => !UnplayableCardIds.Contains(c)).ToList();
             foreach (var cardId in playableCards)
@@ -169,6 +170,8 @@ public class BotService
                     return;
                 }
 
+                // TODO: An invalid combo card match will return null.
+                // This should be prevented.
                 var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
                 Console.WriteLine($"After playcard: {responseData}, Error: {responseData.Error}");
                 Console.WriteLine($"Err if res: {string.IsNullOrEmpty(responseData.Error)}");
@@ -289,6 +292,7 @@ public class BotService
         if (ComboCardOptions.TryGetValue(cardId, out var allowed))
         {
             Console.WriteLine("Combo");
+            // TODO: The null gets procced.
             var comboCards = hand.Where(allowed.Contains).Take(2).ToList();
             if (comboCards.Count < 2)
             {
