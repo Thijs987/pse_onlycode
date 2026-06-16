@@ -149,6 +149,16 @@ public class MessageRouter
             await connectionManager.SendMessageAsync(playerId, SerializeMsg(errorMessage));
         }
 
+        if(newLimit == "1") {
+            var deck_size = matchManager.GetDeckSize(lobbyId);
+            var message = new DataInfo {
+                Message = $"{deck_size}"
+                };
+            var limitMessage = MakeMessage("DECK_SIZE", playerId,message);
+            //broadcast remove player
+            await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(limitMessage));
+        }
+
         if (end.Message == "Removed") {
             var endPlayerMessage = MakeMessage("CARD_LIMIT", playerId, end);
             //broadcast remove player
