@@ -66,17 +66,37 @@ public class MessageRouter
                         // (You will need to add a Broadcast method to your ConnectionManager)
                         Console.WriteLine("Card played successfully.");
 
-                        response = MakeMessage("CARD_PLAYED", playerId, responseData);
-                        if (responseData.CardId == "imp")
-                        {
+
+                        List <string> specialCards = new List <string> {"goto", "vibe", "inf", "nocom"};
+
+                        var action = "CARD_PLAYED";
+
+                        response = MakeMessage(action, playerId, responseData);
+                        if (responseData.CardId == "imp") {
                             await Next_player(lobbyId, playerId, "0", connectionManager, matchManager);
                         }
                         else if (responseData.IsPrivate == true)
                         {
                             await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         }
-                        else
-                        {
+                        else if (specialCards.Contains(responseData.CardId)) {
+                            var dataBroad = new DataInfo {
+                                Target = responseData.Target,
+                                Cards = responseData.Cards
+                            };
+                            var broadMessage = MakeMessage(action,playerId, dataBroad);
+                            await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
+                            await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
+                        } else if (responseData.CardId == "trojan") {
+                            var dataBroad = new DataInfo {
+                                CardId = responseData.CardId,
+                                Target = responseData.Target
+                            };
+                            var broadMessage = MakeMessage(action,playerId, dataBroad);
+                            await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
+                            await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
+                        }
+                        else {
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
                     }
