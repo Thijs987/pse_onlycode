@@ -20,17 +20,17 @@ public class NoCommentsCard : ICardEffect
 
         // TODO: Write the actual logic
         var target = cardData.Target;
-        var send_cards = cardData.Cards;
+        var sendCards = cardData.Cards;
         List <string> blank_cards = new List <string> {"goto", "nocom"};
 
         //check if enough cards are send
-        if(send_cards.Count() != 2) {
+        if(sendCards.Count() != 2) {
             responseData.Error = $"incorrect number of cards have been used.";
             return responseData;
         }
 
         //check if both cards are valid
-        foreach (var cards in send_cards) {
+        foreach (var cards in sendCards) {
             if(!matchState.PlayerHands[playerId].Contains(cards) || !blank_cards.Contains(cards)){
                 responseData.Error = $"Incorrect set of cards have been send";
                 return responseData;
@@ -66,12 +66,15 @@ public class NoCommentsCard : ICardEffect
 
         // Return a basic response so the game doesn't crash
         responseData.Target = target;
-        responseData.Cards.Add(card);
+        responseData.Message = card;
 
         // Standard Cleanup
         if (matchState.PlayerHands.ContainsKey(playerId))
         {
-            matchState.PlayerHands[playerId].Remove(CardId);
+            foreach(var cards in sendCards) {
+                responseData.Cards.Add(cards);
+                matchState.PlayerHands[playerId].Remove(cards);
+            }
         }
         return responseData;
     }
