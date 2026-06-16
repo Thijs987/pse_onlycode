@@ -58,8 +58,6 @@ public class BotService
         _connectionManager.AddToLobby(botId, lobbyId);
         _bots.TryAdd(botId, lobbyId);
 
-        Console.WriteLine($"Bot {botId} added to lobby {lobbyId}");
-
         // Mirror the PLAYER_JOINED broadcast so real clients render the bot.
         var joinMessage = new NetworkMessage
         {
@@ -96,12 +94,9 @@ public class BotService
     // Let the bot play the cards in its hand
     public async Task BotPlayCard(string lobbyId, string botId)
     {
-        Console.WriteLine("BotPlayCard");
-
         var pendingAction = _matchManager.GetPendingAction(lobbyId, botId);
         if (!string.IsNullOrEmpty(pendingAction))
         {
-            Console.WriteLine("BPC-pendingaction");
             if (pendingAction == "os")
             {
                 var target = _random.Next(2) == 0 ? "take" : "top";
@@ -115,17 +110,11 @@ public class BotService
         }
 
         var hand = _matchManager.GetPlayerHand(lobbyId, botId);
-        Console.WriteLine($"Bot hand: {hand.Count}");
-        foreach (var card in hand)
-        {
-            Console.WriteLine(card);
-        }
         // For imp:
         // No cards => CardId="imp", Cards=[]
         // Discard => CardId=DiscardCard, Cards=["imp", DiscardCard]
         if (hand.Contains("imp"))
         {
-            Console.WriteLine("BPC-imp");
             var cardToDiscard = hand.FirstOrDefault(c => c != "imp", null);
             var cardData = new DataInfo { CardId = "imp" };
             if (cardToDiscard != null)
@@ -136,7 +125,6 @@ public class BotService
 
             // Send the resulting play to the matchmanager
             var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
-            Console.WriteLine(responseData.Error);
             if (responseData.Error == "")
             {
                 await SendCardPlayed(lobbyId, botId, responseData);
@@ -147,65 +135,51 @@ public class BotService
         }
         else
         {
-            // TODO: maybe check for combo pairs?
-            // Prevent it from playing the unplayable (green) cards.
-            var playableCards = PlayableCards(hand);
-            foreach (var cardId in PlayableCards(hand))
+            // Everytime the bot plays a card, the playable cards have to be reset.
+            bool playedCard = true;
+            while (playedCard)
             {
-                Console.WriteLine("Playable cards:");
-                foreach (var card in PlayableCards(hand))
-                {
-                    Console.WriteLine(card);
-                }
-                await Task.Delay(Speed);
-                // Prevent it from playing the unplayable (green) cards.
-                // var cardId = hand.Where(c => !UnplayableCardIds.Contains(c)).Distinct().ToList().First();
-                Console.WriteLine($"Bot card: {cardId}");
-                // There should not be an imp in the bots hand
-                if (cardId == "imp")
-                {
-                    Console.WriteLine($"The bot has an imp in its hand.");
-                    return;
-                }
+                playedCard = false;
+                var playableCards = PlayableCards(hand);
 
-                var cardData = BuildCardData(lobbyId, botId, cardId, hand);
-                Console.WriteLine($"After buildData: {cardData.Cards.Count()}");
-                if (cardData == null)
+                foreach (var cardId in playableCards)
                 {
-                    Console.WriteLine($"The bot has cardData = null. cardId: {cardId}, hand: {hand}");
-                    return;
+                    await Task.Delay(Speed);
+                    // Prevent it from playing the unplayable (green) cards.
+                    // There should not be an imp in the bots hand
+                    if (cardId == "imp")
+                    {
+                        Console.WriteLine($"The bot has an imp in its hand.");
+                        return;
+                    }
+
+                    var cardData = BuildCardData(lobbyId, botId, cardId, hand);
+                    if (cardData == null)
+                    {
+                        Console.WriteLine($"The bot has cardData = null. cardId: {cardId}, hand: {hand}");
+                        continue;
+                    }
+
+                    // TODO: An invalid combo card match will return null.
+                    // This should be prevented.
+                    var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
+                    if (string.IsNullOrEmpty(responseData.Error))
+                    {
+                        await SendCardPlayed(lobbyId, botId, responseData);
+
+                        // The bot played a card.
+                        // Update hand and set playedcard to true to update PlayableCards.
+                        hand = _matchManager.GetPlayerHand(lobbyId, botId);
+                        playedCard = true;
+                        break;
+                    }
                 }
-
-                // TODO: An invalid combo card match will return null.
-                // This should be prevented.
-                var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
-                Console.WriteLine($"After playcard: {responseData}, Error: {responseData.Error}");
-                Console.WriteLine($"Err if res: {string.IsNullOrEmpty(responseData.Error)}");
-                if (string.IsNullOrEmpty(responseData.Error))
-                {
-                    Console.WriteLine("BPC-beforesendcardplayed");
-                    await SendCardPlayed(lobbyId, botId, responseData);
-                    Console.WriteLine("BPC-Aftersend");
-
-                    // if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || !string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
-                    //     break;
-                }
-
-                hand = _matchManager.GetPlayerHand(lobbyId, botId);
 
                 // Go back to the loop in MessageRouter.
                 // That will give the turn back to this bot for PendingAction handling or give turn to next one.
                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || !string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
                     break;
 
-                // if (!string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
-                // {
-                //     continue
-                // }
-                // if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId)
-                // {
-                //     break;
-                // }
             }
         }
     }
@@ -321,21 +295,13 @@ public class BotService
     // can't satisfy that card's requirements (target/combo) right now.
     private DataInfo? BuildCardData(string lobbyId, string botId, string cardId, List<string> hand)
     {
-        Console.WriteLine($"BuildData, card: {cardId}");
         var cardData = new DataInfo { CardId = cardId };
 
         // If cardId is a combocard, then get a pair and play them.
         if (ComboCardOptions.TryGetValue(cardId, out var allowed))
         {
-            Console.WriteLine("Combo");
             // TODO: The null gets procced.
             var comboCards = hand.Where(c => allowed.Contains(c)).Take(2).ToList();
-            Console.WriteLine($"OnlyAllowed:");
-            foreach (var card in hand.Where(c => allowed.Contains(c)))
-            {
-                Console.WriteLine(card);
-            }
-            Console.WriteLine($"ComboCards: {comboCards}, count: {comboCards.Count()} {comboCards.Count}");
             if (comboCards.Count < 2)
             {
                 return null;
@@ -347,7 +313,6 @@ public class BotService
         // when you have no other cards.
         if (cardId == "trojan")
         {
-            Console.WriteLine("Trojan");
             var sendCard = hand.FirstOrDefault(c => c != "trojan");
             if (sendCard == null)
             {
@@ -363,7 +328,6 @@ public class BotService
         }
         else if (TargetCardIds.Contains(cardId) || ComboCardOptions.ContainsKey(cardId))
         {
-            Console.WriteLine($"Trget or cmbo: {cardId}");
             var target = GetRandomOpponent(lobbyId, botId);
             if (target == null)
             {
@@ -400,33 +364,29 @@ public class BotService
 
     private async Task SendCardPlayed(string lobbyId, string botId, DataInfo responseData)
     {
-        Console.WriteLine("Bot SCP");
         var response = MakeMessage("CARD_PLAYED", botId, responseData);
-        await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
+        // await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
 
-        // if (responseData.CardId == "imp")
-        // {
-        //     await NextPlayer(lobbyId, botId, "0");
-        // }
-        // else if (responseData.IsPrivate == true)
-        // {
-        //     await _connectionManager.SendMessageAsync(botId, JsonSerializer.Serialize(response));
-        // }
-        // else
-        // {
-        //     await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
-        // }
+        if (responseData.CardId == "imp")
+        {
+            await NextPlayer(lobbyId, botId, "0");
+        }
+        else if (responseData.IsPrivate == true)
+        {
+            await _connectionManager.SendMessageAsync(botId, JsonSerializer.Serialize(response));
+        }
+        else
+        {
+            await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
+        }
     }
 
     public async Task DrawCard(string lobbyId, string botId)
     {
-        Console.WriteLine("Bot DrawCard");
         var responseData = _matchManager.GetFirstCard(lobbyId, botId);
-        Console.WriteLine($"DC-respData: {responseData}, Error: |{responseData.Error}|");
 
         if (!string.IsNullOrEmpty(responseData.Error))
         {
-            Console.WriteLine("BOT DC-in err respD");
             var errorMessage = MakeMessage("ERROR", botId, responseData);
             await _connectionManager.SendMessageAsync(botId, JsonSerializer.Serialize(errorMessage));
             return;
@@ -438,19 +398,15 @@ public class BotService
 
         if (responseData.CardId != "imp")
         {
-            Console.WriteLine("DC-beforeNextplayer");
             await NextPlayer(lobbyId, botId, responseData.Message);
-            Console.WriteLine("DC-afterNextplayer");
         }
     }
 
     private async Task NextPlayer(string lobbyId, string botId, string newLimit)
     {
-        Console.WriteLine("Bot NextPlayer");
         var responseData = _matchManager.NextTurn(lobbyId, botId);
 
         var end = _matchManager.CheckCardLimit(lobbyId, botId, newLimit);
-        Console.WriteLine($"Bot End:{end}, Error:|{end.Error}|, msg:{end.Message}");
         if (end.Error != "")
         {
             var errorMessage = MakeMessage("ERROR", botId, end);
@@ -459,7 +415,6 @@ public class BotService
 
         if (end.Message == "Removed")
         {
-            Console.WriteLine("BOT NP-removed");
             var endPlayerMessage = MakeMessage("CARD_LIMIT", botId, end);
             await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(endPlayerMessage));
 
