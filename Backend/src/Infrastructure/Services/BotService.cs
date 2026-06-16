@@ -12,6 +12,8 @@ public class BotService
     // them apart from human players (e.g. to decide when to drive a turn).
     public const string BotIdPrefix = "BOT_";
 
+    private const int Speed = 500;
+
     private static readonly Random _random = new();
 
     // Tracks which bots belong to which lobby (botId -> lobbyId).
@@ -28,7 +30,11 @@ public class BotService
 
     // Cards that only need a Target.
     private static readonly HashSet<string> TargetCardIds = ["sql", "trojan"];
+
+    // Cards that are not playable
     private static readonly HashSet<string> UnplayableCardIds = ["blue", "err", "merge"];
+    // Cards that end the turn
+    private static readonly HashSet<string> EndTurnCardIds = ["cm", "ddos", "sql"];
 
     private readonly MatchManager _matchManager;
     private readonly ConnectionManager _connectionManager;
@@ -90,7 +96,6 @@ public class BotService
     // Let the bot play the cards in its hand
     public async Task BotPlayCard(string lobbyId, string botId)
     {
-        await Task.Delay(1500);
         Console.WriteLine("BotPlayCard");
 
         var pendingAction = _matchManager.GetPendingAction(lobbyId, botId);
@@ -142,34 +147,54 @@ public class BotService
         } else 
         {
             // Prevent it from playing the unplayable (green) cards.
-            var cardId = hand.Where(c => !UnplayableCardIds.Contains(c)).Distinct().ToList().First();
-            Console.WriteLine($"Bot card: {cardId}");
-            // There should not be an imp in the bots hand
-            if (cardId == "imp")
+            var playableCards = hand.Where(c => !UnplayableCardIds.Contains(c)).ToList();
+            foreach (var cardId in playableCards)
             {
-                Console.WriteLine($"The bot has an imp in its hand.");
-                return;
-            }
-
-            var cardData = BuildCardData(lobbyId, botId, cardId, hand);
-            Console.WriteLine($"After buildData: {cardData}");
-            if (cardData == null) 
-            {
-                Console.WriteLine($"The bot has cardData = null. cardId: {cardId}, hand: {hand}");
-                return;
-            }
-
-            var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
-            Console.WriteLine($"After playcard: {responseData}, Error: {responseData.Error}");
-            Console.WriteLine($"Err if res: {string.IsNullOrEmpty(responseData.Error)}");
-            if (string.IsNullOrEmpty(responseData.Error))
-            {
-                Console.WriteLine("BPC-beforesendcardplayed");
-                await SendCardPlayed(lobbyId, botId, responseData);
-                Console.WriteLine("BPC-Aftersend");
-
-                if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
+                await Task.Delay(Speed);
+                // Prevent it from playing the unplayable (green) cards.
+                // var cardId = hand.Where(c => !UnplayableCardIds.Contains(c)).Distinct().ToList().First();
+                Console.WriteLine($"Bot card: {cardId}");
+                // There should not be an imp in the bots hand
+                if (cardId == "imp")
+                {
+                    Console.WriteLine($"The bot has an imp in its hand.");
                     return;
+                }
+
+                var cardData = BuildCardData(lobbyId, botId, cardId, hand);
+                Console.WriteLine($"After buildData: {cardData}");
+                if (cardData == null) 
+                {
+                    Console.WriteLine($"The bot has cardData = null. cardId: {cardId}, hand: {hand}");
+                    return;
+                }
+
+                var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
+                Console.WriteLine($"After playcard: {responseData}, Error: {responseData.Error}");
+                Console.WriteLine($"Err if res: {string.IsNullOrEmpty(responseData.Error)}");
+                if (string.IsNullOrEmpty(responseData.Error))
+                {
+                    Console.WriteLine("BPC-beforesendcardplayed");
+                    await SendCardPlayed(lobbyId, botId, responseData);
+                    Console.WriteLine("BPC-Aftersend");
+
+                    // if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || !string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
+                    //     break;
+                }
+
+                // Go back to the loop in MessageRouter.
+                // That will give the turn back to this bot for PendingAction handling or give turn to next one.
+                if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || !string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
+                    break;
+
+                // if (!string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
+                // {
+                //     continue
+                // }
+                // if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId)
+                // {
+                //     break;
+                // }
             }
         }
     }
