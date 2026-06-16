@@ -7,7 +7,7 @@ public class BlueScreenCard : ICardEffect
 {
     public string CardId => "blue";
 
-    public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
+    public DataInfo ApplyEffect(GameState match, string playerId, DataInfo cardData)
     {
         var responseData = new DataInfo{
             CardId = CardId,

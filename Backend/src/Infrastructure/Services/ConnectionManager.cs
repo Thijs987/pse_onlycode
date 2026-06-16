@@ -38,19 +38,37 @@ public class ConnectionManager
         }
         catch { }
 
-        AddToLobby(playerId, lobbyId);
-        Console.WriteLine($"Socket Connected: {playerId} joined Lobby {lobbyId}");
+        var rejoin = false;
+        if (existingPlayers.Contains(playerId)) {
+            rejoin = true;
+        }
 
-        var joinMessage = new NetworkMessage
+        var joinMessage = new NetworkMessage {};
+
+        string action;
+        string message;
+
+        if(rejoin == true) {
+            matchManager.Rejoin(playerId);
+            Console.WriteLine($"Socket Connected: {playerId} rejoined Lobby {lobbyId}");
+            action = "PLAYER_REJOINED";
+            message = $"{playerId} has rejoined the game!";
+        } else {
+            AddToLobby(playerId, lobbyId);
+            Console.WriteLine($"Socket Connected: {playerId} joined Lobby {lobbyId}");
+            action = "PLAYER_JOINED";
+            message = $"{playerId} has joined the game!";
+        }
+
+        joinMessage = new NetworkMessage
         {
-            Action = "PLAYER_JOINED",
+            Action = action,
             PlayerId = playerId,
             Data = new DataInfo
             {
-                Message = $"{playerId} has joined the game!"
+                Message = message
             }
         };
-
         await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(joinMessage));
 
         foreach (var existingPlayer in existingPlayers)
@@ -107,8 +125,10 @@ public class ConnectionManager
         }
         finally
         {
-            RemoveFromLobby(playerId);
-            var responseData = matchManager.RemoveFromMatch(playerId);
+            var responseData = matchManager.Disconnect(playerId);
+            if (matchManager.GetActives(lobbyId).Count <= 0) {
+                RemoveLobby(playerId);
+            }
             responseData.Message = $"{playerId} disconnected.";
             _sockets.TryRemove(playerId, out _);
 
@@ -159,6 +179,23 @@ public class ConnectionManager
         }
     }
 
+    public void RemoveLobby(string connectionId)
+    {
+        if(!_connectionToLobby.TryRemove(connectionId, out string? lobbyId)) {
+            return;
+        }
+        if (string.IsNullOrEmpty(lobbyId)) {
+            return;
+        }
+        if (_lobbies.TryRemove(lobbyId, out var lobbyConnections))
+        {
+            foreach(var player in lobbyConnections.Keys) {
+                _connectionToLobby.TryRemove(player,out _);
+            }
+            Console.WriteLine($"Lobby {lobbyId} is empty and was destroyed.");
+        }
+    }
+
     public async Task BroadcastToLobbyAsync(string lobbyId, string message, string exception = "")
     {
         if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
@@ -194,7 +231,7 @@ public class ConnectionManager
         _lobbies.TryAdd(newLobbyId, new ConcurrentDictionary<string, bool>());
         if (!string.IsNullOrEmpty(hostId))
             _lobbyHosts.TryAdd(newLobbyId, hostId);
-            
+
         Console.WriteLine($"Lobby {newLobbyId} created by {hostId} via HTTP.");
 
         return newLobbyId;
