@@ -7,12 +7,12 @@ public class TestCard : ICardEffect
 {
     public string CardId => "test";
 
-    public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
+    public DataInfo ApplyEffect(GameState match, string playerId, DataInfo cardData)
     {
         // Standard Cleanup
-        if (matchState.PlayerHands.ContainsKey(playerId))
+        if (match.PlayerHands.ContainsKey(playerId))
         {
-            matchState.PlayerHands[playerId].Remove(CardId);
+            match.PlayerHands[playerId].Remove(CardId);
         }
 
         // TODO: Write the actual logic

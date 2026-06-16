@@ -10,7 +10,7 @@ var dragging_card
 var is_hovering
 var card_offsetx
 var card_offsety
-var turns
+var turn = false
 
 
 # Called when the node enters the scene tree for the first time.
@@ -29,7 +29,9 @@ func _process(_delta: float) -> void:
 
 func _newturn(player):
 	if player != null:
-		turns = player
+		if controller.PId == player:
+			turn = true
+			
 
 ### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):

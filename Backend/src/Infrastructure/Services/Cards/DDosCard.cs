@@ -7,27 +7,34 @@ public class DDosCard : ICardEffect
 {
     public string CardId => "ddos";
 
-    public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
+    public DataInfo ApplyEffect(GameState match, string playerId, DataInfo cardData)
     {
-        int currentIndex = matchState.PlayerIds.IndexOf(playerId);
-        int nextIndex = (currentIndex + 1) % matchState.PlayerIds.Count;
-        string nextPlayer = matchState.PlayerIds[nextIndex];
+        var currentCycle = match.PlayerIds
+            .Where (id =>
+                match.PlayerStatuses.TryGetValue(id, out var status) &&
+                status == PlayerStatus.Active || status == PlayerStatus.DisconnectedActive).ToList();
 
-        matchState.CurrentTurnPlayerId = nextPlayer;
-        if(matchState.NTurns == 1) {
-            matchState.NTurns = 2;
+        // Advance the turn to the next player if current has none
+        int currentIndex = currentCycle. IndexOf(playerId);
+        int nextIndex = (currentIndex + 1) % currentCycle.Count;
+        string nextPlayer = currentCycle[nextIndex];
+        match.CurrentTurnPlayerId = currentCycle[nextIndex];
+
+        match.CurrentTurnPlayerId = nextPlayer;
+        if(match.NTurns == 1) {
+            match.NTurns = 2;
         } else {
-            matchState.NTurns += 2;
+            match.NTurns += 2;
         }
 
-        matchState.PlayerHands[playerId].Remove(CardId);
+        match.PlayerHands[playerId].Remove(CardId);
 
         return new DataInfo
         {
             CardId = CardId,
             NextPlayer = nextPlayer,
-            Turns = matchState.NTurns,
-            Message = $"{playerId} launched a DDos attack! {nextPlayer} must play {matchState.NTurns} turns."
+            Turns = match.NTurns,
+            Message = $"{playerId} launched a DDos attack! {nextPlayer} must play {match.NTurns} turns."
         };
     }
 }
