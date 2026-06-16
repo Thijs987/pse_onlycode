@@ -8,9 +8,9 @@ func _ready() -> void:
 	# Als er op DEZE knop geklikt wordt, voeren we de functie hieronder uit
 	pressed.connect(_on_pressed)
 
-func setup_box(player_name: String, player_id: String) -> void:
+func setup_box(player_name: String) -> void:
 	$Label.text = player_name
-	target_player_id = player_id
+	target_player_id = player_name
 
 func _on_pressed() -> void:
 	# Schiet ons eigen signaal af mét het opgeslagen ID erbij

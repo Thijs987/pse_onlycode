@@ -108,14 +108,18 @@ func sql_attack() -> String:
 	var attack_screen = ATTACK_SCENE.instantiate()
 	get_tree().root.add_child(attack_screen)
 	
-	var filtered_enemies = []
+	# FORCEER FULL SCREEN (zodat hij niet 0x0 pixels is linksboven)
+	if attack_screen is Control:
+		attack_screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	
-	# We gebruiken nu de schone lijst uit de controller!
+	var filtered_enemies = []
 	for p_id in controller.All_Player_Ids:
 		if p_id != controller.PId:
 			filtered_enemies.append(p_id)
-			
+	
+	# Voer nu pas de setup uit, de 'await ready' binnen setup_targets vangt eventuele haast op
 	attack_screen.setup_targets(filtered_enemies)
+	
 	var gekozen_id = await attack_screen.target_selected
 	return gekozen_id
 

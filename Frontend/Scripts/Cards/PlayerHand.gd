@@ -41,26 +41,12 @@ func _process(_delta: float) -> void:
 
 func _on_message(msg):
 	if msg != null:
-		# HIER GAAN WE DE MATCH START OPVANGEN EN JE HAND VULLEN
-		if msg["action"] == "MATCH_STARTED":
-			var player = msg.get("data", {}).get("nextPlayer")
-			if player != null:
-				next_turn.emit(player)
-				if turn_label != null:
-					turn_label.text = str(player)
-			
-			# HIER HARDCODEN WE HIER DE SQL KAART ZODAT HET COMPLEET PARSET BIJ DE START
-			var test_hand = ["sql", "test", "test"]
-			for card_id in test_hand:
-				add_new_card(card_id)
-
 		if msg["action"] == "NEXT_TURN":
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
-
 		if msg["action"] == "CARD_PLAYED":
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null and player != "":

@@ -45,10 +45,10 @@ public class MatchManager
             {"merge", 0},
             {"miracle", 0},
             {"nocom", 0},
-            {"sql", 0},
+            {"sql", 20},
             {"trojan", 0},
             {"vibe", 0},
-            {"test", 20}
+            {"test", 0}
         };
 
         foreach (var card in allCards)
