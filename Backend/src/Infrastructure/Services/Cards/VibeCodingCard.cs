@@ -7,14 +7,14 @@ public class VibeCodingCard : ICardEffect
 {
     public string CardId => "vibe";
 
-    public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
+    public DataInfo ApplyEffect(GameState match, string playerId, DataInfo cardData)
     {
         // TODO: Write the actual logic
         var responseData = new DataInfo{
             CardId = CardId
         };
 
-        if (!matchState.PlayerIds.Contains(cardData.Target)){
+        if (!match.PlayerIds.Contains(cardData.Target)){
             responseData.Error = $"{cardData.Target} not in game.";
             return responseData;
         }
@@ -32,45 +32,45 @@ public class VibeCodingCard : ICardEffect
 
         //check if both cards are valid
         foreach (var cards in send_cards) {
-            if(!matchState.PlayerHands[playerId].Contains(cards) || !blank_cards.Contains(cards)){
+            if(!match.PlayerHands[playerId].Contains(cards) || !blank_cards.Contains(cards)){
                 responseData.Error = $"Incorrect set of cards have been send";
                 return responseData;
             }
         }
 
         //generate and shuffle deck if empty
-        if (matchState.Deck.Count <= 0)
+        if (match.Deck.Count <= 0)
         {
             // Refill deck
             Console.WriteLine("Deck empty");
-            matchState.Deck = new List<string>(matchState.TableCards);
-            matchState.TableCards = [];
+            match.Deck = new List<string>(match.TableCards);
+            match.TableCards = [];
             var rand = new Random();
-            matchState.Deck = matchState.Deck.OrderBy(_ => rand.Next()).ToList();
+            match.Deck = match.Deck.OrderBy(_ => rand.Next()).ToList();
             responseData.Message = "deck regenarated";
         }
 
         // No top card, not possible
-        if (matchState.Deck.Count <= 0)
+        if (match.Deck.Count <= 0)
         {
             responseData.Error = "Deck could not be generated";
             return responseData;
         }
         //give card to player.
-        var card = matchState.Deck[0];
+        var card = match.Deck[0];
 
-        matchState.Deck.RemoveAt(0);
+        match.Deck.RemoveAt(0);
         Console.WriteLine($"The first card is {card}");
 
-        matchState.PlayerHands[target].Add(card);
+        match.PlayerHands[target].Add(card);
 
         responseData.Target = target;
         responseData.Cards.Add(card);
 
         // Standard Cleanup
-        if (matchState.PlayerHands.ContainsKey(playerId))
+        if (match.PlayerHands.ContainsKey(playerId))
         {
-            matchState.PlayerHands[playerId].Remove(CardId);
+            match.PlayerHands[playerId].Remove(CardId);
         }
         return responseData;
     }
