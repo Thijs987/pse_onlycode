@@ -9,6 +9,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Application.Results;
 using Microsoft.AspNetCore.Http;
+using System.Security.Cryptography;
 
 [ApiController]
 [Route("api/auth")]
@@ -27,7 +28,7 @@ public class UserController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> CreateUser(RegisterRequest request)
     {
-        // Use configured base URL (AppSettings:BaseUrl) so verification links point to the configured server
+        // Use configured base URL (AppSettings:BaseUrl)
         var configuredBase = _config["AppSettings:BaseUrl"];
         var result = await _auth.Register(request.Email, request.Username, request.Password, ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString(), baseUrl: configuredBase);
         if (!result.IsSuccess)
@@ -39,7 +40,7 @@ public class UserController : ControllerBase
         return Ok(result.Value);
     }
 
-    // Login request, for now returns all users info
+    // Login request, returns all users info
     [HttpPost("login")]
     public async Task<IActionResult> Logincontrol(LoginRequest request)
     {
@@ -67,6 +68,7 @@ public class UserController : ControllerBase
             expiresMinutes = configured;
         }
 
+        // Create JWT token
         var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
         var signingKey = new SymmetricSecurityKey(keyBytes);
         var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
@@ -87,6 +89,7 @@ public class UserController : ControllerBase
             signingCredentials: creds
         );
 
+        // Serialize token to string
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
         // Set token as HttpOnly, Secure cookie for browser-based clients
@@ -112,12 +115,24 @@ public class UserController : ControllerBase
         };
         Response.Cookies.Append("refresh_token", refreshToken, refreshCookieOptions);
 
+        // Double-submit CSRF: create a readable CSRF token cookie for JS to read and include in the X-CSRF-Token header
+        var csrfToken = GenerateCsrfToken();
+        var csrfCookieOptions = new CookieOptions
+        {
+            HttpOnly = false, // must be readable by JS
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(30)
+        };
+        Response.Cookies.Append("csrf_token", csrfToken, csrfCookieOptions);
+
         return Ok(new { user = result.Value, token = tokenString, expires = token.ValidTo });
     }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh()
     {
+        // Get refresh token from cookie
         var refreshToken = Request.Cookies["refresh_token"];
         if (string.IsNullOrWhiteSpace(refreshToken)) return Unauthorized(new ServiceError(ServiceErrorCode.InvalidCredentials, "Missing refresh token."));
 
@@ -159,11 +174,17 @@ public class UserController : ControllerBase
         );
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
+        // Set new access token and refresh token cookies
         var cookieOptions = new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax, Expires = new DateTimeOffset(token.ValidTo) };
         Response.Cookies.Append("access_token", tokenString, cookieOptions);
 
         var refreshCookieOptions = new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) };
         Response.Cookies.Append("refresh_token", newRefreshToken, refreshCookieOptions);
+
+        // Rotate CSRF token
+        var newCsrf = GenerateCsrfToken();
+        var newCsrfCookieOptions = new CookieOptions { HttpOnly = false, Secure = true, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddDays(30) };
+        Response.Cookies.Append("csrf_token", newCsrf, newCsrfCookieOptions);
 
         return Ok(new { user = userDto, token = tokenString, expires = token.ValidTo });
     }
@@ -171,6 +192,7 @@ public class UserController : ControllerBase
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
+        // Revoke refresh token if present
         var refreshToken = Request.Cookies["refresh_token"];
         if (!string.IsNullOrWhiteSpace(refreshToken))
         {
@@ -180,8 +202,18 @@ public class UserController : ControllerBase
         // delete cookies
         Response.Cookies.Delete("refresh_token");
         Response.Cookies.Delete("access_token");
+        Response.Cookies.Delete("csrf_token");
 
         return Ok(new { success = true });
+    }
+
+    private static string GenerateCsrfToken()
+    {
+        // Generate a random CSRF token (32 bytes, base64url encoded)
+        using var rng = RandomNumberGenerator.Create();
+        var data = new byte[32];
+        rng.GetBytes(data);
+        return Convert.ToBase64String(data).Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
 
     public record RegisterRequest(string Email, string Username, string Password);

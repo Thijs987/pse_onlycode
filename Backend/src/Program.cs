@@ -1,3 +1,4 @@
+using System;
 using Application;
 using Application.Results;
 using Infrastructure.Persistence;
@@ -30,9 +31,11 @@ if (allowedOrigins != null && allowedOrigins.Length > 0)
     });
 }
 
+// Database context: PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
+// Configure EmailSettings from configuration
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 
@@ -83,7 +86,7 @@ builder.Services.AddSingleton<ConnectionManager>();
 builder.Services.AddSingleton<MessageRouter>();
 
 
-// Authentication - optional and driven by configuration. Add JWT bearer if key is configured.
+// Authentication with JWT bearer tokens (if configured)
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "PSE-Green";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "PSE-Green-Clients";
@@ -93,6 +96,7 @@ var enforceAuth = builder.Configuration.GetValue("AppSettings:EnforceAuth", fals
 var authEnabled = !string.IsNullOrWhiteSpace(jwtKey);
 if (authEnabled)
 {
+    // Configure JWT bearer authentication
     var keyBytes = Encoding.UTF8.GetBytes(jwtKey!);
     builder.Services.AddAuthentication(options =>
     {
@@ -101,15 +105,21 @@ if (authEnabled)
     })
     .AddJwtBearer(options =>
     {
+        // Configure JWT validation parameters
         options.RequireHttpsMetadata = false;
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            // Validate the JWT token parameters
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-            ValidateLifetime = true
+            ValidateLifetime = true,
+            // Small clock skew to allow for minor clock differences between clients and server
+            ClockSkew = TimeSpan.FromSeconds(30)
         };
 
         // Allow JWT in query string for WebSocket connections (only if present)
@@ -160,6 +170,7 @@ if (rateLimitEnabled)
 {
     app.Use(async (context, next) =>
     {
+        // Check if the request is allowed based on IP and configured limits
         var rl = context.RequestServices.GetRequiredService<Application.Services.IRateLimitService>();
         var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var max = builder.Configuration.GetValue("AppSettings:RateLimit:Requests", 60);
@@ -184,6 +195,41 @@ if (authEnabled)
     app.UseAuthentication();
     app.UseAuthorization();
 }
+
+// Double-submit CSRF protection middleware for state-changing requests.
+// Exempt login/register/verify-email endpoints so clients can obtain initial CSRF token.
+app.Use(async (context, next) =>
+{
+    // Skip CSRF check for safe methods (GET, HEAD, OPTIONS)
+    var method = context.Request.Method;
+    if (HttpMethods.IsGet(method) || HttpMethods.IsHead(method) || HttpMethods.IsOptions(method))
+    {
+        await next();
+        return;
+    }
+
+    var path = context.Request.Path.Value ?? string.Empty;
+    // Public endpoints that should be exempt from CSRF (they create the session/token)
+    if (path.StartsWith("/api/auth/login") || path.StartsWith("/api/auth/register") || path.StartsWith("/api/auth/verify-email"))
+    {
+        await next();
+        return;
+    }
+
+    // Check for CSRF token in cookie and header
+    var csrfCookie = context.Request.Cookies["csrf_token"];
+    var csrfHeader = context.Request.Headers["X-CSRF-Token"].FirstOrDefault();
+
+    // If either is missing or they don't match, reject the request
+    if (string.IsNullOrWhiteSpace(csrfCookie) || string.IsNullOrWhiteSpace(csrfHeader) || !string.Equals(csrfCookie, csrfHeader))
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        await context.Response.WriteAsync("Invalid or missing CSRF token");
+        return;
+    }
+
+    await next();
+});
 
 // Map minimal auth endpoints (email verification)
 app.MapAuthEndpoints();
@@ -227,6 +273,7 @@ static EmailSettings? LoadEmailSettingsFromAppSettings()
 {
     try
     {
+        // Attempt to load EmailSettings from Backend/src/appsettings.json (fallback for us)
         var repoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory!, "..", "..", "..", "..", ".."));
         var candidate = Path.Combine(repoRoot, "Backend", "src", "appsettings.json");
         if (!File.Exists(candidate))
@@ -235,13 +282,10 @@ static EmailSettings? LoadEmailSettingsFromAppSettings()
         }
         if (!File.Exists(candidate))
         {
-            candidate = Path.Combine("/home/sem/PSE-Green-Code", "Backend", "src", "appsettings.json");
-        }
-        if (!File.Exists(candidate))
-        {
             return null;
         }
 
+        // Read and parse the appsettings.json file
         var json = JsonNode.Parse(File.ReadAllText(candidate));
         var emailSection = json?["EmailSettings"] as JsonObject;
         if (emailSection == null)
@@ -249,6 +293,7 @@ static EmailSettings? LoadEmailSettingsFromAppSettings()
             return null;
         }
 
+        // Deserialize the EmailSettings section into an EmailSettings object
         var settings = JsonSerializer.Deserialize<EmailSettings>(emailSection.ToJsonString());
         if (settings == null)
         {
