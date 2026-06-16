@@ -74,11 +74,11 @@ public class BotService
 
     public async Task PlayerToBot(string playerId, string lobbyId)
     {
-        
         if (_bots.TryAdd(playerId, lobbyId))
         {
             Console.WriteLine($"Player {playerId} replaced with bot");
-        } else
+        }
+        else
         {
             Console.WriteLine($"Could not turn {playerId} to bot.");
         }
@@ -131,7 +131,7 @@ public class BotService
             if (cardToDiscard != null)
             {
                 cardData.CardId = cardToDiscard;
-                cardData.Cards = new List<string> { "imp", cardToDiscard};
+                cardData.Cards = new List<string> { "imp", cardToDiscard };
             }
 
             // Send the resulting play to the matchmanager
@@ -140,17 +140,23 @@ public class BotService
             if (responseData.Error == "")
             {
                 await SendCardPlayed(lobbyId, botId, responseData);
-                
+
                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
                     return;
             }
-        } else 
+        }
+        else
         {
             // TODO: maybe check for combo pairs?
             // Prevent it from playing the unplayable (green) cards.
-            var playableCards = hand.Where(c => !UnplayableCardIds.Contains(c)).ToList();
-            foreach (var cardId in playableCards)
+            var playableCards = PlayableCards(hand);
+            foreach (var cardId in PlayableCards(hand))
             {
+                Console.WriteLine("Playable cards:");
+                foreach (var card in PlayableCards(hand))
+                {
+                    Console.WriteLine(card);
+                }
                 await Task.Delay(Speed);
                 // Prevent it from playing the unplayable (green) cards.
                 // var cardId = hand.Where(c => !UnplayableCardIds.Contains(c)).Distinct().ToList().First();
@@ -163,8 +169,8 @@ public class BotService
                 }
 
                 var cardData = BuildCardData(lobbyId, botId, cardId, hand);
-                Console.WriteLine($"After buildData: {cardData}");
-                if (cardData == null) 
+                Console.WriteLine($"After buildData: {cardData.Cards.Count()}");
+                if (cardData == null)
                 {
                     Console.WriteLine($"The bot has cardData = null. cardId: {cardId}, hand: {hand}");
                     return;
@@ -185,6 +191,8 @@ public class BotService
                     //     break;
                 }
 
+                hand = _matchManager.GetPlayerHand(lobbyId, botId);
+
                 // Go back to the loop in MessageRouter.
                 // That will give the turn back to this bot for PendingAction handling or give turn to next one.
                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || !string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
@@ -200,6 +208,34 @@ public class BotService
                 // }
             }
         }
+    }
+
+    private List<string> PlayableCards(List<string> hand)
+    {
+        var playableCards = hand.Where(c => !UnplayableCardIds.Contains(c)).ToList();
+        playableCards = playableCards.Where(c =>
+        {
+            // Check if the combo cards can be paired.
+            if (ComboCardOptions.Keys.Contains(c) && ComboCardOptions.TryGetValue(c, out var allowed))
+            {
+                // Only get the legal cards and check if this results in more than 2
+                var possiblePairs = playableCards.Where(c => allowed.Contains(c));
+                if (possiblePairs.Count() >= 2)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return true;
+            }
+        }
+        ).ToList();
+        return playableCards;
     }
 
     // public async Task ProcessBotTurnAsync(string lobbyId, string botId)
@@ -246,7 +282,7 @@ public class BotService
     //             if (responseData.Error == "")
     //             {
     //                 await SendCardPlayed(lobbyId, botId, responseData);
-                    
+
     //                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
     //                     return;
 
@@ -285,7 +321,7 @@ public class BotService
     // can't satisfy that card's requirements (target/combo) right now.
     private DataInfo? BuildCardData(string lobbyId, string botId, string cardId, List<string> hand)
     {
-        Console.WriteLine("BuildData");
+        Console.WriteLine($"BuildData, card: {cardId}");
         var cardData = new DataInfo { CardId = cardId };
 
         // If cardId is a combocard, then get a pair and play them.
@@ -293,7 +329,13 @@ public class BotService
         {
             Console.WriteLine("Combo");
             // TODO: The null gets procced.
-            var comboCards = hand.Where(allowed.Contains).Take(2).ToList();
+            var comboCards = hand.Where(c => allowed.Contains(c)).Take(2).ToList();
+            Console.WriteLine($"OnlyAllowed:");
+            foreach (var card in hand.Where(c => allowed.Contains(c)))
+            {
+                Console.WriteLine(card);
+            }
+            Console.WriteLine($"ComboCards: {comboCards}, count: {comboCards.Count()} {comboCards.Count}");
             if (comboCards.Count < 2)
             {
                 return null;
@@ -339,7 +381,9 @@ public class BotService
         try
         {
             players = _connectionManager.GetPlayers(lobbyId);
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             Console.WriteLine(e.Message);
             return null;
         }

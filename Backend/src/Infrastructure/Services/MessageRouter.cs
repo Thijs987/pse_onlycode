@@ -99,10 +99,7 @@ public class MessageRouter
 
                     // If the first player up is a bot, let it play immediately.
                     // await DriveBotsAsync(lobbyId, connectionManager, matchManager);
-                    if (_botService.IsBot(newState.CurrentTurnPlayerId))
-                    {
-                        await BotTurn(lobbyId, connectionManager, matchManager);
-                    }
+                    await CheckBotTurn(lobbyId, connectionManager, matchManager, responseData);
                     break;
 
 
@@ -128,6 +125,12 @@ public class MessageRouter
                         else
                         {
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
+                        }
+
+                        // For endTurncards, check if bot.
+                        if (new List<string> { "cm", "ddos", "sql" }.Contains(responseData.CardId))
+                        {
+                            await CheckBotTurn(lobbyId, connectionManager, matchManager, responseData);
                         }
 
                         // When is the use of this code?
@@ -232,11 +235,7 @@ public class MessageRouter
         var response = MakeMessage("NEXT_TURN", playerId, responseData);
         await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
 
-        // If the turn now lands on a bot.
-        if (_botService.IsBot(responseData.NextPlayer))
-        {
-            await BotTurn(lobbyId, connectionManager, matchManager);
-        }
+        await CheckBotTurn(lobbyId, connectionManager, matchManager, responseData);
     }
 
     private bool lobbyHasHuman(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
@@ -259,6 +258,15 @@ public class MessageRouter
         return true;
     }
 
+    public async Task CheckBotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager, DataInfo responseData)
+    {
+        // If the turn now lands on a bot.
+        if (_botService.IsBot(responseData.NextPlayer))
+        {
+            await BotTurn(lobbyId, connectionManager, matchManager);
+        }
+    }
+
     // Plays out every bot whose turn it currently is, chaining through
     // consecutive bots until the turn lands on a human (or the match ends).
     // Each bot's own turn advance + broadcasts happen inside ProcessBotTurnAsync;
@@ -276,7 +284,8 @@ public class MessageRouter
             await _botService.BotPlayCard(lobbyId, current);
             Console.WriteLine($"Current During{current}");
             // If the current turn player did not change and there is not a pending action.
-            if (current == matchManager.GetCurrentTurnPlayer(lobbyId) && string.IsNullOrEmpty(matchManager.GetPendingAction(lobbyId, current))) {
+            if (current == matchManager.GetCurrentTurnPlayer(lobbyId) && string.IsNullOrEmpty(matchManager.GetPendingAction(lobbyId, current)))
+            {
                 await _botService.DrawCard(lobbyId, current);
             }
             current = matchManager.GetCurrentTurnPlayer(lobbyId);
@@ -288,13 +297,13 @@ public class MessageRouter
         // But why? There is a foreach loop in botservice.botplaycard.
         // This should keep it in there and play everyuthing playable.
     }
-//     private async Task BotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
-//     {
-//         var current = matchManager.GetCurrentTurnPlayer(lobbyId);
-//         while (_botService.hasHuman() && !string.IsNullOrEmpty(current) && _botService.IsBot(current))
-//         {
-//             await _botService.ProcessBotTurnAsync(lobbyId, current);
-//             current = matchManager.GetCurrentTurnPlayer(lobbyId);
-//         }
-//     }
+    //     private async Task BotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
+    //     {
+    //         var current = matchManager.GetCurrentTurnPlayer(lobbyId);
+    //         while (_botService.hasHuman() && !string.IsNullOrEmpty(current) && _botService.IsBot(current))
+    //         {
+    //             await _botService.ProcessBotTurnAsync(lobbyId, current);
+    //             current = matchManager.GetCurrentTurnPlayer(lobbyId);
+    //         }
+    //     }
 }
