@@ -42,15 +42,20 @@ public class MessageRouter
                     var players = connectionManager.GetPlayers(lobbyId);
 
                     GameState newState = matchManager.StartNewMatch(lobbyId, players);
-                    responseData = new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
+                    if(newState.Deck.Count == 0) {
+                        responseData = new DataInfo {Message = "incorrect card configuration"};
+                        response = MakeMessage("ERROR", playerId, responseData);
+                        await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
+                    } else {
+                        responseData = new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
 
-                    foreach (var player in players)
-                    {
-                        responseData.Cards = newState.PlayerHands[player];
-                        response = MakeMessage("MATCH_STARTED", player, responseData);
-                        await connectionManager.SendMessageAsync(player, SerializeMsg(response));
+                        foreach (var player in players)
+                        {
+                            responseData.Cards = newState.PlayerHands[player];
+                            response = MakeMessage("MATCH_STARTED", player, responseData);
+                            await connectionManager.SendMessageAsync(player, SerializeMsg(response));
+                        }
                     }
-
                     // await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                     // await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                     break;
