@@ -27,14 +27,13 @@ func _newturn(player):
 func decrease_counter():
 	if controller.interaction_disabled:
 		return
-		
 	if turns == controller.PId:
 		if card_count > 0:
 			card_count -= 1
 			# Past card count getal aan
 			update_card_text()
 			controller.Draw_Card(controller.PId)
-			await get_tree().create_timer(0.25).timeout #DIT KAN EEN BUG WORDEN
+			await get_tree().create_timer(0.25).timeout # DIT KAN EEN BUG WORDEN
 			#DAN MOET JE DE TIMER LANGER MAKEN, OF EEN ANDERE MANIER OM TE WACHTEN OM _ON_MESSAGE
 			hand_reference.add_new_card(drawn_card)
 		else:
@@ -42,7 +41,7 @@ func decrease_counter():
 
 # Past card count getal aan
 func update_card_text():
-	counter_label.text = ""#str(card_count)
+	counter_label.text = "" # str(card_count)
 
 # Hier moet een functie die de volgende kaart uit de string/array pakt
 # func ...
