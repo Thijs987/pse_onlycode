@@ -130,7 +130,7 @@ public class MessageRouter
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
 
-                        // What is the use of this code?
+                        // When is the use of this code?
                         // if (responseData.CardId != "imp" && matchManager.GetCurrentTurnPlayer(lobbyId) != playerId)
                         // {
                         //     await DriveBotsAsync(lobbyId, connectionManager, matchManager);

@@ -28,6 +28,7 @@ public class BotService
 
     // Cards that only need a Target.
     private static readonly HashSet<string> TargetCardIds = ["sql", "trojan"];
+    private static readonly HashSet<string> UnplayableCardIds = ["blue", "err", "merge"];
 
     private readonly MatchManager _matchManager;
     private readonly ConnectionManager _connectionManager;
@@ -138,9 +139,10 @@ public class BotService
                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
                     return;
             }
-        } else
+        } else 
         {
-            var cardId = hand.Distinct().ToList().First();
+            // Prevent it from playing the unplayable (green) cards.
+            var cardId = hand.Where(c => !UnplayableCardIds.Contains(c)).Distinct().ToList().First();
             Console.WriteLine($"Bot card: {cardId}");
             // There should not be an imp in the bots hand
             if (cardId == "imp")
@@ -158,10 +160,13 @@ public class BotService
             }
 
             var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
-            Console.WriteLine($"After playcard: {responseData.Error}");
-            if (responseData.Error == "")
+            Console.WriteLine($"After playcard: {responseData}, Error: {responseData.Error}");
+            Console.WriteLine($"Err if res: {string.IsNullOrEmpty(responseData.Error)}");
+            if (string.IsNullOrEmpty(responseData.Error))
             {
+                Console.WriteLine("BPC-beforesendcardplayed");
                 await SendCardPlayed(lobbyId, botId, responseData);
+                Console.WriteLine("BPC-Aftersend");
 
                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
                     return;
@@ -342,10 +347,13 @@ public class BotService
 
     public async Task DrawCard(string lobbyId, string botId)
     {
+        Console.WriteLine("Bot DrawCard");
         var responseData = _matchManager.GetFirstCard(lobbyId, botId);
+        Console.WriteLine($"DC-respData: {responseData}, Error: |{responseData.Error}|");
 
-        if (responseData.Error != "")
+        if (!string.IsNullOrEmpty(responseData.Error))
         {
+            Console.WriteLine("BOT DC-in err respD");
             var errorMessage = MakeMessage("ERROR", botId, responseData);
             await _connectionManager.SendMessageAsync(botId, JsonSerializer.Serialize(errorMessage));
             return;
@@ -357,15 +365,19 @@ public class BotService
 
         if (responseData.CardId != "imp")
         {
+            Console.WriteLine("DC-beforeNextplayer");
             await NextPlayer(lobbyId, botId, responseData.Message);
+            Console.WriteLine("DC-afterNextplayer");
         }
     }
 
     private async Task NextPlayer(string lobbyId, string botId, string newLimit)
     {
+        Console.WriteLine("Bot NextPlayer");
         var responseData = _matchManager.NextTurn(lobbyId, botId);
 
         var end = _matchManager.CheckCardLimit(lobbyId, botId, newLimit);
+        Console.WriteLine($"Bot End:{end}, Error:|{end.Error}|, msg:{end.Message}");
         if (end.Error != "")
         {
             var errorMessage = MakeMessage("ERROR", botId, end);
@@ -374,8 +386,19 @@ public class BotService
 
         if (end.Message == "Removed")
         {
+            Console.WriteLine("BOT NP-removed");
             var endPlayerMessage = MakeMessage("CARD_LIMIT", botId, end);
             await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(endPlayerMessage));
+
+            // Check if there is a winner
+            string winnerId = _matchManager.GetWinner(lobbyId);
+            if (!string.IsNullOrEmpty(winnerId))
+            {
+                var winnerData = new DataInfo { NextPlayer = winnerId };
+                var gameOverMessage = MakeMessage("GAME_OVER", winnerId, winnerData);
+                await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(gameOverMessage));
+                return; // Stop broadcasting NEXT_TURN
+            }
         }
 
         var response = MakeMessage("NEXT_TURN", botId, responseData);
