@@ -4,6 +4,7 @@
 using System.Text.Json;
 using Domain;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.VisualBasic;
 
 public class MessageRouter
@@ -97,7 +98,11 @@ public class MessageRouter
                     }
 
                     // If the first player up is a bot, let it play immediately.
-                    await DriveBotsAsync(lobbyId, connectionManager, matchManager);
+                    // await DriveBotsAsync(lobbyId, connectionManager, matchManager);
+                    if (_botService.IsBot(newState.CurrentTurnPlayerId))
+                    {
+                        await BotTurn(lobbyId, connectionManager, matchManager);
+                    }
                     break;
 
 
@@ -110,8 +115,6 @@ public class MessageRouter
                     if (string.IsNullOrEmpty(responseData.Error))
                     {
                         // If the move was valid, broadcast the result to EVERYONE in the game
-                        // (You will need to add a Broadcast method to your ConnectionManager)
-                        Console.WriteLine("Card played successfully.");
 
                         response = MakeMessage("CARD_PLAYED", playerId, responseData);
                         if (responseData.CardId == "imp")
@@ -127,10 +130,11 @@ public class MessageRouter
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
 
-                        if (responseData.CardId != "imp" && matchManager.GetCurrentTurnPlayer(lobbyId) != playerId)
-                        {
-                            await DriveBotsAsync(lobbyId, connectionManager, matchManager);
-                        }
+                        // What is the use of this code?
+                        // if (responseData.CardId != "imp" && matchManager.GetCurrentTurnPlayer(lobbyId) != playerId)
+                        // {
+                        //     await DriveBotsAsync(lobbyId, connectionManager, matchManager);
+                        // }
                     }
                     else
                     {
@@ -228,36 +232,62 @@ public class MessageRouter
         var response = MakeMessage("NEXT_TURN", playerId, responseData);
         await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
 
-        // If the turn now lands on one (or several) bots, play them out.
-        await DriveBotsAsync(lobbyId, connectionManager, matchManager);
+        // If the turn now lands on a bot.
+        if (_botService.IsBot(responseData.NextPlayer))
+        {
+            await BotTurn(lobbyId, connectionManager, matchManager);
+        }
+    }
+
+    private bool lobbyHasHuman(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
+    {
+        bool hasHuman;
+        try
+        {
+            hasHuman = connectionManager.GetPlayers(lobbyId).Any(p => !_botService.IsBot(p));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            return false;
+        }
+        if (!hasHuman)
+        {
+            Console.WriteLine($"Only bots in lobby");
+            return false;
+        }
+        return true;
     }
 
     // Plays out every bot whose turn it currently is, chaining through
     // consecutive bots until the turn lands on a human (or the match ends).
     // Each bot's own turn advance + broadcasts happen inside ProcessBotTurnAsync;
     // this loop only decides whether the *next* player up is another bot.
-    private async Task DriveBotsAsync(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
+    // private async Task DriveBotsAsync(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
+    private async Task BotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
     {
         // Don't drive bots if there's no human left to play against,
         // otherwise bots would pass the turn among themselves forever.
-        bool hasHuman;
-        try
-        {
-            hasHuman = connectionManager.GetPlayers(lobbyId).Any(p => !_botService.IsBot(p));
-        }
-        catch
-        {
-            return;
-        }
-        if (!hasHuman) return;
-
-        // Safety cap in case the last human is eliminated mid-chain.
-        int safety = 1000;
         var current = matchManager.GetCurrentTurnPlayer(lobbyId);
-        while (safety-- > 0 && !string.IsNullOrEmpty(current) && _botService.IsBot(current))
+        Console.WriteLine($"Current before{current}");
+        while (lobbyHasHuman(lobbyId, connectionManager, matchManager) && !string.IsNullOrEmpty(current) && _botService.IsBot(current))
         {
-            await _botService.ProcessBotTurnAsync(lobbyId, current);
+            await Task.Delay(1500);
+            await _botService.BotPlayCard(lobbyId, current);
+            Console.WriteLine($"Current During{current}");
+            await _botService.DrawCard(lobbyId, current);
+            Console.WriteLine($"Current After{current}");
+            break;
             current = matchManager.GetCurrentTurnPlayer(lobbyId);
         }
     }
+//     private async Task BotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
+//     {
+//         var current = matchManager.GetCurrentTurnPlayer(lobbyId);
+//         while (_botService.hasHuman() && !string.IsNullOrEmpty(current) && _botService.IsBot(current))
+//         {
+//             await _botService.ProcessBotTurnAsync(lobbyId, current);
+//             current = matchManager.GetCurrentTurnPlayer(lobbyId);
+//         }
+//     }
 }
