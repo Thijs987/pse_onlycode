@@ -39,7 +39,7 @@ public class MatchManager
         var allCards = new Dictionary<string, int>()
         {
             {"blue", 0},
-            {"cm", 0},
+            {"cm", 20},
             {"ddos", 0},
             {"err", 0},
             {"garb", 0},
@@ -52,7 +52,7 @@ public class MatchManager
             {"sql", 0},
             {"trojan", 0},
             {"vibe", 0},
-            {"test", 20}
+            {"test", 0}
         };
 
         foreach (var card in allCards)
@@ -394,7 +394,7 @@ public class MatchManager
     }
 
     // Get the match from the playerId.
-    public DataInfo RemoveFromMatch(string playerId, string matchId = "", PlayerStatus status = PlayerStatus.Eliminated)
+    public DataInfo RemoveFromMatch(string playerId, string matchId = "")
     {
         if (string.IsNullOrEmpty(matchId))
         {
@@ -427,17 +427,45 @@ public class MatchManager
         }
 
         // remove from cycle
-        match.PlayerStatuses[playerId] = status;
+        match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
         // remove hand from dict
-        if (status == PlayerStatus.Eliminated) {
-            foreach (var card in match.PlayerHands[playerId]) {
-                match.TableCards.Add(card);
-            }
-            match.PlayerHands.Remove(playerId);
+        foreach (var card in match.PlayerHands[playerId]) {
+            match.TableCards.Add(card);
         }
+        match.PlayerHands.Remove(playerId);
 
         Console.WriteLine($"Removed {playerId} from {matchId}. Cycle: {currentCycle.Count}");
 
+        var responseData = new DataInfo
+        {
+            NextPlayer = match.CurrentTurnPlayerId,
+            Turns = match.NTurns
+        };
+        return responseData;
+    }
+
+    public DataInfo Disconnect(string playerId, string matchId = "") {
+        if (string.IsNullOrEmpty(matchId))
+        {
+            matchId = GetMatchFromPlayer(playerId);
+        }
+
+        // Check if lookup found something
+        if (string.IsNullOrEmpty(matchId))
+        {
+            return new DataInfo();
+        }
+
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            Console.WriteLine($"Cannot find match {matchId}");
+            return new DataInfo { Error = $"Cannot find match {matchId}" };
+        }
+        if(match.PlayerStatuses[playerId] == PlayerStatus.Eliminated) {
+            match.PlayerStatuses[playerId] = PlayerStatus.DisconnectedEliminated;
+        } else if(match.PlayerStatuses[playerId] == PlayerStatus.Active) {
+            match.PlayerStatuses[playerId] = PlayerStatus.DisconnectedActive;
+        }
         var responseData = new DataInfo
         {
             NextPlayer = match.CurrentTurnPlayerId,
@@ -460,10 +488,14 @@ public class MatchManager
             return false;
         }
 
-        if(match.PlayerStatuses.TryGetValue(playerId, out var status)
-            && match.PlayerStatuses[playerId] == PlayerStatus.Disconnected){
-            match.PlayerStatuses[playerId] = PlayerStatus.Active;
-            return true;
+        if (match.PlayerStatuses.TryGetValue(playerId, out var status)) {
+            if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedEliminated) {
+                match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
+                return true;
+            } else if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedActive) {
+                match.PlayerStatuses[playerId] = PlayerStatus.Active;
+                return true;
+            }
         }
         return false;
     }
@@ -491,6 +523,18 @@ public class MatchManager
     }
 
     public List<string> GetActive(GameState match) {
+        var activePlayers = match.PlayerIds
+            .Where (id =>
+                match.PlayerStatuses.TryGetValue(id, out var status) &&
+                status == PlayerStatus.Active || status == PlayerStatus.DisconnectedActive).ToList();
+        return activePlayers;
+    }
+
+    public List<string> GetActives(string matchId) {
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            return new List<string> {};
+        }
         var activePlayers = match.PlayerIds
             .Where (id =>
                 match.PlayerStatuses.TryGetValue(id, out var status) &&

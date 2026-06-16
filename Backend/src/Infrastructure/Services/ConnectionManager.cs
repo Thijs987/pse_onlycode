@@ -125,8 +125,10 @@ public class ConnectionManager
         }
         finally
         {
-            // RemoveFromLobby(playerId);
-            var responseData = matchManager.RemoveFromMatch(playerId, "", PlayerStatus.Disconnected);
+            var responseData = matchManager.Disconnect(playerId);
+            if (matchManager.GetActives(lobbyId).Count <= 0) {
+                RemoveLobby(playerId);
+            }
             responseData.Message = $"{playerId} disconnected.";
             _sockets.TryRemove(playerId, out _);
 
@@ -177,6 +179,23 @@ public class ConnectionManager
         }
     }
 
+    public void RemoveLobby(string connectionId)
+    {
+        if(!_connectionToLobby.TryRemove(connectionId, out string? lobbyId)) {
+            return;
+        }
+        if (string.IsNullOrEmpty(lobbyId)) {
+            return;
+        }
+        if (_lobbies.TryRemove(lobbyId, out var lobbyConnections))
+        {
+            foreach(var player in lobbyConnections.Keys) {
+                _connectionToLobby.TryRemove(player,out _);
+            }
+            Console.WriteLine($"Lobby {lobbyId} is empty and was destroyed.");
+        }
+    }
+
     public async Task BroadcastToLobbyAsync(string lobbyId, string message, string exception = "")
     {
         if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
@@ -212,7 +231,7 @@ public class ConnectionManager
         _lobbies.TryAdd(newLobbyId, new ConcurrentDictionary<string, bool>());
         if (!string.IsNullOrEmpty(hostId))
             _lobbyHosts.TryAdd(newLobbyId, hostId);
-            
+
         Console.WriteLine($"Lobby {newLobbyId} created by {hostId} via HTTP.");
 
         return newLobbyId;

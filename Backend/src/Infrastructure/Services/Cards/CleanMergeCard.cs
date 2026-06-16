@@ -16,11 +16,14 @@ public class CleanMergeCard : ICardEffect
         // Attack card can cause NTurns > 1
         if (matchState.NTurns <= 0)
         {
+            var currentCycle = matchState.PlayerIds
+            .Where (id =>
+                matchState.PlayerStatuses.TryGetValue(id, out var status) &&
+                status == PlayerStatus.Active || status == PlayerStatus.DisconnectedActive).ToList();
             // Advance the turn to the next player if current has none
-            int currentIndex = matchState.PlayerIds.IndexOf(playerId);
-            int nextIndex = (currentIndex + 1) % matchState.PlayerIds.Count;
-            matchState.CurrentTurnPlayerId = matchState.PlayerIds[nextIndex];
-            nextPlayer = matchState.PlayerIds[nextIndex];
+            int currentIndex = currentCycle. IndexOf(playerId);
+            int nextIndex = (currentIndex + 1) % currentCycle.Count;
+            matchState.CurrentTurnPlayerId = currentCycle[nextIndex];
             // Set NTrns to 1
             matchState.NTurns = 1;
         }
