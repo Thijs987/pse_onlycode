@@ -276,10 +276,11 @@ public class MessageRouter
             await _botService.BotPlayCard(lobbyId, current);
             Console.WriteLine($"Current During{current}");
             await _botService.DrawCard(lobbyId, current);
-            Console.WriteLine($"Current After{current}");
-            break;
             current = matchManager.GetCurrentTurnPlayer(lobbyId);
+            Console.WriteLine($"Current After{current}");
         }
+
+        // TODO: remove lobby of bots
     }
 //     private async Task BotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
 //     {

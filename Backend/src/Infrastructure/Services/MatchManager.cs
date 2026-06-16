@@ -53,7 +53,7 @@ public class MatchManager
             // {"trojan", 4},
             // {"vibe", 4},
             // {"test", 0}
-            {"blue", 2},
+            {"blue", 0},
             {"cm", 0},
             {"ddos", 0},
             {"err", 0},
@@ -67,7 +67,7 @@ public class MatchManager
             {"sql", 0},
             {"trojan", 0},
             {"vibe", 0},
-            {"test", 5}
+            {"test", 20}
         };
 
         foreach (var card in allCards)
