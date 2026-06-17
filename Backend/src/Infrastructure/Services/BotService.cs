@@ -197,7 +197,10 @@ public class BotService
 
     private List<string> PlayableCards(List<string> hand)
     {
+        // Remove unplayable cards
         var playableCards = hand.Where(c => !UnplayableCardIds.Contains(c)).ToList();
+
+        // Remove unusable combo cards
         playableCards = playableCards.Where(c =>
         {
             // Check if the combo cards can be paired.
@@ -216,10 +219,17 @@ public class BotService
             }
             else
             {
+                // Check for lonely trojan
+                if (c == "trojan" && hand.Count() <= 1)
+                {
+                    return false;
+                }
+
                 return true;
             }
         }
         ).ToList();
+
         return playableCards;
     }
 
@@ -322,14 +332,18 @@ public class BotService
 
         // It is not allowed to play a trojan horse card,
         // when you have no other cards.
+        // The cardData.cards should only hold the discarded card
         if (cardId == "trojan")
         {
-            var sendCard = hand.FirstOrDefault(c => c != "trojan");
-            if (sendCard == null)
+            if (hand.Count() >= 2)
             {
-                return null;
+                string sendCard = hand.FirstOrDefault(c => c != "trojan", "trojan");
+                cardData.Cards = new List<string> { sendCard };
+            } else
+            {
+                Console.WriteLine("Bot entered trojan with less than 2 cards");
+                cardData.Cards = new List<string> {};
             }
-            cardData.Cards = new List<string> { sendCard };
         }
 
 
