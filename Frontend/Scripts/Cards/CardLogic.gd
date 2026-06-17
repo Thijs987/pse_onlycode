@@ -99,20 +99,21 @@ func play_card(card):
 			target_id = await sql_attack()
 		
 		elif current_id == "trojan":
-			# Verwijder de Trojan Horse-kaart zelf direct uit je hand en gooi hem weg
-			if not has_another_card():
+			if not has_another_card(): # Need to have a card to give
 				print("You dont have a card to give")
 				card.movable = true
 				return false
+			played_cards = [current_id]
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
-			
-			print("Trojan Horse gespeeld! Selecteer nu een kaart uit je hand om weg te geven...")
+
+			print("Choose a card to give to player")
 			trojan_selecting_gift = true
-			
-			# We returnen direct true, want de Trojan-kaart is succesvol gespeeld.
-			# De rest van de logica (kaart kiezen + speler kiezen) handelt zichzelf af via muisklikken!
+
 			return true
+
+		elif current_id == "imp":
+			pass
 
 		else:
 			hand_reference.remove_card_from_hand(card)
@@ -123,7 +124,7 @@ func play_card(card):
 		return true
 	return false
 
-
+# Code for sql attack card
 func sql_attack() -> String:
 	var attack_screen = ATTACK_SCENE.instantiate()
 	get_tree().root.add_child(attack_screen)
@@ -142,7 +143,6 @@ func sql_attack() -> String:
 	get_tree().paused = false
 	return gekozen_id
 
-
 # Checks if you have a second blanco card
 func has_another_blanco(card_type: String) -> bool:
 	var count = 0
@@ -154,6 +154,7 @@ func has_another_blanco(card_type: String) -> bool:
 			count += 1
 	return count >= 2
 
+# Checks if you have another card (for trojan)
 func has_another_card() -> bool:
 	var count = 0
 	for c in hand_reference.player_hand:
@@ -162,33 +163,27 @@ func has_another_card() -> bool:
 			return true
 	return false
 
-
 # Starts dragging of current card under mouse.
 # input: Card object found using check_at_cursor function
 func start_dragging(card):
 	if controller.interaction_disabled:
 		return
 		
-			# TROJAN HORSE LOGICA: Als we een kaart moeten kiezen om weg te geven
+		# TROJAN HORSE
 	if trojan_selecting_gift:
-		# Je mag de Trojan Horse-logica niet triggeren met een lege hand, 
-		# maar de Trojan-kaart is net al weggegooid dus er is sws een kaart gekozen.
-		trojan_selecting_gift = false # Reset direct de status
+		trojan_selecting_gift = false # Reset status
 		
 		var gift_card_id = card.own_card_id
-		print("Kaart gekozen om weg te geven: ", gift_card_id)
+		print("Chosen card: ", gift_card_id)
 		
-		# Verwijder de gekozen kaart fysiek uit je hand
+		# Delete card from your hand
 		hand_reference.remove_card_from_hand(card)
 		card.queue_free()
-		
-		# Open nu het speler-selectiescherm (net als bij SQL)
 		var target_id = await sql_attack() 
 		
-		# Stuur de complete actie naar de server: [ "trojan", "de_gekozen_kaart" ]
 		var played_cards = ["trojan", gift_card_id]
 		controller.Play_Card(controller.PId, played_cards, target_id)
-		return # Stop hier, we gaan de kaart niet slepen!
+		return
 
 	if first_combo_card != null: # Player played a blanco card
 		var blanco = ["nocom", "goto", "inf", "vibe"]
