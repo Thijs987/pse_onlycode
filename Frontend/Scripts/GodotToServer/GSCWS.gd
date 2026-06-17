@@ -63,8 +63,11 @@ func Leave_Lobby():
 
 
 # Function to play a card
-func Play_Card(card_id: String):
-	_Send(_Make_Message("PLAY_CARD", {"cardId": card_id}))
+func Play_Card(card_id: Array, OId: String):
+	if OId == "":
+		_Send(_Make_Message("PLAY_CARD", { "cardId": card_id }))
+	else:
+		_Send(_Make_Message("PLAY_CARD", { "cardId": card_id ,"target": OId }))
 
 # Function to draw a card
 func Draw_Card():

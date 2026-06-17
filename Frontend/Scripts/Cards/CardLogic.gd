@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var discard_pile = $"../DiscardPile"
 @onready var hand_reference = $"../PlayerHand"
+const ATTACK_SCENE = preload("res://Scenes/Attack.tscn")
 
 const CARD_COLLISION_MASK = 1
 
@@ -11,6 +12,7 @@ var is_hovering
 var card_offsetx
 var card_offsety
 var turns
+var first_combo_card = null
 
 
 # Called when the node enters the scene tree for the first time.
@@ -42,18 +44,96 @@ func play_card(card):
 	if discard_area == null:
 		print("Error: DiscardPileArea node not found!")
 		return
-
-#	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
-
-	if discard_area.overlaps_area(card.get_node("Area2D")) and turns == controller.PId:
-		card.set_meta("pending", true)
-		card.modulate.a = 0.5
-
+		
+	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
+		card.movable = false
 		highlight_card(card, false)
 
-		hand_reference.add_card_to_hand(card)
+		var current_id = card.own_card_id
+		var played_cards = []
+		var target_id = ""
+		var blanco = ["nocom", "goto", "inf", "vibe"]
 
-		controller.Play_Card(controller.PId, card.own_card_id)
+		if current_id in blanco:
+			if first_combo_card == null: # EERSTE BLANCO KAART
+				if has_another_blanco(current_id):
+					print("Eerste combo-kaart geselecteerd: ", current_id)
+					first_combo_card = card
+					
+					# Visuele feedback: zet de kaart bijvoorbeeld een stukje omhoog
+					first_combo_card.position.y -= 30
+					first_combo_card.position.x -= 100
+					first_combo_card.movable = false # Zorg dat je deze niet nogmaals kunt slepen
+					
+					return true
+				else:
+					print("Je hebt geen andere blanco kaart in je hand om een combo te maken!")
+					card.movable = true
+					return false
+			else: # TWEEDE BLANCO KAART
+				# Checks if type matches or at least 1 card is a nocom
+				if current_id == first_combo_card.own_card_id or current_id == "nocom" or first_combo_card.own_card_id == "nocom":
+					played_cards = [first_combo_card.own_card_id, current_id]
+					print("Geldige combo gemaakt! Versturen naar server: ", played_cards)
+					
+					# Haal nu pas BEIDE kaarten definitief uit de hand en de game
+					hand_reference.remove_card_from_hand(first_combo_card)
+					hand_reference.remove_card_from_hand(card)
+					
+					first_combo_card.queue_free()
+					card.queue_free()
+					
+					first_combo_card = null # Reset de combo-vlag voor de volgende keer
+					
+					# TODO: Als je combo een target nodig heeft (zoals SQL), kun je hier target_id ophalen
+				else:
+					print("Ongeldige combo! Kaart moet van hetzelfde type zijn of een 'no comment'.")
+					card.movable = true
+					return false
+
+		elif current_id == "sql":
+			played_cards = [current_id]
+			hand_reference.remove_card_from_hand(card)
+			card.queue_free()
+			target_id = await sql_attack()
+
+		else:
+			hand_reference.remove_card_from_hand(card)
+			card.queue_free()
+			played_cards = [current_id]
+
+		controller.Play_Card(controller.PId, played_cards, target_id)
+		return true
+	return false
+
+
+func sql_attack() -> String:
+	var attack_screen = ATTACK_SCENE.instantiate()
+	get_tree().root.add_child(attack_screen)
+	
+	if attack_screen is Control:
+		attack_screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	
+	var filtered_enemies = []
+	for p_id in controller.All_Player_Ids:
+		if p_id != controller.PId:
+			filtered_enemies.append(p_id)
+	
+	attack_screen.setup_targets(filtered_enemies)
+	get_tree().paused = true # Pauses the game except for the selection menu
+	var gekozen_id = await attack_screen.target_selected
+	get_tree().paused = false
+	return gekozen_id
+
+
+# Checks if you have a second blanco card
+func has_another_blanco(card_type: String) -> bool:
+	var count = 0
+	for c in hand_reference.player_hand:
+		if c.own_card_id == card_type:
+			count += 1
+	return count >= 1
+
 
 # Starts dragging of current card under mouse.
 # input: Card object found using check_at_cursor function
@@ -71,12 +151,16 @@ func start_dragging(card):
 # Calls logic for case of stopping dragging when left mouse button is released
 func stop_dragging():
 	if dragging_card and dragging_card.movable == true:
-		play_card(dragging_card)
+		# Als play_card true teruggeeft, stoppen we HIER direct!
+		if await play_card(dragging_card):
+			dragging_card = null
+			return 
+			
 	var released_card = dragging_card # Temp variable for add_card_to_hand
 	if released_card and (released_card.movable == true or released_card.has_meta("pending")):
 		released_card.scale = Vector2(1.1, 1.1)
-		dragging_card = null
-		hand_reference.add_card_to_hand(released_card)
+		dragging_card = null 
+		hand_reference.add_card_to_hand(released_card) # REGEL 99: Wordt nu overgeslagen bij succes!
 	dragging_card = null
 
 # Connects the signals for various player actions
