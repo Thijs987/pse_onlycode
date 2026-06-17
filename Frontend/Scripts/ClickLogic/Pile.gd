@@ -21,7 +21,13 @@ func _on_message(msg):
 			card_count = int(new_size)
 			update_card_text()
 
-	if msg.get("action") == "CARD_DRAWN":
+	elif msg.get("action") == "DECK_SIZE":
+		var new_size = msg.get("data", {}).get("message")
+		if new_size != null:
+			card_count = int(new_size)
+			update_card_text()
+
+	elif msg.get("action") == "CARD_DRAWN":
 		if card_count > 0:
 			card_count -= 1
 			update_card_text()
@@ -47,4 +53,5 @@ func decrease_counter():
 
 # Past card count getal aan
 func update_card_text():
-	counter_label.text = "" # str(card_count)
+	if counter_label != null:
+		counter_label.text = str(card_count)

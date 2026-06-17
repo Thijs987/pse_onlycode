@@ -75,10 +75,27 @@ func _on_message(msg):
 func add_new_card(card_id):
 	var card_scene = preload(CARD_SCENE_PATH)
 	var new_card = card_scene.instantiate()
+
 	card_logic.add_child(new_card)
+
 	new_card.name = "Card"
 	new_card.set_card(card_id)
-	add_card_to_hand(new_card)
+	var pile_pos = $"../Pile/PileArea/Pile".global_position
+	new_card.global_position = pile_pos
+	player_hand.insert(0, new_card)
+	update_card_hand_position()
+
+	animate_draw_card(new_card)
+
+func animate_draw_card(card):
+
+	card.scale = Vector2(0.5, 0.5)
+
+	var tween = get_tree().create_tween()
+	tween.set_parallel(true)
+
+	tween.tween_property(card, "global_position", card.hand_position, 0.4)
+	tween.tween_property(card, "scale", Vector2.ONE, 0.4)
 
 func add_card_to_hand(card):
 	if card not in player_hand:
