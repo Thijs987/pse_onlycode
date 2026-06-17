@@ -135,7 +135,12 @@ public class ConnectionManager
         finally
         {
             var responseData = matchManager.Disconnect(playerId);
-            if (matchManager.GetActives(lobbyId).Count <= 0) {
+            if (!matchManager.IsMatchActive(lobbyId))
+            {
+                RemoveFromLobby(playerId);
+            }
+            else if (matchManager.GetActives(lobbyId).Count <= 0) 
+            {
                 RemoveLobby(playerId);
             }
             responseData.Message = $"{playerId} disconnected.";
@@ -226,6 +231,7 @@ public class ConnectionManager
             foreach(var player in lobbyConnections.Keys) {
                 _connectionToLobby.TryRemove(player,out _);
             }
+            _lobbies.TryRemove(lobbyId, out _);
             Console.WriteLine($"Lobby {lobbyId} is empty and was destroyed.");
         }
     }
@@ -283,15 +289,15 @@ public class ConnectionManager
         return false;
     }
 
-    // Only returns lobbies with less than 4 players like this
-    public IEnumerable<object> GetActiveLobbies()
+    public IEnumerable<object> GetActiveLobbies(MatchManager matchManager)
     {
         return _lobbies
-            .Where(lobby => lobby.Value.Count < MaxPlayersPerLobby)
+            .Where(lobby => !matchManager.HasMatchStarted(lobby.Key))
             .Select(lobby => new
             {
                 LobbyId = lobby.Key,
-                PlayerCount = lobby.Value.Count
+                PlayerCount = lobby.Value.Count,
+                Capacity = MaxPlayersPerLobby
             });
     }
 }
