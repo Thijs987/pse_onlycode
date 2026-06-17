@@ -39,12 +39,12 @@ public class MatchManager
         var allCards = new Dictionary<string, int>()
         {
             {"blue", 0},
-            {"cm", 20},
-            {"ddos", 20},
+            {"cm", 0},
+            {"ddos", 0},
             {"err", 0},
             {"garb", 0},
-            {"goto", 0},
-            {"imp", 20},
+            {"goto", 20},
+            {"imp", 0},
             {"inf", 0},
             {"merge", 0},
             {"miracle", 0},
@@ -69,7 +69,7 @@ public class MatchManager
         int impcards = newState.Deck.Count(card => card == "imp");
 
 
-        if ((size-impcards) < (players.Count*3)) {
+        if ((size-impcards) < (players.Count*initialHandSize)) {
             Console.WriteLine($"Match {matchId} initialization failed!");
             newState.Deck = new List<string>{};
             return newState;
@@ -162,6 +162,7 @@ public class MatchManager
             return new DataInfo { Error = "You do not have that card in your hand!" };
         }
 
+        // If player doesn't have a improved hardware play card
         if (!match.PlayerHands[playerId].Contains("imp"))
         {
             // Apply the specific card's logic
@@ -189,6 +190,7 @@ public class MatchManager
         }
         else if (cardData.CardId != "imp")
         {
+            //if player only has a improved hardware play improved hardware
             match.TableCards.Add("imp");
             match.TableCards.Add(cardData.CardId);
             match.PlayerHands[playerId].Remove("imp");
@@ -319,7 +321,6 @@ public class MatchManager
         var card = match.Deck[0];
 
         match.Deck.RemoveAt(0);
-        Console.WriteLine($"The first card is {card}");
 
         if (card == "imp")
         {
@@ -329,8 +330,6 @@ public class MatchManager
         {
             hand.Add(card);
         }
-
-        Console.WriteLine($"card drawn {card}");
 
         // var responseData = new DataInfo { CardId = card };
         responseData.CardId = card;
@@ -480,16 +479,20 @@ public class MatchManager
             return new DataInfo();
         }
 
+
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
             Console.WriteLine($"Cannot find match {matchId}");
             return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
+
+        //adjust status based on if player is elimanted or not.
         if(match.PlayerStatuses[playerId] == PlayerStatus.Eliminated) {
             match.PlayerStatuses[playerId] = PlayerStatus.DisconnectedEliminated;
         } else if(match.PlayerStatuses[playerId] == PlayerStatus.Active) {
             match.PlayerStatuses[playerId] = PlayerStatus.DisconnectedActive;
         }
+
         var responseData = new DataInfo
         {
             NextPlayer = match.CurrentTurnPlayerId,
@@ -511,7 +514,7 @@ public class MatchManager
             Console.WriteLine($"Cannot find match {matchId}");
             return false;
         }
-
+        //adjust status based on if player is elimanted or not.
         if (match.PlayerStatuses.TryGetValue(playerId, out var status)) {
             if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedEliminated) {
                 match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
@@ -524,12 +527,14 @@ public class MatchManager
         return false;
     }
 
+    // Get matchId form playerId
     public string GetMatchFromPlayer(string playerId)
     {
         string match = _activeMatches.FirstOrDefault(m => m.Value.PlayerIds.Contains(playerId)).Key;
         return match;
     }
 
+    // Check if there is a winner and return winner
     public string GetWinner(string matchId)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
@@ -546,6 +551,7 @@ public class MatchManager
         }
     }
 
+    // Get active players and bot players
     public List<string> GetActive(GameState match) {
         var activePlayers = match.PlayerIds
             .Where (id =>
@@ -554,6 +560,7 @@ public class MatchManager
         return activePlayers;
     }
 
+    //get active players which are not bots
     public List<string> GetActives(string matchId) {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
@@ -566,6 +573,7 @@ public class MatchManager
         return activePlayers;
     }
 
+    // Get the current deck size
     public int GetDeckSize(string matchId) {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
