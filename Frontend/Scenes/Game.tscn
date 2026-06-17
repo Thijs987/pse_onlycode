@@ -34,6 +34,12 @@ offset_top = 184.0
 offset_right = 766.0
 offset_bottom = 207.0
 
+[node name="TimeLabel" type="Label" parent="Background" unique_id=571864682]
+offset_left = 693.0
+offset_top = 149.0
+offset_right = 763.0
+offset_bottom = 172.0
+
 [node name="Pile" type="Node2D" parent="." unique_id=738463849]
 script = ExtResource("2_dahhg")
 
