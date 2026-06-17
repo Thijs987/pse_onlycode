@@ -56,20 +56,20 @@ public class MatchManager
             // {"test", 0}
 
             {"blue", 0},
-            {"cm", 20},
-            {"ddos", 20},
+            {"cm", 0},
+            {"ddos", 0},
             {"err", 0},
             {"garb", 0},
             {"goto", 0},
-            {"imp", 20},
+            {"imp", 0},
             {"inf", 0},
             {"merge", 0},
             {"miracle", 0},
             {"nocom", 0},
             {"sql", 0},
-            {"trojan", 10},
+            {"trojan", 0},
             {"vibe", 0},
-            {"test", 10}
+            {"test", 0}
         };
 
         foreach (var card in allCards)
