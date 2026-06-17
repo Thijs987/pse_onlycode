@@ -23,6 +23,10 @@ controller="*uid://bb627jh3g5wj5"
 GSCWS="*uid://dpuhn7q6mnrth"
 GSCHTTP="*uid://cvcwuxk0ribeo"
 
+[display]
+
+window/stretch/mode="viewport"
+
 [dotnet]
 
 project/assembly_name="Frontend"
@@ -33,4 +37,5 @@ project/assembly_name="Frontend"
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"

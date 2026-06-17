@@ -1,19 +1,23 @@
 extends Control
 
 # UI elements
-@onready var login_button: Button = $TopLeftContainer/LoginLayout/LoginButton
-@onready var welcome_label: Label = $TopLeftContainer/LoginLayout/WelcomeLabel
-@onready var mute_button: Button = $TopRightContainer/HBoxContainer/MuteButton
+@onready var login_button: Button = $ButtonContainer/LoginContainer/LoginLayout/LoginButton
+@onready var welcome_label: Label = $ButtonContainer/LoginContainer/LoginLayout/WelcomeLabel
+@onready var mute_button: Button = $ButtonContainer/MuteButtonContainer/HBoxContainer/MuteButton
+@onready var background: TextureRect = $Background
 
 @export var multi_lobby: StringName = &""
+
+var bg_start_pos
 
 # TEMP FOR TESTING
 var is_logged_in: bool = false
 var is_muted: bool = false
 
-
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	bg_start_pos = background.position
+	
 	login_button.pressed.connect(_on_login_pressed)
 	mute_button.pressed.connect(_on_mute_pressed)
 	
@@ -21,7 +25,14 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	pass
+	move_background()
+
+func move_background() -> void:
+	background.position.x -= 0.25
+	background.position.y -= 0.5
+	
+	if background.position.x == bg_start_pos.x - 80:
+		background.position = bg_start_pos
 
 # Play button (Not yet with the right path!!!)
 func _on_play_button_pressed() -> void:
