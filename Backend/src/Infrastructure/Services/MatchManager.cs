@@ -44,8 +44,8 @@ public class MatchManager
             {"inf", 0},
             {"merge", 0},
             {"miracle", 0},
-            {"nocom", 20},
-            {"sql", 0},
+            {"nocom", 0},
+            {"sql", 20},
             {"trojan", 0},
             {"vibe", 0},
             {"test", 0}
