@@ -7,6 +7,7 @@ signal match_start
 
 var socket := WebSocketPeer.new()
 var joined_emitted := false
+var is_connecting := false
 
 # Local
 #const BASE_URL = "ws://localhost:6767"
@@ -28,8 +29,12 @@ func _process(_delta):
 		and not joined_emitted
 	):
 		joined_emitted = true
+		is_connecting = false
 		lobby_joined.emit()
 	elif socket.get_ready_state() == WebSocketPeer.STATE_CLOSED:
+		if is_connecting:
+			is_connecting = false
+			controller.lobby_join_failed.emit()
 		joined_emitted = false
 
 	while socket.get_available_packet_count() > 0:
@@ -40,6 +45,7 @@ func _process(_delta):
 
 
 func Join_Lobby(LId: String, PId: String):
+	is_connecting = true
 	# Tells Godot to trust our Nginx certificate heh
 	var tls_options = TLSOptions.client_unsafe()
 	socket.connect_to_url(
@@ -47,6 +53,12 @@ func Join_Lobby(LId: String, PId: String):
 		% [BASE_URL, LId, PId],
 		tls_options # <-- Pass the bypass here!
 	)
+
+func Leave_Lobby():
+	if socket.get_ready_state() == WebSocketPeer.STATE_OPEN:
+		socket.close()
+	joined_emitted = false
+	controller.lobby_left.emit()
 
 
 # Function to play a card

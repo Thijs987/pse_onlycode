@@ -42,18 +42,11 @@ func _process(_delta: float) -> void:
 func _on_message(msg):
 	if msg != null:
 		if msg["action"] == "NEXT_TURN":
-<<<<<<< HEAD
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
-=======
-			var player = msg["data"]["nextPlayer"]
-			if player != null:
-				next_turn.emit(player)
-				turn_label.text = str(player)
->>>>>>> parent of 53c472b (Code voor turn timer)
 		if msg["action"] == "CARD_PLAYED":
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null and player != "":

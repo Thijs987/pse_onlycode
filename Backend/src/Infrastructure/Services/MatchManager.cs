@@ -530,6 +530,11 @@ public class MatchManager
         return match;
     }
 
+    public bool HasMatchStarted(string matchId)
+    {
+        return _activeMatches.ContainsKey(matchId);
+    }
+
     public string GetWinner(string matchId)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))

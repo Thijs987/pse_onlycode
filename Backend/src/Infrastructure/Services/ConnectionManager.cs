@@ -254,15 +254,15 @@ public class ConnectionManager
         return false;
     }
 
-    // Only returns lobbies with less than 4 players like this
-    public IEnumerable<object> GetActiveLobbies()
+    public IEnumerable<object> GetActiveLobbies(MatchManager matchManager)
     {
         return _lobbies
-            .Where(lobby => lobby.Value.Count < MaxPlayersPerLobby)
+            .Where(lobby => !matchManager.HasMatchStarted(lobby.Key))
             .Select(lobby => new
             {
                 LobbyId = lobby.Key,
-                PlayerCount = lobby.Value.Count
+                PlayerCount = lobby.Value.Count,
+                Capacity = MaxPlayersPerLobby
             });
     }
 }
