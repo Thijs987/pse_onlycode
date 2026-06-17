@@ -51,8 +51,10 @@ func play_card(card):
 
 		var current_id = card.own_card_id
 		var played_cards = []
+		var data = {}
 		var target_id = ""
 		var blanco = ["nocom", "goto", "inf", "vibe"]
+		
 
 		if current_id in blanco:
 			if first_combo_card == null: # EERSTE BLANCO KAART
@@ -72,10 +74,13 @@ func play_card(card):
 					return false
 			else: # TWEEDE BLANCO KAART
 				# Checks if type matches or at least 1 card is a nocom
-				if current_id == first_combo_card.own_card_id or current_id == "nocom" or first_combo_card.own_card_id == "nocom":
+				if current_id == first_combo_card.own_card_id or current_id == "goto" or first_combo_card.own_card_id == "goto":
 					played_cards = [first_combo_card.own_card_id, current_id]
 					print("Geldige combo gemaakt! Versturen naar server: ", played_cards)
-					
+					target_id = await sql_attack()
+					data = {cardId = first_combo_card.own_card_id,
+							target = target_id,
+							cards = [first_combo_card.own_card_id, current_id]}
 					# Haal nu pas BEIDE kaarten definitief uit de hand en de game
 					hand_reference.remove_card_from_hand(first_combo_card)
 					hand_reference.remove_card_from_hand(card)
@@ -102,7 +107,7 @@ func play_card(card):
 			card.queue_free()
 			played_cards = [current_id]
 
-		controller.Play_Card(controller.PId, played_cards, target_id)
+		controller.Play_Card(controller.PId, data)
 		return true
 	return false
 

@@ -37,9 +37,13 @@ func Leave_Lobby():
 	interaction_disabled = true
 	gscws.Leave_Lobby()
 
-func Play_Card(Player_Id: String, Arr: Array,  OId: String):
+#func Play_Card(Player_Id: String, Arr: Array,  OId: String):
+	#PId = Player_Id
+	#gscws.Play_Card(Arr, OId)
+	
+func Play_Card(Player_Id: String, data: Dictionary = {}):
 	PId = Player_Id
-	gscws.Play_Card(Arr, OId)
+	gscws.Play_Card(data)
 
 func Draw_Card(Player_Id: String):
 	PId = Player_Id

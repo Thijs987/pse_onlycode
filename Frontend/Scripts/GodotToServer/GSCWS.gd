@@ -63,11 +63,14 @@ func Leave_Lobby():
 
 
 # Function to play a card
-func Play_Card(card_id: Array, OId: String):
-	if OId == "":
-		_Send(_Make_Message("PLAY_CARD", { "cardId": card_id }))
-	else:
-		_Send(_Make_Message("PLAY_CARD", { "cardId": card_id ,"target": OId }))
+#func Play_Card(card_id: Array, OId: String):
+	#if OId == "":
+		#_Send(_Make_Message("PLAY_CARD", { "cardId": card_id }))
+	#else:
+		#_Send(_Make_Message("PLAY_CARD", { "cardId": card_id ,"target": OId }))
+
+func Play_Card(data: Dictionary = {}):
+	_Send(_Make_Message("PLAY_CARD", data))
 
 # Function to draw a card
 func Draw_Card():
