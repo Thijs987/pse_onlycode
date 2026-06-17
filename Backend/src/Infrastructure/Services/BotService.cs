@@ -116,16 +116,27 @@ public class BotService
         if (hand.Contains("imp"))
         {
             var cardToDiscard = hand.FirstOrDefault(c => c != "imp", null);
+            Console.WriteLine("Bot hand:");
+            foreach (var card in hand)
+            {
+                Console.WriteLine(card);
+            }
+            Console.WriteLine($"Bot removes {cardToDiscard} with imp");
             var cardData = new DataInfo { CardId = "imp" };
             if (cardToDiscard != null)
             {
                 cardData.CardId = cardToDiscard;
                 cardData.Cards = new List<string> { "imp", cardToDiscard };
             }
-
+            
+            Console.WriteLine($"BPC cardid: {cardData.CardId}, cards:");
+            foreach (var card in cardData.Cards)
+            {
+                Console.WriteLine(card);
+            }
             // Send the resulting play to the matchmanager
             var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
-            if (responseData.Error == "")
+            if (string.IsNullOrEmpty(responseData.Error))
             {
                 await SendCardPlayed(lobbyId, botId, responseData);
 
@@ -366,12 +377,18 @@ public class BotService
     {
         var response = MakeMessage("CARD_PLAYED", botId, responseData);
         // await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
+        Console.WriteLine($"cardid: {response.Data.CardId}, cards:");
+        foreach (var card in response.Data.Cards)
+        {
+            Console.WriteLine(card);
+        }
 
         if (responseData.CardId == "imp")
         {
             await NextPlayer(lobbyId, botId, "0");
         }
-        else if (responseData.IsPrivate == true)
+        
+        if (responseData.IsPrivate == true)
         {
             await _connectionManager.SendMessageAsync(botId, JsonSerializer.Serialize(response));
         }

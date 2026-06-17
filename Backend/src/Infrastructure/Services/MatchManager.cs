@@ -55,13 +55,13 @@ public class MatchManager
             // {"vibe", 4},
             // {"test", 0}
 
-            {"blue", 0},
+            {"blue", 10},
             {"cm", 0},
             {"ddos", 0},
             {"err", 0},
             {"garb", 0},
             {"goto", 0},
-            {"imp", 0},
+            {"imp", 10},
             {"inf", 0},
             {"merge", 0},
             {"miracle", 0},
