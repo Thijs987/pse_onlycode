@@ -106,7 +106,8 @@ if (authEnabled)
     .AddJwtBearer(options =>
     {
         // Configure JWT validation parameters
-        options.RequireHttpsMetadata = false;
+        // In production, require HTTPS for JWT tokens (enforced via environment)
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -160,9 +161,16 @@ if (allowedOrigins != null && allowedOrigins.Length > 0)
 // Security middleware
 if (!app.Environment.IsDevelopment())
 {
+    // HSTS: Tells browsers to always use HTTPS (max-age: 1 year)
     app.UseHsts();
 }
-app.UseHttpsRedirection();
+
+// Redirect HTTP to HTTPS unless explicitly allowed (controlled by AllowHttp config)
+var allowHttp = builder.Configuration.GetValue("AppSettings:AllowHttp", false);
+if (!allowHttp)
+{
+    app.UseHttpsRedirection();
+}
 
 // Rate limiting middleware (uses IRateLimitService) - enabled via config
 var rateLimitEnabled = builder.Configuration.GetValue("AppSettings:RateLimit:Enabled", false);

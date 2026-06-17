@@ -304,7 +304,7 @@ public class AuthService
             Email = email,
             Username = username,
             PasswordHash = PasswordHasher.Hash(password),
-            IsEmailVerified = false, // set to false if you want to require email verification before login
+            IsEmailVerified = false, // set to true to skip the email verification (if it doesnt work)
             VerificationToken = verificationToken,
             VerificationTokenExpiry = verificationExpiry
         };
