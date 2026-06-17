@@ -126,11 +126,13 @@ public class BotService
         var pendingAction = _matchManager.GetPendingAction(lobbyId, botId);
         if (!string.IsNullOrEmpty(pendingAction))
         {
+            Console.WriteLine($"in bpc pending if '{pendingAction}'");
             if (pendingAction == "os")
             {
+                Console.WriteLine("in os if");
                 var target = _random.Next(2) == 0 ? "take" : "top";
                 var responseData = _matchManager.TryPlayCard(lobbyId, botId, new DataInfo { CardId = "os", Target = target });
-                if (responseData.Error == "")
+                if (string.IsNullOrEmpty(responseData.Error))
                 {
                     await SendCardPlayed(lobbyId, botId, responseData);
                 }
@@ -169,7 +171,8 @@ public class BotService
             {
                 await SendCardPlayed(lobbyId, botId, responseData);
 
-                if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId | _matchManager.GetPendingAction(lobbyId, botId) != "")
+                if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
+                    Console.WriteLine("Imp end if");
                     return;
             }
         }
@@ -217,7 +220,8 @@ public class BotService
 
                 // Go back to the loop in MessageRouter.
                 // That will give the turn back to this bot for PendingAction handling or give turn to next one.
-                if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId | !string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
+                if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || !string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
+                    Console.WriteLine("End if");
                     break;
 
             }
