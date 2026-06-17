@@ -61,6 +61,7 @@ public class ConnectionManager
             Console.WriteLine($"Socket Connected: {playerId} rejoined Lobby {lobbyId}");
             action = "PLAYER_REJOINED";
             message = $"{playerId} has rejoined the game!";
+            router.botService.RemoveBot(playerId);
         }
         else
         {
@@ -158,8 +159,8 @@ public class ConnectionManager
             Console.WriteLine($"Socket Disconnected: {playerId}");
 
             // Replace with bot
-            // Console.WriteLine("Adding bot");
-            // await router.botService.AddBotAsync(lobbyId, playerId);
+            Console.WriteLine("Adding bot");
+            await router.botService.AddBotAsync(lobbyId, playerId);
             // router.CheckBotTurn(lobbyId, matchManager, )
         }
     }
