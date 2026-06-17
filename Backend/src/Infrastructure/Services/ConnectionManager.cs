@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
+using Domain;
 
 public class ConnectionManager
 {
@@ -60,6 +61,7 @@ public class ConnectionManager
             Console.WriteLine($"Socket Connected: {playerId} rejoined Lobby {lobbyId}");
             action = "PLAYER_REJOINED";
             message = $"{playerId} has rejoined the game!";
+            router.botService.RemoveBot(lobbyId, playerId);
         }
         else
         {
@@ -155,6 +157,13 @@ public class ConnectionManager
 
             await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
             Console.WriteLine($"Socket Disconnected: {playerId}");
+
+            // Replace with bot
+            Console.WriteLine("Adding bot");
+            await router.botService.AddBotAsync(lobbyId, playerId);
+            if (matchManager.GetCurrentTurnPlayer(lobbyId) == playerId)
+                await router.botService.DrawCard(lobbyId, playerId);
+            // router.CheckBotTurn(lobbyId, matchManager, )
         }
     }
 

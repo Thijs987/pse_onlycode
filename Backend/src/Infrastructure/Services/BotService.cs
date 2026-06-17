@@ -5,6 +5,7 @@
 */
 using System.Collections.Concurrent;
 using System.Text.Json;
+using Domain;
 
 public class BotService
 {
@@ -17,7 +18,7 @@ public class BotService
     private static readonly Random _random = new();
 
     // Tracks which bots belong to which lobby (botId -> lobbyId).
-    private readonly ConcurrentDictionary<string, string> _bots = new();
+    private readonly ConcurrentDictionary<string, List<string>> _bots = new();
 
     // Cards that need a 2-card "blank" combo plus a Target to resolve.
     private static readonly Dictionary<string, List<string>> ComboCardOptions = new()
@@ -50,13 +51,28 @@ public class BotService
     // added to the ConnectionManager's lobby tracking here, otherwise the
     // MatchManager will never deal it a hand or treat it as a valid player.
     // Returns the generated bot id.
-    public async Task<string> AddBotAsync(string lobbyId)
+    public async Task<string> AddBotAsync(string lobbyId, string botId = "")
     {
-        string botId = BotIdPrefix + Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper();
+        if (string.IsNullOrEmpty(botId))
+        {
+            botId = BotIdPrefix + Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper();
+        }
 
         // Add to the lobby just like a human connection (minus the WebSocket).
         _connectionManager.AddToLobby(botId, lobbyId);
-        _bots.TryAdd(botId, lobbyId);
+        if (!_bots.TryAdd(lobbyId, new List<string> {botId}))
+        {
+            try
+            {
+                _bots.TryGetValue(lobbyId, out var bots);
+                bots.Add(botId);
+            } catch (Exception e)
+            {
+                Console.WriteLine($"Could not add bot {botId} to lobby {lobbyId}!");
+                Console.WriteLine(e);
+                return "";
+            }
+        }
 
         // Mirror the PLAYER_JOINED broadcast so real clients render the bot.
         var joinMessage = new NetworkMessage
@@ -70,26 +86,39 @@ public class BotService
         return botId;
     }
 
-    public async Task PlayerToBot(string playerId, string lobbyId)
+    public bool RemoveBot(string lobbyId, string botId)
     {
-        if (_bots.TryAdd(playerId, lobbyId))
+        if (_bots.TryGetValue(lobbyId, out var bots))
         {
-            Console.WriteLine($"Player {playerId} replaced with bot");
-        }
-        else
+            bots.Remove(botId);
+            _bots[lobbyId] = bots;
+            return true;
+        } else
         {
-            Console.WriteLine($"Could not turn {playerId} to bot.");
+            return false;
         }
     }
 
-    public bool RemoveBot(string botId) => _bots.TryRemove(botId, out _);
 
     // True when the given player id belongs to a bot.
-    public bool IsBot(string playerId) => _bots.ContainsKey(playerId);
+    public bool IsBot(string playerId, string lobbyId)
+    {
+        if (_bots.TryGetValue(lobbyId, out var bots))
+            return bots.Contains(playerId);
+        return false;
+    }
 
     // All bot ids currently registered in the given lobby.
-    public List<string> GetBots(string lobbyId) =>
-        _bots.Where(b => b.Value == lobbyId).Select(b => b.Key).ToList();
+    public List<string> GetBots(string lobbyId)
+    {
+        _bots.TryGetValue(lobbyId, out var bots);
+        if (bots == null)
+        {
+            bots = new List<string> {};
+            Console.WriteLine($"Cannot get bots in lobby {lobbyId}");
+        };
+        return bots;
+    }
 
     // Let the bot play the cards in its hand
     public async Task BotPlayCard(string lobbyId, string botId)
