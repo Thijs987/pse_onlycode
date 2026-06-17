@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://cjyyr1myk3b18" path="res://Scripts/SQLInject/AttackButton.gd" id="2_uhk72"]
 
 [node name="AttackButton" type="TextureButton" unique_id=2116415103]
-custom_minimum_size = Vector2(603, 138)
+custom_minimum_size = Vector2(500, 100)
 offset_left = 99.0
 offset_top = 125.0
 offset_right = 702.0

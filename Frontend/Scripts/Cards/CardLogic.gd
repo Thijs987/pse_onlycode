@@ -117,8 +117,9 @@ func sql_attack() -> String:
 			filtered_enemies.append(p_id)
 	
 	attack_screen.setup_targets(filtered_enemies)
-	
+	get_tree().paused = true
 	var gekozen_id = await attack_screen.target_selected
+	get_tree().paused = false
 	return gekozen_id
 
 
