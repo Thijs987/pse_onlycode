@@ -21,6 +21,6 @@ func populate() -> void:
 			queue_free()
 		)
 
-func setup_targets(enemies_list: Array) -> void:
+func setup_targets(enemies_list: Array) -> void: # Makes list for targets and calls func
 	enemies = enemies_list
 	populate()

@@ -12,7 +12,9 @@ var is_hovering
 var card_offsetx
 var card_offsety
 var turns
-var first_combo_card = null
+var first_combo_card = null # Played blanco
+var trojan_selecting_gift = false # Played trojan horse
+var imp_hardware_active = false #  Played improved hardware
 
 
 # Called when the node enters the scene tree for the first time.
@@ -33,7 +35,6 @@ func _newturn(player):
 	if player != null:
 		turns = player
 
-### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
 	if controller.interaction_disabled:
 		return
@@ -57,22 +58,22 @@ func play_card(card):
 		
 
 		if current_id in blanco:
-			if first_combo_card == null: # EERSTE BLANCO KAART
+			if first_combo_card == null: # First blanco card played
 				if has_another_blanco(current_id):
 					print("Eerste combo-kaart geselecteerd: ", current_id)
 					first_combo_card = card
-					
-					# Visuele feedback: zet de kaart bijvoorbeeld een stukje omhoog
+
+					# Place the card visually
 					first_combo_card.position.y -= 30
-					first_combo_card.position.x -= 100
-					first_combo_card.movable = false # Zorg dat je deze niet nogmaals kunt slepen
-					
+					first_combo_card.position.x -= 200
+					first_combo_card.movable = false
+
 					return true
 				else:
-					print("Je hebt geen andere blanco kaart in je hand om een combo te maken!")
+					print("You dont have a second blanco card")
 					card.movable = true
 					return false
-			else: # TWEEDE BLANCO KAART
+			else: # Second blanco card
 				# Checks if type matches or at least 1 card is a nocom
 				if current_id == first_combo_card.own_card_id or current_id == "goto" or first_combo_card.own_card_id == "goto":
 					played_cards = [first_combo_card.own_card_id, current_id]
@@ -81,18 +82,19 @@ func play_card(card):
 					data = {cardId = first_combo_card.own_card_id,
 							target = target_id,
 							cards = [first_combo_card.own_card_id, current_id]}
-					# Haal nu pas BEIDE kaarten definitief uit de hand en de game
+
+					# Play both cards
 					hand_reference.remove_card_from_hand(first_combo_card)
 					hand_reference.remove_card_from_hand(card)
-					
+
 					first_combo_card.queue_free()
 					card.queue_free()
+
+					first_combo_card = null # Reset combo flag
 					
-					first_combo_card = null # Reset de combo-vlag voor de volgende keer
-					
-					# TODO: Als je combo een target nodig heeft (zoals SQL), kun je hier target_id ophalen
+					# Select target is a TODO
 				else:
-					print("Ongeldige combo! Kaart moet van hetzelfde type zijn of een 'no comment'.")
+					print("Bad combo, cards need to be of same type or 1 has to be nocom")
 					card.movable = true
 					return false
 
@@ -103,7 +105,32 @@ func play_card(card):
 			target_id = await sql_attack()
 			data = {cardId = current_id,
 					target = target_id}
+		
+		elif current_id == "trojan":
+			if hand_reference.player_hand.size() < 2: # Need to have a card to give
+				print("You dont have a card to give")
+				card.movable = true
+				return false
+			hand_reference.remove_card_from_hand(card)
+			card.queue_free()
 
+			print("Choose a card to give to player")
+			trojan_selecting_gift = true
+
+			return true
+
+		elif current_id == "imp":
+			hand_reference.remove_card_from_hand(card)
+			card.queue_free()
+
+			if hand_reference.player_hand.size() == 0: # No other cards
+				print("No other cards in hand, play only improved hardware")
+				controller.Play_Card(controller.PId, [current_id], "")
+			else: # Choose another card
+				print("Chose card to play without effect")
+				imp_hardware_active = true
+
+			return true
 		else:
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
@@ -113,7 +140,7 @@ func play_card(card):
 		return true
 	return false
 
-
+# Code for sql attack card
 func sql_attack() -> String:
 	var attack_screen = ATTACK_SCENE.instantiate()
 	get_tree().root.add_child(attack_screen)
@@ -132,21 +159,59 @@ func sql_attack() -> String:
 	get_tree().paused = false
 	return gekozen_id
 
-
 # Checks if you have a second blanco card
 func has_another_blanco(card_type: String) -> bool:
 	var count = 0
+	var blanco = ["nocom", "goto", "inf", "vibe"]
 	for c in hand_reference.player_hand:
-		if c.own_card_id == card_type:
+		if c.own_card_id == card_type or c.own_card_id == "nocom":
 			count += 1
-	return count >= 1
-
+		elif card_type == "nocom" and c.own_card_id in blanco:
+			count += 1
+	return count >= 2
 
 # Starts dragging of current card under mouse.
 # input: Card object found using check_at_cursor function
 func start_dragging(card):
 	if controller.interaction_disabled:
 		return
+		
+		# TROJAN HORSE
+	if trojan_selecting_gift:
+		trojan_selecting_gift = false # Reset status
+		
+		var gift_card_id = card.own_card_id
+		print("Chosen card: ", gift_card_id)
+		
+		# Delete card from your hand
+		hand_reference.remove_card_from_hand(card)
+		card.queue_free()
+		var target_id = await sql_attack() 
+		
+		var played_cards = ["trojan", gift_card_id]
+		controller.Play_Card(controller.PId, played_cards, target_id)
+		return
+		
+	if imp_hardware_active:
+		imp_hardware_active = false
+		
+		var sacrifice_card_id = card.own_card_id
+		print("Chosen card: ", sacrifice_card_id)
+
+		# Delete card from your hand
+		hand_reference.remove_card_from_hand(card)
+		card.queue_free()
+
+		var played_cards = ["imp", sacrifice_card_id]
+		controller.Play_Card(controller.PId, played_cards, "")
+		return
+
+	if first_combo_card != null: # Player played a blanco card
+		var blanco = ["nocom", "goto", "inf", "vibe"]
+		if not card.own_card_id in blanco:
+			print("Play a blanco card!")
+			return
+
 	card.scale = Vector2(1.0, 1.0)
 	dragging_card = card
 	card.z_index = 99 # Above all other cards

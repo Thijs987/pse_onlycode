@@ -69,7 +69,7 @@ public class MatchManager
             {"miracle", 0},
             {"nocom", 0},
             {"sql", 0},
-            {"trojan", 0},
+            {"trojan", 20},
             {"vibe", 0},
             {"test", 0}
 
