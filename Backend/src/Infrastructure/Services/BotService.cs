@@ -169,7 +169,7 @@ public class BotService
             {
                 await SendCardPlayed(lobbyId, botId, responseData);
 
-                if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
+                if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId | _matchManager.GetPendingAction(lobbyId, botId) != "")
                     return;
             }
         }
@@ -217,7 +217,7 @@ public class BotService
 
                 // Go back to the loop in MessageRouter.
                 // That will give the turn back to this bot for PendingAction handling or give turn to next one.
-                if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || !string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
+                if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId | !string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
                     break;
 
             }
