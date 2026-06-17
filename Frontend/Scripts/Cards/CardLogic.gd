@@ -62,7 +62,8 @@ func play_card(card):
 					first_combo_card = card
 					
 					# Visuele feedback: zet de kaart bijvoorbeeld een stukje omhoog
-					first_combo_card.position.y -= 30 
+					first_combo_card.position.y -= 30
+					first_combo_card.position.x -= 100
 					first_combo_card.movable = false # Zorg dat je deze niet nogmaals kunt slepen
 					
 					return true
@@ -71,8 +72,8 @@ func play_card(card):
 					card.movable = true
 					return false
 			else: # TWEEDE BLANCO KAART
-				# Check of het type matcht, of dat de tweede kaart een 'no comment' (nocom) is
-				if current_id == "nocom" or current_id == first_combo_card.own_card_id:
+				# Checks if type matches or at least 1 card is a nocom
+				if current_id == first_combo_card.own_card_id or current_id == "nocom" or first_combo_card.own_card_id == "nocom":
 					played_cards = [first_combo_card.own_card_id, current_id]
 					print("Geldige combo gemaakt! Versturen naar server: ", played_cards)
 					
