@@ -8,10 +8,10 @@ signal Leaderboard_Received(data) # Signal that passes the leaderboard
 
 # Local 
 #const BASE_URL = "http://localhost:6767"
-const BASE_URL = "https://localhost:6969"
+# const BASE_URL = "https://localhost:6969"
 
 # Pointing to a No-IP.com domain. Its an A record that points towards the server ip.
-#const BASE_URL = "https://codegreen-uva.ddns.net" 
+const BASE_URL = "https://codegreen-uva.ddns.net" 
 
 var P_Name := ""
 

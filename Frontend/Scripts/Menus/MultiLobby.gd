@@ -8,6 +8,7 @@ extends Control
 @export var create_lobby_button: Button
 @export var join_lobby_button: Button
 @export var start_lobby_button: Button
+@export var card_setting_button: Button
 
 var player_list = ["", "", "", ""]
 var player_count = 0
@@ -21,6 +22,7 @@ func _ready() -> void:
 	create_lobby_button.pressed.connect(_on_create_lobby)
 	join_lobby_button.pressed.connect(_on_join_lobby)
 	start_lobby_button.pressed.connect(_on_start_lobby)
+	card_setting_button.pressed.connect(_on_card_settings)
 	controller.message_updated.connect(_on_message)
 	gscws.lobby_joined.connect(_on_lobby_joined_success)
 
@@ -72,7 +74,9 @@ func _on_join_lobby() -> void:
 func _on_start_lobby():
 	if player_count > 1 and created_lobby == true:
 		controller.Start_Match(controller.PId)
-	
+
+func _on_card_settings():
+	SceneLoader.load_scene("uid://by3u2iwo87g6x")
 
 func update_lobby_list() -> void:
 	lobby_list.text = "Current players:\n"

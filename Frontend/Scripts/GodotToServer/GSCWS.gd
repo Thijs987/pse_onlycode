@@ -10,10 +10,10 @@ var joined_emitted := false
 
 # Local 
 #const BASE_URL = "ws://localhost:6767"
-const BASE_URL = "wss://localhost:6969"
+#const BASE_URL = "wss://localhost:6969"
 
 # Pointing to a No-IP.com domain. Its an A record that points towards the server ip.
-#const BASE_URL = "wss://codegreen-uva.ddns.net"
+const BASE_URL = "wss://codegreen-uva.ddns.net"
 
 
 func _on_lobby_joined():
@@ -60,8 +60,8 @@ func Draw_Card():
 	_Send(_Make_Message("DRAW_CARD"))
 
 # Function to start match
-func Start_Match():
-	_Send(_Make_Message("START_MATCH"))
+func Start_Match(message: Dictionary):
+	_Send(_Make_Message("START_MATCH", {"message": message}))
 
 # If Pile == true trojan horse was played
 func Gift_Card(OId: String, card_id: String, From_Hand: bool):
