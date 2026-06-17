@@ -177,7 +177,7 @@ public class MessageRouter
                     // Check for Improved Hardware
                     if (matchManager.GetPlayerHand(lobbyId, playerId).Contains("imp"))
                     {
-                        responseData = new DataInfo { Error = "Hand cotnains imp, cannot draw!"};
+                        responseData = new DataInfo { Error = "Hand contains imp, cannot draw!"};
                         response = MakeMessage("ERROR", playerId, responseData);
                         await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         break;
