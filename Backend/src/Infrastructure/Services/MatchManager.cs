@@ -40,11 +40,11 @@ public class MatchManager
         {
             {"blue", 0},
             {"cm", 20},
-            {"ddos", 0},
+            {"ddos", 20},
             {"err", 0},
             {"garb", 0},
             {"goto", 0},
-            {"imp", 0},
+            {"imp", 20},
             {"inf", 0},
             {"merge", 0},
             {"miracle", 0},
@@ -65,6 +65,16 @@ public class MatchManager
 
         GenerateDeck(newState);
 
+        int size = newState.Deck.Count;
+        int impcards = newState.Deck.Count(card => card == "imp");
+
+
+        if ((size-impcards) < (players.Count*3)) {
+            Console.WriteLine($"Match {matchId} initialization failed!");
+            newState.Deck = new List<string>{};
+            return newState;
+        }
+
         // Initialize hands and deal 3 cards per player
         foreach (var player in players)
         {
@@ -72,14 +82,22 @@ public class MatchManager
 
             for (int i = 0; i < initialHandSize; i++)
             {
-                if (newState.Deck.Count > 0)
+                if (newState.Deck.Count < 0)
                 {
-                    string card = newState.Deck[0];
-                    newState.Deck.RemoveAt(0);
+                    continue;
+                }
+                string card = newState.Deck[0];
+                newState.Deck.RemoveAt(0);
+                if (card != "imp") {
                     newState.PlayerHands[player].Add(card);
+                } else {
+                    newState.TableCards.Add(card);
+                    i--;
                 }
             }
         }
+        var rand = new Random();
+        newState.Deck = newState.Deck.OrderBy(_ => rand.Next()).ToList();
 
         _activeMatches.TryAdd(matchId, newState);
         Console.WriteLine($"Match {matchId} started! Handed out initial hands HAHAHAHAHA.");

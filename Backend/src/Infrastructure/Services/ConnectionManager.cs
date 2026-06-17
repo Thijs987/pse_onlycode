@@ -50,6 +50,11 @@ public class ConnectionManager
 
         if(rejoin == true) {
             matchManager.Rejoin(playerId);
+            var responseData = new DataInfo{
+                Cards = matchManager.GetPlayerHand(lobbyId,playerId)
+            };
+            var response = router.MakeMessage("HAND", playerId, responseData);
+            await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(response));
             Console.WriteLine($"Socket Connected: {playerId} rejoined Lobby {lobbyId}");
             action = "PLAYER_REJOINED";
             message = $"{playerId} has rejoined the game!";
