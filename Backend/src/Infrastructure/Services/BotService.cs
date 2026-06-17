@@ -5,6 +5,7 @@
 */
 using System.Collections.Concurrent;
 using System.Text.Json;
+using Domain;
 
 public class BotService
 {
@@ -50,9 +51,12 @@ public class BotService
     // added to the ConnectionManager's lobby tracking here, otherwise the
     // MatchManager will never deal it a hand or treat it as a valid player.
     // Returns the generated bot id.
-    public async Task<string> AddBotAsync(string lobbyId)
+    public async Task<string> AddBotAsync(string lobbyId, string botId = "")
     {
-        string botId = BotIdPrefix + Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper();
+        if (string.IsNullOrEmpty(botId))
+        {
+            botId = BotIdPrefix + Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper();
+        }
 
         // Add to the lobby just like a human connection (minus the WebSocket).
         _connectionManager.AddToLobby(botId, lobbyId);
@@ -85,7 +89,12 @@ public class BotService
     public bool RemoveBot(string botId) => _bots.TryRemove(botId, out _);
 
     // True when the given player id belongs to a bot.
-    public bool IsBot(string playerId) => _bots.ContainsKey(playerId);
+    public bool IsBot(string playerId, string lobbyId)
+    {
+        if (_bots.TryGetValue(playerId, out var botLobby))
+            return botLobby == lobbyId;
+        return false;
+    }
 
     // All bot ids currently registered in the given lobby.
     public List<string> GetBots(string lobbyId) =>

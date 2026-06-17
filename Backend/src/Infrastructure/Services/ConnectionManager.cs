@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
+using Domain;
 
 public class ConnectionManager
 {
@@ -155,6 +156,11 @@ public class ConnectionManager
 
             await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
             Console.WriteLine($"Socket Disconnected: {playerId}");
+
+            // Replace with bot
+            // Console.WriteLine("Adding bot");
+            // await router.botService.AddBotAsync(lobbyId, playerId);
+            // router.CheckBotTurn(lobbyId, matchManager, )
         }
     }
 

@@ -9,11 +9,11 @@ using Microsoft.VisualBasic;
 
 public class MessageRouter
 {
-    private readonly BotService _botService;
+    public readonly BotService botService;
 
-    public MessageRouter(BotService botService)
+    public MessageRouter(BotService bServ)
     {
-        _botService = botService;
+        botService = bServ;
     }
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -66,7 +66,7 @@ public class MessageRouter
                     // Registers a new bot in the lobby. AddBotAsync adds it to the
                     // ConnectionManager lobby (so START_MATCH includes it) and
                     // broadcasts PLAYER_JOINED for the new bot itself.
-                    string botId = await _botService.AddBotAsync(lobbyId);
+                    string botId = await botService.AddBotAsync(lobbyId);
                     Console.WriteLine($"Bot {botId} requested by {playerId} for lobby {lobbyId}");
                     break;
 
@@ -74,9 +74,9 @@ public class MessageRouter
                     var target = message.Data?.Target;
                     if (!string.IsNullOrEmpty(target))
                     {
-                        if (_botService.IsBot(target))
+                        if (botService.IsBot(target, lobbyId))
                         {
-                            _botService.RemoveBot(target);
+                            botService.RemoveBot(target);
                         }
                         await connectionManager.KickPlayerAsync(target, lobbyId, matchManager);
                     }
@@ -287,16 +287,7 @@ public class MessageRouter
 
     private bool lobbyHasHuman(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
     {
-        bool hasHuman;
-        try
-        {
-            hasHuman = connectionManager.GetPlayers(lobbyId).Any(p => !_botService.IsBot(p));
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            return false;
-        }
+        bool hasHuman = connectionManager.GetPlayers(lobbyId).Any(p => !botService.IsBot(p, lobbyId));
         if (!hasHuman)
         {
             Console.WriteLine($"Only bots in lobby");
@@ -308,7 +299,7 @@ public class MessageRouter
     public async Task CheckBotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager, DataInfo responseData)
     {
         // If the turn now lands on a bot.
-        if (_botService.IsBot(responseData.NextPlayer))
+        if (botService.IsBot(responseData.NextPlayer, lobbyId))
         {
             await BotTurn(lobbyId, connectionManager, matchManager);
         }
@@ -327,14 +318,14 @@ public class MessageRouter
         // Don't drive bots if there's no human left to play against,
         // otherwise bots would pass the turn among themselves forever.
         var current = matchManager.GetCurrentTurnPlayer(lobbyId);
-        while (lobbyHasHuman(lobbyId, connectionManager, matchManager) && !string.IsNullOrEmpty(current) && _botService.IsBot(current))
+        while (lobbyHasHuman(lobbyId, connectionManager, matchManager) && !string.IsNullOrEmpty(current) && botService.IsBot(current, lobbyId))
         {
             await Task.Delay(500);
-            await _botService.BotPlayCard(lobbyId, current);
+            await botService.BotPlayCard(lobbyId, current);
             // If the current turn player did not change and there is not a pending action.
             if (current == matchManager.GetCurrentTurnPlayer(lobbyId) && string.IsNullOrEmpty(matchManager.GetPendingAction(lobbyId, current)))
             {
-                await _botService.DrawCard(lobbyId, current);
+                await botService.DrawCard(lobbyId, current);
             }
             current = matchManager.GetCurrentTurnPlayer(lobbyId);
         }
@@ -347,9 +338,9 @@ public class MessageRouter
     //     private async Task BotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
     //     {
     //         var current = matchManager.GetCurrentTurnPlayer(lobbyId);
-    //         while (_botService.hasHuman() && !string.IsNullOrEmpty(current) && _botService.IsBot(current))
+    //         while (botService.hasHuman() && !string.IsNullOrEmpty(current) && botService.IsBot(current))
     //         {
-    //             await _botService.ProcessBotTurnAsync(lobbyId, current);
+    //             await botService.ProcessBotTurnAsync(lobbyId, current);
     //             current = matchManager.GetCurrentTurnPlayer(lobbyId);
     //         }
     //     }
