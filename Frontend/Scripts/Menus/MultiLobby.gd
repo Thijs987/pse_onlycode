@@ -9,6 +9,7 @@ extends Control
 @onready var browser_view: Control = $BrowserView
 @onready var in_lobby_view: Control = $InLobbyView
 @onready var leave_lobby_button: Button = $InLobbyView/HBoxContainer6/LeaveLobby
+@onready var main_menu_button: Button = $BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
 
 @export var game_scene: StringName = &""
 @export var create_lobby_button: Button
@@ -29,7 +30,7 @@ var add_bot_btn: Button
 func _ready() -> void:
 	list_container = VBoxContainer.new()
 	list_container.position = Vector2(842, 200)
-	add_child(list_container)
+	in_lobby_view.add_child(list_container)
 
 	add_bot_btn = Button.new()
 	add_bot_btn.text = "Add Bot"
@@ -42,6 +43,7 @@ func _ready() -> void:
 	start_lobby_button.pressed.connect(_on_start_lobby)
 	refresh_button.pressed.connect(_on_refresh_lobbies)
 	leave_lobby_button.pressed.connect(_on_leave_lobby)
+	main_menu_button.pressed.connect(_on_main_menu_pressed)
 	lobby_item_list.item_selected.connect(_on_lobby_selected)
 	controller.message_updated.connect(_on_message)
 	controller.lobbies_updated.connect(_on_lobbies_updated)
@@ -69,23 +71,26 @@ func _on_lobby_left() -> void:
 	player_count = 0
 	player_list = ["", "", "", ""]
 	update_lobby_list()
+	update_views()
+	controller.Get_Lobbies()
 
 func _on_message(msg):
 	if msg["action"] == "MATCH_STARTED" and match_started == false:
 		match_started = true
 		SceneLoader.load_scene(game_scene)
 	elif msg["action"] == "PLAYER_JOINED":
-		if msg["playerId"] == controller.PId:
+		var p_id = msg.get("playerId", msg.get("PlayerId", ""))
+		if p_id == controller.PId:
 			player_list[player_count] = controller.PId + "\n"
 			player_count += 1
 			update_lobby_list()
 		else:
 			print("Another player joined")
-			player_list[player_count] = msg["playerId"] + "\n"
+			player_list[player_count] = p_id + "\n"
 			player_count += 1
 			update_lobby_list()
-	elif msg["action"] == "PLAYER_LEFT":
-		var p_id = msg["playerId"]
+	elif msg["action"] == "PLAYER_LEFT" or msg["action"] == "PLAYER_DISCONNECTED":
+		var p_id = msg.get("playerId", msg.get("PlayerId", ""))
 		for i in range(player_count):
 			if player_list[i].strip_edges() == p_id:
 				player_list.remove_at(i)
@@ -95,10 +100,11 @@ func _on_message(msg):
 				break
 	elif msg["action"] == "ERROR":
 		if msg["playerId"] == controller.PId:
-			print("ik poep in mijn broek")
+			print("ERROR type stuff")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _on_create_lobby() -> void:
+	print("Create Lobby button pressed! in_lobby_state: ", in_lobby_state)
 	if in_lobby_state == false:
 		controller.Create_Lobby(controller.PId)
 		created_lobby = true
@@ -115,50 +121,7 @@ func _on_start_lobby():
 		controller.Start_Match(controller.PId)
 
 func update_lobby_list() -> void:
-<< << << < HEAD
-	player_list_label.text = "Current players:\n"
-	for i in range(player_count):
-		player_list_label.text += player_list[i]
-
-func _on_refresh_lobbies() -> void:
-	controller.Get_Lobbies()
-
-func _on_lobbies_updated(lobbies: Array) -> void:
-	lobby_item_list.clear()
-	for lobby in lobbies:
-		var lobby_id = lobby.get("lobbyId", lobby.get("LobbyId", ""))
-		var count = lobby.get("playerCount", lobby.get("PlayerCount", 0))
-		var capacity = lobby.get("capacity", lobby.get("Capacity", 4))
-		lobby_item_list.add_item("[%d/%d] Lobby %s" % [count, capacity, lobby_id])
-		# Store the ID in metadata so we can easily retrieve it
-		var idx = lobby_item_list.get_item_count() - 1
-		lobby_item_list.set_item_metadata(idx, lobby_id)
-
-func _on_lobby_selected(index: int) -> void:
-	var lobby_id = lobby_item_list.get_item_metadata(index)
-	lobby_input.text = lobby_id
-
-func _on_lobby_join_failed() -> void:
-	error_dialog.dialog_text = "Failed to join lobby. It might be full or already started."
-	error_dialog.popup_centered()
-
-func _on_leave_lobby() -> void:
-	controller.Leave_Lobby()
-
-func _on_lobby_left() -> void:
-	in_lobby_state = false
-	player_count = 0
-	player_list = ["", "", "", ""]
-	created_lobby = false
-	update_lobby_list()
-	update_views()
-	controller.Get_Lobbies()
-
-func update_views() -> void:
-	browser_view.visible = not in_lobby_state
-	in_lobby_view.visible = in_lobby_state
-== == == =
-	lobby_list.text = "Current players:"
+	player_list_label.text = "Current players:"
 
 	for child in list_container.get_children():
 		if child != add_bot_btn:
@@ -188,4 +151,39 @@ func update_views() -> void:
 		list_container.add_child(row)
 
 	list_container.move_child(add_bot_btn, -1)
->> >> >> > 0df65fbd12b8f4232ad0852552d931dd2653faa8
+
+func _on_refresh_lobbies() -> void:
+	controller.Get_Lobbies()
+
+func _on_lobbies_updated(lobbies: Array) -> void:
+	print("Received lobbies: ", lobbies)
+	lobby_item_list.clear()
+	for lobby in lobbies:
+		var lobby_id = lobby.get("lobbyId", lobby.get("LobbyId", ""))
+		var count = int(lobby.get("playerCount", lobby.get("PlayerCount", 0)))
+		var capacity = int(lobby.get("capacity", lobby.get("Capacity", 4)))
+		lobby_item_list.add_item("[%d/%d] Lobby %s" % [count, capacity, lobby_id])
+		# Store the ID in metadata so we can easily retrieve it
+		var idx = lobby_item_list.get_item_count() - 1
+		lobby_item_list.set_item_metadata(idx, lobby_id)
+
+func _on_lobby_selected(index: int) -> void:
+	var lobby_id = lobby_item_list.get_item_metadata(index)
+	lobby_input.text = lobby_id
+
+func _on_lobby_join_failed() -> void:
+	error_dialog.dialog_text = "Failed to join lobby. It might be full or already started."
+	error_dialog.popup_centered()
+
+func _on_leave_lobby() -> void:
+	controller.Leave_Lobby()
+
+
+
+func update_views() -> void:
+	browser_view.visible = not in_lobby_state
+	in_lobby_view.visible = in_lobby_state
+
+func _on_main_menu_pressed() -> void:
+	print("Main Menu button pressed!")
+	SceneLoader.load_scene("uid://ctined7qq8dh2")

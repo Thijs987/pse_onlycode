@@ -53,6 +53,24 @@ func _on_message(msg):
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
+			
+			if msg.get("playerId") == controller.PId:
+				var played_id = msg.get("data", {}).get("cardId")
+				for i in range(player_hand.size()):
+					if player_hand[i].own_card_id == played_id and player_hand[i].has_meta("pending"):
+						var card = player_hand[i]
+						player_hand.remove_at(i)
+						card.queue_free()
+						update_card_hand_position()
+						break
+
+		if msg["action"] == "ERROR":
+			if msg.get("playerId") == controller.PId:
+				for card in player_hand:
+					if card.has_meta("pending") and card.get_meta("pending") == true:
+						card.set_meta("pending", false)
+						card.modulate.a = 1.0
+						card.movable = true
 
 func add_new_card(card_id):
 	var card_scene = preload(CARD_SCENE_PATH)
@@ -67,7 +85,8 @@ func add_card_to_hand(card):
 		player_hand.insert(0, card)
 		update_card_hand_position()
 	else:
-		card.movable = true
+		if not card.has_meta("pending") or not card.get_meta("pending"):
+			card.movable = true
 		update_card_hand_position()
 		move_to_position(card, card.hand_position)
 

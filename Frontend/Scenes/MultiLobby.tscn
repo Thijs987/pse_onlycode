@@ -105,6 +105,16 @@ custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Create lobby"
 
+[node name="MainMenuHBox" type="HBoxContainer" parent="BrowserView/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="MainMenuButton" type="Button" parent="BrowserView/VBoxContainer/MainMenuHBox"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Back"
+
 [node name="HBoxContainer5" type="HBoxContainer" parent="InLobbyView"]
 layout_mode = 1
 anchors_preset = 8
@@ -137,45 +147,54 @@ label_settings = SubResource("LabelSettings_q72hu")
 horizontal_alignment = 1
 
 [node name="LobbyItemList" type="ItemList" parent="BrowserView"]
+layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-grow_vertical = 2
-layout_mode = 0
+anchor_top = 0.0
+anchor_left = 0.0
+anchor_right = 0.0
 offset_left = 50.0
 offset_top = 50.0
 offset_right = 350.0
-offset_bottom = -100.0
+offset_bottom = -150.0
+grow_vertical = 2
 
 [node name="RefreshButton" type="Button" parent="BrowserView"]
+layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-grow_vertical = 0
-layout_mode = 0
+anchor_left = 0.0
+anchor_right = 0.0
 offset_left = 50.0
-offset_top = -80.0
+offset_top = -100.0
 offset_right = 350.0
-offset_bottom = -30.0
+offset_bottom = -50.0
+grow_vertical = 0
 text = "Refresh Lobbies"
+
+
 
 [node name="ErrorDialog" type="AcceptDialog" parent="BrowserView"]
 title = "Error"
 
 [node name="HBoxContainer6" type="HBoxContainer" parent="InLobbyView"]
 layout_mode = 1
-anchors_preset = 7
+anchors_preset = 8
 anchor_left = 0.5
-anchor_top = 1.0
+anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 1.0
+anchor_bottom = 0.5
 offset_left = -100.0
-offset_top = -80.0
+offset_top = 120.0
 offset_right = 100.0
-offset_bottom = -30.0
+offset_bottom = 170.0
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
 
 [node name="LeaveLobby" type="Button" parent="InLobbyView/HBoxContainer6"]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-text = "Leave lobby"
+text = "Back"

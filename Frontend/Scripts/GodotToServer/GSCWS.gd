@@ -55,6 +55,7 @@ func Join_Lobby(LId: String, PId: String):
 	)
 
 func Leave_Lobby():
+	_Send(_Make_Message("LEAVE_LOBBY"))
 	if socket.get_ready_state() == WebSocketPeer.STATE_OPEN:
 		socket.close()
 	joined_emitted = false

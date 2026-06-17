@@ -135,7 +135,12 @@ public class ConnectionManager
         finally
         {
             var responseData = matchManager.Disconnect(playerId);
-            if (matchManager.GetActives(lobbyId).Count <= 0) {
+            if (!matchManager.IsMatchActive(lobbyId))
+            {
+                RemoveFromLobby(playerId);
+            }
+            else if (matchManager.GetActives(lobbyId).Count <= 0) 
+            {
                 RemoveLobby(playerId);
             }
             responseData.Message = $"{playerId} disconnected.";
