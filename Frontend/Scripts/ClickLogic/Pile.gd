@@ -16,8 +16,13 @@ func _ready() -> void:
 	controller.message_updated.connect(_on_message)
 
 func _on_message(msg):
-	if controller.Last_Message["action"] == "CARD_DRAWN":
-		drawn_card = controller.Last_Message["data"]["cardId"]
+	if msg["action"] == "CARD_DRAWN":
+		drawn_card = msg["data"]["cardId"]
+		if card_count > 0:
+			card_count -= 1 
+			update_card_text()
+		else:
+			print("Pile is empty")
 
 func _newturn(player):
 	if player != null:
@@ -29,9 +34,6 @@ func decrease_counter():
 		return
 	if turns == controller.PId:
 		if card_count > 0:
-			card_count -= 1
-			# Past card count getal aan
-			update_card_text()
 			controller.Draw_Card(controller.PId)
 			await get_tree().create_timer(0.25).timeout # DIT KAN EEN BUG WORDEN
 			#DAN MOET JE DE TIMER LANGER MAKEN, OF EEN ANDERE MANIER OM TE WACHTEN OM _ON_MESSAGE
@@ -41,7 +43,7 @@ func decrease_counter():
 
 # Past card count getal aan
 func update_card_text():
-	counter_label.text = "" # str(card_count)
+	counter_label.text =  str(card_count)
 
 # Hier moet een functie die de volgende kaart uit de string/array pakt
 # func ...

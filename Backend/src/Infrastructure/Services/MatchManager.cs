@@ -39,37 +39,37 @@ public class MatchManager
 
         var allCards = new Dictionary<string, int>()
         {
-            // {"blue", 2},
-            // {"cm", 4},
-            // {"ddos", 4},
-            // {"err", 2},
-            // {"garb", 0}, // No garb
-            // {"goto", 4},
-            // {"imp", 4},
-            // {"inf", 4},
-            // {"merge", 2},
-            // {"miracle", 4},
-            // {"nocom", 4},
-            // {"sql", 4},
-            // {"trojan", 4},
-            // {"vibe", 4},
-            // {"test", 0}
-
-            {"blue", 0},
-            {"cm", 0},
-            {"ddos", 0},
-            {"err", 0},
-            {"garb", 0},
-            {"goto", 0},
-            {"imp", 0},
-            {"inf", 0},
-            {"merge", 0},
-            {"miracle", 0},
-            {"nocom", 0},
-            {"sql", 0},
-            {"trojan", 0},
-            {"vibe", 0},
+            {"blue", 2},
+            {"cm", 4},
+            {"ddos", 4},
+            {"err", 2},
+            {"garb", 0}, // No garb
+            {"goto", 4},
+            {"imp", 4},
+            {"inf", 4},
+            {"merge", 2},
+            {"miracle", 4},
+            {"nocom", 4},
+            {"sql", 4},
+            {"trojan", 4},
+            {"vibe", 4},
             {"test", 0}
+
+            // {"blue", 0},
+            // {"cm", 0},
+            // {"ddos", 0},
+            // {"err", 0},
+            // {"garb", 0},
+            // {"goto", 0},
+            // {"imp", 0},
+            // {"inf", 0},
+            // {"merge", 0},
+            // {"miracle", 0},
+            // {"nocom", 0},
+            // {"sql", 0},
+            // {"trojan", 0},
+            // {"vibe", 0},
+            // {"test", 0}
         };
 
         foreach (var card in allCards)
