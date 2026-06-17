@@ -132,7 +132,7 @@ public class MessageRouter
                         {
                             await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         }
-
+                        
                         if (specialCards.Contains(responseData.CardId)) {
                             var dataBroad = new DataInfo {
                                 Target = responseData.Target,
@@ -150,7 +150,8 @@ public class MessageRouter
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
                             await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
                         }
-                        else {
+                        else if (responseData.IsPrivate == false) {
+                            
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
 
@@ -174,6 +175,15 @@ public class MessageRouter
                     break;
 
                 case "DRAW_CARD":
+                    // Check for Improved Hardware
+                    if (matchManager.GetPlayerHand(lobbyId, playerId).Contains("imp"))
+                    {
+                        responseData = new DataInfo { Error = "Hand cotnains imp, cannot draw!"};
+                        response = MakeMessage("ERROR", playerId, responseData);
+                        await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
+                        break;
+                    }
+
                     // Normal end to a turn. Grab card (check IH) and broadcast action to lobby.
                     responseData = matchManager.GetFirstCard(lobbyId, playerId);
                     var card = responseData.CardId;

@@ -16,6 +16,7 @@ public class TestCard : ICardEffect
         }
 
         // TODO: Write the actual logic
+        Console.WriteLine("Played test card!");
 
         // Return a basic response so the game doesn't crash
         return new DataInfo
