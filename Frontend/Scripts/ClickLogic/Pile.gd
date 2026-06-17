@@ -21,8 +21,11 @@ func _on_message(msg):
 		if card_count > 0:
 			card_count -= 1 
 			update_card_text()
-		else:
-			print("Pile is empty")
+
+	elif msg["action"] == "DECK_SIZE":
+		var new_size = int(msg["data"]["message"])
+		card_count = new_size
+		update_card_text()
 
 func _newturn(player):
 	if player != null:
