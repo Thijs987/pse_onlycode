@@ -60,13 +60,14 @@ public class BotService
 
         // Add to the lobby just like a human connection (minus the WebSocket).
         _connectionManager.AddToLobby(botId, lobbyId);
-        if (!_bots.TryAdd(lobbyId, new List<string> {botId}))
+        if (!_bots.TryAdd(lobbyId, new List<string> { botId }))
         {
             try
             {
                 _bots.TryGetValue(lobbyId, out var bots);
                 bots.Add(botId);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine($"Could not add bot {botId} to lobby {lobbyId}!");
                 Console.WriteLine(e);
@@ -93,7 +94,8 @@ public class BotService
             bots.Remove(botId);
             _bots[lobbyId] = bots;
             return true;
-        } else
+        }
+        else
         {
             return false;
         }
@@ -114,10 +116,20 @@ public class BotService
         _bots.TryGetValue(lobbyId, out var bots);
         if (bots == null)
         {
-            bots = new List<string> {};
+            bots = new List<string> { };
             Console.WriteLine($"Cannot get bots in lobby {lobbyId}");
-        };
+        }
+        ;
         return bots;
+    }
+
+    // Deletes the bot tracking list for a given lobby, this is for cleanup
+    public void CleanUpLobby(string lobbyId)
+    {
+        if (_bots.TryRemove(lobbyId, out _))
+        {
+            Console.WriteLine($"BotService: Cleaned up bots for lobby {lobbyId}.");
+        }
     }
 
     // Let the bot play the cards in its hand
@@ -159,7 +171,7 @@ public class BotService
                 cardData.CardId = cardToDiscard;
                 cardData.Cards = new List<string> { "imp", cardToDiscard };
             }
-            
+
             Console.WriteLine($"BPC cardid: {cardData.CardId}, cards:");
             foreach (var card in cardData.Cards)
             {
@@ -173,7 +185,7 @@ public class BotService
 
                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
                     Console.WriteLine("Imp end if");
-                    return;
+                return;
             }
         }
         else
@@ -222,7 +234,7 @@ public class BotService
                 // That will give the turn back to this bot for PendingAction handling or give turn to next one.
                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || !string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
                     Console.WriteLine("End if");
-                    break;
+                break;
 
             }
         }
@@ -293,10 +305,11 @@ public class BotService
             {
                 string sendCard = hand.FirstOrDefault(c => c != "trojan", "trojan");
                 cardData.Cards = new List<string> { sendCard };
-            } else
+            }
+            else
             {
                 Console.WriteLine("Bot entered trojan with less than 2 cards");
-                cardData.Cards = new List<string> {};
+                cardData.Cards = new List<string> { };
             }
         }
 
@@ -355,7 +368,7 @@ public class BotService
         {
             await NextPlayer(lobbyId, botId, "0");
         }
-        
+
         if (responseData.IsPrivate == true)
         {
             await _connectionManager.SendMessageAsync(botId, JsonSerializer.Serialize(response));
@@ -410,6 +423,8 @@ public class BotService
                 var winnerData = new DataInfo { NextPlayer = winnerId };
                 var gameOverMessage = MakeMessage("GAME_OVER", winnerId, winnerData);
                 await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(gameOverMessage));
+                _matchManager.EndMatch(lobbyId);
+                CleanUpLobby(lobbyId);
                 return; // Stop broadcasting NEXT_TURN
             }
         }
