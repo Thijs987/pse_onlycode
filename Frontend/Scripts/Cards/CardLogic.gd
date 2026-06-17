@@ -12,8 +12,9 @@ var is_hovering
 var card_offsetx
 var card_offsety
 var turns
-var first_combo_card = null
-var trojan_selecting_gift = false
+var first_combo_card = null # Played blanco
+var trojan_selecting_gift = false # Played trojan horse
+var imp_hardware_active = false #  Played improved hardware
 
 
 # Called when the node enters the scene tree for the first time.
@@ -99,11 +100,10 @@ func play_card(card):
 			target_id = await sql_attack()
 		
 		elif current_id == "trojan":
-			if not has_another_card(): # Need to have a card to give
+			if hand_reference.player_hand.size() < 2: # Need to have a card to give
 				print("You dont have a card to give")
 				card.movable = true
 				return false
-			played_cards = [current_id]
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
 
@@ -113,8 +113,17 @@ func play_card(card):
 			return true
 
 		elif current_id == "imp":
-			pass
+			hand_reference.remove_card_from_hand(card)
+			card.queue_free()
 
+			if hand_reference.player_hand.size() == 0: # No other cards
+				print("No other cards in hand, play only improved hardware")
+				controller.Play_Card(controller.PId, [current_id], "")
+			else: # Choose another card
+				print("Chose card to play without effect")
+				imp_hardware_active = true
+
+			return true
 		else:
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
@@ -154,15 +163,6 @@ func has_another_blanco(card_type: String) -> bool:
 			count += 1
 	return count >= 2
 
-# Checks if you have another card (for trojan)
-func has_another_card() -> bool:
-	var count = 0
-	for c in hand_reference.player_hand:
-		count += 1
-		if count >= 2:
-			return true
-	return false
-
 # Starts dragging of current card under mouse.
 # input: Card object found using check_at_cursor function
 func start_dragging(card):
@@ -183,6 +183,20 @@ func start_dragging(card):
 		
 		var played_cards = ["trojan", gift_card_id]
 		controller.Play_Card(controller.PId, played_cards, target_id)
+		return
+		
+	if imp_hardware_active:
+		imp_hardware_active = false
+		
+		var sacrifice_card_id = card.own_card_id
+		print("Chosen card: ", sacrifice_card_id)
+
+		# Delete card from your hand
+		hand_reference.remove_card_from_hand(card)
+		card.queue_free()
+
+		var played_cards = ["imp", sacrifice_card_id]
+		controller.Play_Card(controller.PId, played_cards, "")
 		return
 
 	if first_combo_card != null: # Player played a blanco card

@@ -66,6 +66,9 @@ func add_card_to_hand(card):
 	if card not in player_hand:
 		player_hand.insert(0, card)
 		update_card_hand_position()
+		if card.own_card_id == "imp": # If you grab an improved hardware, you must play it
+			print("Grabbed improved hardware, must play")
+			card_logic.play_card(card)
 	else:
 		card.movable = true
 		update_card_hand_position()
