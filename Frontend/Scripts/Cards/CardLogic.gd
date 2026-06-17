@@ -56,36 +56,39 @@ func play_card(card):
 		var blanco = ["nocom", "goto", "inf", "vibe"]
 
 		if current_id in blanco:
-			if first_combo_card == null: # No blanco card played yet
-				if has_another_blanco(current_id): #maak func
-					print("Waiting for second card")
+			if first_combo_card == null: # EERSTE BLANCO KAART
+				if has_another_blanco(current_id):
+					print("Eerste combo-kaart geselecteerd: ", current_id)
 					first_combo_card = card
-					hand_reference.remove_card_from_hand(card) # Uit de hand halen
-					card.visible = false
+					
+					# Visuele feedback: zet de kaart bijvoorbeeld een stukje omhoog
+					first_combo_card.position.y -= 30 
+					first_combo_card.movable = false # Zorg dat je deze niet nogmaals kunt slepen
+					
 					return true
 				else:
-					print("Only 1 blanco card in your hand")
-					# Reset card
+					print("Je hebt geen andere blanco kaart in je hand om een combo te maken!")
 					card.movable = true
-					hand_reference.add_card_to_hand(card)
 					return false
-			else: # If 1 blanco is played already
+			else: # TWEEDE BLANCO KAART
+				# Check of het type matcht, of dat de tweede kaart een 'no comment' (nocom) is
 				if current_id == "nocom" or current_id == first_combo_card.own_card_id:
 					played_cards = [first_combo_card.own_card_id, current_id]
+					print("Geldige combo gemaakt! Versturen naar server: ", played_cards)
 					
-					# We ruimen de eerste kaart nu pas definitief op
-					first_combo_card.queue_free()
-					first_combo_card = null # Reset voor de volgende beurt
-					
-					# Haal de tweede kaart visueel weg
+					# Haal nu pas BEIDE kaarten definitief uit de hand en de game
+					hand_reference.remove_card_from_hand(first_combo_card)
 					hand_reference.remove_card_from_hand(card)
+					
+					first_combo_card.queue_free()
 					card.queue_free()
 					
-					# TODO: Eventueel hier je target_id ophalen voor de combo!
+					first_combo_card = null # Reset de combo-vlag voor de volgende keer
+					
+					# TODO: Als je combo een target nodig heeft (zoals SQL), kun je hier target_id ophalen
 				else:
-					print("Wrong blanco card, card has to be of same type or a no comment")
+					print("Ongeldige combo! Kaart moet van hetzelfde type zijn of een 'no comment'.")
 					card.movable = true
-					hand_reference.add_card_to_hand(card)
 					return false
 
 		elif current_id == "sql":
@@ -117,7 +120,7 @@ func sql_attack() -> String:
 			filtered_enemies.append(p_id)
 	
 	attack_screen.setup_targets(filtered_enemies)
-	get_tree().paused = true
+	get_tree().paused = true # Pauses the game except for the selection menu
 	var gekozen_id = await attack_screen.target_selected
 	get_tree().paused = false
 	return gekozen_id
