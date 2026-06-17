@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://dg8okmsqxxyxb" path="res://Scripts/GodotToServer/GSCWS.gd" id="9_x3xnh"]
 [ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://Scripts/GodotToServer/Controller.gd" id="10_8r6kd"]
 [ext_resource type="Script" uid="uid://ltey2a6xnpbk" path="res://Scripts/Menus/GameUI.gd" id="11_gameui"]
+[ext_resource type="AudioStream" uid="uid://kcb2r6t0fny" path="res://Sounds/PlayCard.mp3" id="12_3so38"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
@@ -23,8 +24,8 @@ size = Vector2(421.5, 218)
 [node name="Background" type="Node2D" parent="." unique_id=234779892]
 
 [node name="Table" type="Sprite2D" parent="Background" unique_id=950271474]
-position = Vector2(575.99994, 270)
-scale = Vector2(2.1893203, 2.1893206)
+position = Vector2(576.9879, 322.16504)
+scale = Vector2(1.0000209, 0.97479945)
 texture = ExtResource("1_71axn")
 
 [node name="TurnLabel" type="Label" parent="Background" unique_id=110888612]
@@ -91,3 +92,7 @@ script = ExtResource("10_8r6kd")
 
 [node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
 script = ExtResource("11_gameui")
+
+[node name="Card Play" type="AudioStreamPlayer2D" parent="." unique_id=1269714596]
+stream = ExtResource("12_3so38")
+autoplay = true
