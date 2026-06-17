@@ -53,8 +53,9 @@ public class ConnectionManager
         if (rejoin == true)
         {
             matchManager.Rejoin(playerId);
-            var responseData = new DataInfo{
-                Cards = matchManager.GetPlayerHand(lobbyId,playerId)
+            var responseData = new DataInfo
+            {
+                Cards = matchManager.GetPlayerHand(lobbyId, playerId)
             };
             var response = router.MakeMessage("HAND", playerId, responseData);
             await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(response));
@@ -141,7 +142,7 @@ public class ConnectionManager
             {
                 RemoveFromLobby(playerId, matchManager);
             }
-            else if (matchManager.GetActives(lobbyId).Count <= 0) 
+            else if (matchManager.GetActives(lobbyId).Count <= 0)
             {
                 RemoveLobby(playerId, matchManager);
                 router.botService.CleanUpLobby(lobbyId);
@@ -159,12 +160,15 @@ public class ConnectionManager
             await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
             Console.WriteLine($"Socket Disconnected: {playerId}");
 
-            // Replace with bot
-            Console.WriteLine("Adding bot");
-            await router.botService.AddBotAsync(lobbyId, playerId);
-            if (matchManager.GetCurrentTurnPlayer(lobbyId) == playerId)
-                await router.botService.DrawCard(lobbyId, playerId);
-            // router.CheckBotTurn(lobbyId, matchManager, )
+            if (matchManager.IsMatchActive(lobbyId) && matchManager.GetActives(lobbyId).Count > 0)
+            {
+                // Replace with bot
+                Console.WriteLine("Adding bot");
+                await router.botService.AddBotAsync(lobbyId, playerId);
+                if (matchManager.GetCurrentTurnPlayer(lobbyId) == playerId)
+                    await router.botService.DrawCard(lobbyId, playerId);
+                // router.CheckBotTurn(lobbyId, matchManager, )
+            }
         }
     }
 
@@ -219,7 +223,7 @@ public class ConnectionManager
         {
             // Bot player
             RemoveFromLobby(connectionId, matchManager);
-            
+
             var leaveMessage = new NetworkMessage
             {
                 Action = "PLAYER_LEFT",
@@ -232,16 +236,19 @@ public class ConnectionManager
 
     public void RemoveLobby(string connectionId, MatchManager matchManager)
     {
-        if(!_connectionToLobby.TryRemove(connectionId, out string? lobbyId)) {
+        if (!_connectionToLobby.TryRemove(connectionId, out string? lobbyId))
+        {
             return;
         }
-        if (string.IsNullOrEmpty(lobbyId)) {
+        if (string.IsNullOrEmpty(lobbyId))
+        {
             return;
         }
         if (_lobbies.TryRemove(lobbyId, out var lobbyConnections))
         {
-            foreach(var player in lobbyConnections.Keys) {
-                _connectionToLobby.TryRemove(player,out _);
+            foreach (var player in lobbyConnections.Keys)
+            {
+                _connectionToLobby.TryRemove(player, out _);
             }
             _lobbyHosts.TryRemove(lobbyId, out _);
             matchManager.EndMatch(lobbyId);
