@@ -3,6 +3,30 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
+//request =
+//    {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//    "data":
+//    {
+//     "cardId": "ddos"
+//    }
+//   }
+
+//response =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "ddos",
+//     "message": "Player_1 launched a DDos attack! Player_3 must play 2 turns.",
+//     "nextPlayer": "Player_3",
+//     "turns": 2,
+//     "cards": [],
+//     "isPrivate": false
+//   }
+// }
+
 public class DDosCard : ICardEffect
 {
     public string CardId => "ddos";

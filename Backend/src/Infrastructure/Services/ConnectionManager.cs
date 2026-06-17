@@ -231,6 +231,7 @@ public class ConnectionManager
             foreach(var player in lobbyConnections.Keys) {
                 _connectionToLobby.TryRemove(player,out _);
             }
+            _lobbies.TryRemove(lobbyId, out _);
             Console.WriteLine($"Lobby {lobbyId} is empty and was destroyed.");
         }
     }

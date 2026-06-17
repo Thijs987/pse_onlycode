@@ -23,7 +23,7 @@ public class MatchManager
         }
     }
 
-    public GameState StartNewMatch(string matchId, List<string> players)
+    public GameState StartNewMatch(string matchId, List<string> players, DataInfo data)
     {
         var newState = new GameState
         {
@@ -37,24 +37,26 @@ public class MatchManager
             newState.PlayerStatuses[player] = PlayerStatus.Active;
         }
 
+        var pileCards = new List <int> {};
+
+        if (data.Cards.Count != 15) {
+            pileCards = new List <int> {2,4,4,2,0,4,4,4,2,4,4,4,4,4,0};
+        }
+
+        foreach(var card in data.Cards) {
+            int x;
+
+            if (!Int32.TryParse(card, out x))
+            {
+                Console.WriteLine($"Match {matchId} initialization failed!");
+                newState.Deck = new List<string>{};
+                return newState;
+            }
+            pileCards.Add(x);
+        }
+
         var allCards = new Dictionary<string, int>()
         {
-            {"blue", 2},
-            {"cm", 4},
-            {"ddos", 4},
-            {"err", 2},
-            {"garb", 0}, // No garb
-            {"goto", 4},
-            {"imp", 4},
-            {"inf", 4},
-            {"merge", 2},
-            {"miracle", 4},
-            {"nocom", 4},
-            {"sql", 4},
-            {"trojan", 4},
-            {"vibe", 4},
-            {"test", 0}
-
             // {"blue", 0},
             // {"cm", 0},
             // {"ddos", 0},
@@ -70,6 +72,22 @@ public class MatchManager
             // {"trojan", 0},
             // {"vibe", 0},
             // {"test", 0}
+
+            {"blue", pileCards[0]},
+            {"cm", pileCards[1]},
+            {"ddos", pileCards[2]},
+            {"err", pileCards[3]},
+            {"garb", pileCards[4]},
+            {"goto", pileCards[5]},
+            {"imp", pileCards[6]},
+            {"inf", pileCards[7]},
+            {"merge", pileCards[8]},
+            {"miracle", pileCards[9]},
+            {"nocom", pileCards[10]},
+            {"sql", pileCards[11]},
+            {"trojan", pileCards[12]},
+            {"vibe", pileCards[13]},
+            {"test", pileCards[14]}
         };
 
         foreach (var card in allCards)
@@ -84,10 +102,10 @@ public class MatchManager
 
         int size = newState.Deck.Count;
         int impcards = newState.Deck.Count(card => card == "imp");
+        int playerCount = players.Count;
 
-
-        if ((size - impcards) < (players.Count * 3))
-        {
+        if ((size-impcards) < (playerCount*initialHandSize) ||
+            size < ((newState.CardLimit+1)*playerCount)) {
             Console.WriteLine($"Match {matchId} initialization failed!");
             newState.Deck = new List<string> { };
             return newState;
@@ -183,6 +201,7 @@ public class MatchManager
             return new DataInfo { Error = "You do not have that card in your hand!" };
         }
 
+        // If player doesn't have a improved hardware play card
         if (!match.PlayerHands[playerId].Contains("imp"))
         {
             // Apply the specific card's logic
@@ -210,6 +229,7 @@ public class MatchManager
         }
         else if (cardData.CardId != "imp")
         {
+            //if player only has a improved hardware play improved hardware
             match.TableCards.Add("imp");
             match.TableCards.Add(cardData.CardId);
             match.PlayerHands[playerId].Remove("imp");
@@ -529,19 +549,22 @@ public class MatchManager
             return new DataInfo();
         }
 
+
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
             Console.WriteLine($"Cannot find match {matchId}");
             return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
-        if (match.PlayerStatuses[playerId] == PlayerStatus.Eliminated)
-        {
+
+        //adjust status based on if player is elimanted or not.
+        if(match.PlayerStatuses[playerId] == PlayerStatus.Eliminated) {
             match.PlayerStatuses[playerId] = PlayerStatus.DisconnectedEliminated;
         }
         else if (match.PlayerStatuses[playerId] == PlayerStatus.Active)
         {
             match.PlayerStatuses[playerId] = PlayerStatus.DisconnectedActive;
         }
+
         var responseData = new DataInfo
         {
             NextPlayer = match.CurrentTurnPlayerId,
@@ -564,11 +587,9 @@ public class MatchManager
             Console.WriteLine($"Cannot find match {matchId}");
             return false;
         }
-
-        if (match.PlayerStatuses.TryGetValue(playerId, out var status))
-        {
-            if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedEliminated)
-            {
+        //adjust status based on if player is elimanted or not.
+        if (match.PlayerStatuses.TryGetValue(playerId, out var status)) {
+            if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedEliminated) {
                 match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
                 if (match.CurrentTurnPlayerId == playerId)
                 {
@@ -585,6 +606,7 @@ public class MatchManager
         return false;
     }
 
+    // Get matchId form playerId
     public string GetMatchFromPlayer(string playerId)
     {
         string match = _activeMatches.FirstOrDefault(m => m.Value.PlayerIds.Contains(playerId)).Key;
@@ -596,6 +618,7 @@ public class MatchManager
         return _activeMatches.ContainsKey(matchId);
     }
 
+// Check if there is a winner and return winner
     public string GetWinner(string matchId)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
@@ -615,8 +638,8 @@ public class MatchManager
         }
     }
 
-    public List<string> GetActive(GameState match)
-    {
+    // Get active players and bot players
+    public List<string> GetActive(GameState match) {
         var activePlayers = match.PlayerIds
             .Where(id =>
                 match.PlayerStatuses.TryGetValue(id, out var status) &&
@@ -624,8 +647,8 @@ public class MatchManager
         return activePlayers;
     }
 
-    public List<string> GetActives(string matchId)
-    {
+    //get active players which are not bots
+    public List<string> GetActives(string matchId) {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
             return new List<string> { };
@@ -637,8 +660,8 @@ public class MatchManager
         return activePlayers;
     }
 
-    public int GetDeckSize(string matchId)
-    {
+    // Get the current deck size
+    public int GetDeckSize(string matchId) {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
             return -1;
