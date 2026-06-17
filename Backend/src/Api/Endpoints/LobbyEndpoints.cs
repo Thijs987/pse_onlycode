@@ -7,9 +7,9 @@ public static class LobbyEndpoints
         var group = app.MapGroup("/api/lobbies");
 
         // GET /api/lobbies/active
-        group.MapGet("/active", (ConnectionManager manager) =>
+        group.MapGet("/active", (ConnectionManager manager, MatchManager matchManager) =>
         {
-            var activeLobbies = manager.GetActiveLobbies();
+            var activeLobbies = manager.GetActiveLobbies(matchManager);
             return Results.Ok(activeLobbies);
         });
 

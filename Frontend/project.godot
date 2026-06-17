@@ -20,8 +20,6 @@ SceneLoader="*uid://1f6ldvtpwwgq"
 gschttp="*uid://br3mo8m8v4kiw"
 gscws="*uid://dg8okmsqxxyxb"
 controller="*uid://bb627jh3g5wj5"
-GSCWS="*uid://dpuhn7q6mnrth"
-GSCHTTP="*uid://cvcwuxk0ribeo"
 
 [dotnet]
 

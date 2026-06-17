@@ -6,7 +6,6 @@ extends Node2D
 # Deze aanpassen voor het goeie aantal kaarten
 @export var card_count: int = 40
 
-var drawn_card = null
 var turns = null
 
 # Called when the node enters the scene tree for the first time.
@@ -16,8 +15,27 @@ func _ready() -> void:
 	controller.message_updated.connect(_on_message)
 
 func _on_message(msg):
-	if controller.Last_Message["action"] == "CARD_DRAWN":
-		drawn_card = controller.Last_Message["data"]["cardId"]
+	if msg.get("action") == "MATCH_STARTED":
+		var new_size = msg.get("data", {}).get("deckSize")
+		if new_size != null:
+			card_count = int(new_size)
+			update_card_text()
+
+	elif msg.get("action") == "DECK_SIZE":
+		var new_size = msg.get("data", {}).get("message")
+		if new_size != null:
+			card_count = int(new_size)
+			update_card_text()
+
+	elif msg.get("action") == "CARD_DRAWN":
+		if card_count > 0:
+			card_count -= 1
+			update_card_text()
+		
+		if msg.get("playerId") == controller.PId:
+			var drawn_card = msg.get("data", {}).get("cardId")
+			if drawn_card != null and drawn_card != "":
+				hand_reference.add_new_card(drawn_card)
 
 func _newturn(player):
 	if player != null:
@@ -29,19 +47,11 @@ func decrease_counter():
 		return
 	if turns == controller.PId:
 		if card_count > 0:
-			card_count -= 1
-			# Past card count getal aan
-			update_card_text()
 			controller.Draw_Card(controller.PId)
-			await get_tree().create_timer(0.25).timeout # DIT KAN EEN BUG WORDEN
-			#DAN MOET JE DE TIMER LANGER MAKEN, OF EEN ANDERE MANIER OM TE WACHTEN OM _ON_MESSAGE
-			hand_reference.add_new_card(drawn_card)
 		else:
 			print("Pile is empty")
 
 # Past card count getal aan
 func update_card_text():
-	counter_label.text = "" # str(card_count)
-
-# Hier moet een functie die de volgende kaart uit de string/array pakt
-# func ...
+	if counter_label != null:
+		counter_label.text = str(card_count)

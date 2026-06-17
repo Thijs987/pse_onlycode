@@ -39,16 +39,18 @@ public class ConnectionManager
         catch { }
 
         var rejoin = false;
-        if (existingPlayers.Contains(playerId)) {
+        if (existingPlayers.Contains(playerId))
+        {
             rejoin = true;
         }
 
-        var joinMessage = new NetworkMessage {};
+        var joinMessage = new NetworkMessage { };
 
         string action;
         string message;
 
-        if(rejoin == true) {
+        if (rejoin == true)
+        {
             matchManager.Rejoin(playerId);
             var responseData = new DataInfo{
                 Cards = matchManager.GetPlayerHand(lobbyId,playerId)
@@ -58,7 +60,9 @@ public class ConnectionManager
             Console.WriteLine($"Socket Connected: {playerId} rejoined Lobby {lobbyId}");
             action = "PLAYER_REJOINED";
             message = $"{playerId} has rejoined the game!";
-        } else {
+        }
+        else
+        {
             AddToLobby(playerId, lobbyId);
             Console.WriteLine($"Socket Connected: {playerId} joined Lobby {lobbyId}");
             action = "PLAYER_JOINED";
@@ -131,7 +135,12 @@ public class ConnectionManager
         finally
         {
             var responseData = matchManager.Disconnect(playerId);
-            if (matchManager.GetActives(lobbyId).Count <= 0) {
+            if (!matchManager.IsMatchActive(lobbyId))
+            {
+                RemoveFromLobby(playerId);
+            }
+            else if (matchManager.GetActives(lobbyId).Count <= 0) 
+            {
                 RemoveLobby(playerId);
             }
             responseData.Message = $"{playerId} disconnected.";
@@ -181,6 +190,31 @@ public class ConnectionManager
                     Console.WriteLine($"Lobby {lobbyId} is empty and was destroyed.");
                 }
             }
+        }
+    }
+
+    public async Task KickPlayerAsync(string connectionId, string lobbyId, MatchManager matchManager)
+    {
+        if (_sockets.TryGetValue(connectionId, out var socket))
+        {
+            // Human player
+            if (socket.State == WebSocketState.Open)
+            {
+                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Kicked from lobby", CancellationToken.None);
+            }
+        }
+        else
+        {
+            // Bot player
+            RemoveFromLobby(connectionId);
+            
+            var leaveMessage = new NetworkMessage
+            {
+                Action = "PLAYER_LEFT",
+                PlayerId = connectionId,
+                Data = new DataInfo { Message = $"{connectionId} was kicked." }
+            };
+            await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
         }
     }
 
@@ -255,15 +289,15 @@ public class ConnectionManager
         return false;
     }
 
-    // Only returns lobbies with less than 4 players like this
-    public IEnumerable<object> GetActiveLobbies()
+    public IEnumerable<object> GetActiveLobbies(MatchManager matchManager)
     {
         return _lobbies
-            .Where(lobby => lobby.Value.Count < MaxPlayersPerLobby)
+            .Where(lobby => !matchManager.HasMatchStarted(lobby.Key))
             .Select(lobby => new
             {
                 LobbyId = lobby.Key,
-                PlayerCount = lobby.Value.Count
+                PlayerCount = lobby.Value.Count,
+                Capacity = MaxPlayersPerLobby
             });
     }
 }

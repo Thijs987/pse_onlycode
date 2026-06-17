@@ -51,6 +51,7 @@ public class CleanMergeCard : ICardEffect
             match.CurrentTurnPlayerId = currentCycle[nextIndex];
             // Set NTrns to 1
             match.NTurns = 1;
+            nextPlayer = match.CurrentTurnPlayerId;
         }
 
         match.PlayerHands[playerId].Remove(CardId);

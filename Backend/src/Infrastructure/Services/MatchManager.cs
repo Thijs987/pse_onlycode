@@ -32,14 +32,15 @@ public class MatchManager
             CurrentTurnPlayerId = players[0]
         };
 
-        foreach (var player in players) {
+        foreach (var player in players)
+        {
             newState.PlayerStatuses[player] = PlayerStatus.Active;
         }
 
         var pileCards = new List <int> {};
 
         if (data.Cards.Count != 15) {
-            pileCards = new List <int> {4,4,4,2,0,4,2,4,2,4,2,2,2,2,2};
+            pileCards = new List <int> {2,4,4,2,0,4,4,4,2,4,4,4,4,4,0};
         }
 
         foreach(var card in data.Cards) {
@@ -61,7 +62,7 @@ public class MatchManager
             // {"ddos", 0},
             // {"err", 0},
             // {"garb", 0},
-            // {"goto", 20},
+            // {"goto", 0},
             // {"imp", 0},
             // {"inf", 0},
             // {"merge", 0},
@@ -106,7 +107,7 @@ public class MatchManager
         if ((size-impcards) < (playerCount*initialHandSize) ||
             size < ((newState.CardLimit+1)*playerCount)) {
             Console.WriteLine($"Match {matchId} initialization failed!");
-            newState.Deck = new List<string>{};
+            newState.Deck = new List<string> { };
             return newState;
         }
 
@@ -123,9 +124,12 @@ public class MatchManager
                 }
                 string card = newState.Deck[0];
                 newState.Deck.RemoveAt(0);
-                if (card != "imp") {
+                if (card != "imp")
+                {
                     newState.PlayerHands[player].Add(card);
-                } else {
+                }
+                else
+                {
                     newState.TableCards.Add(card);
                     i--;
                 }
@@ -164,7 +168,7 @@ public class MatchManager
         if (!_activeMatches.TryGetValue(matchId, out var match))
             return new DataInfo { Error = "Match not found!" };
 
-        if (GetActive(match).Count <= 1)
+        if (match.PlayerIds.Count <= 1)
             return new DataInfo { Error = "The game has already ended." };
 
         if (match.CurrentTurnPlayerId != playerId)
@@ -387,7 +391,7 @@ public class MatchManager
         {
             var currentCycle = GetActive(match);
             // Advance the turn to the next player if current has none
-            int currentIndex = currentCycle. IndexOf(playerId);
+            int currentIndex = currentCycle.IndexOf(playerId);
             int nextIndex = (currentIndex + 1) % currentCycle.Count;
             match.CurrentTurnPlayerId = currentCycle[nextIndex];
 
@@ -402,6 +406,31 @@ public class MatchManager
         };
 
         return responseData;
+    }
+
+    // True once StartNewMatch has created an in-memory match for this id.
+    public bool IsMatchActive(string matchId)
+    {
+        return _activeMatches.ContainsKey(matchId);
+    }
+
+    // Returns whose turn it currently is, or empty if the match is unknown.
+    public string GetCurrentTurnPlayer(string matchId)
+    {
+        if (_activeMatches.TryGetValue(matchId, out var match))
+        {
+            return match.CurrentTurnPlayerId;
+        }
+        return string.Empty;
+    }
+
+    public string GetPendingAction(string matchId, string playerId)
+    {
+        if (_activeMatches.TryGetValue(matchId, out var match) && match.PendingActionPlayerId == playerId)
+        {
+            return match.PendingAction;
+        }
+        return string.Empty;
     }
 
     //Safely gets a single player's hand without exposing the whole GameState
@@ -440,6 +469,10 @@ public class MatchManager
         {
             // remove from cycle
             match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
+            if (match.CurrentTurnPlayerId == playerId) 
+            {
+                match.NTurns = 0;
+            }
             // remove hand from dict
             match.PlayerHands.Remove(playerId);
             responseData.Message = "Removed";
@@ -476,7 +509,7 @@ public class MatchManager
         if (match.CurrentTurnPlayerId == playerId)
         {
             // Advance the turn to the next player if current has none
-            int currentIndex = currentCycle. IndexOf(playerId);
+            int currentIndex = currentCycle.IndexOf(playerId);
             int nextIndex = (currentIndex + 1) % currentCycle.Count;
             match.CurrentTurnPlayerId = currentCycle[nextIndex];
 
@@ -487,7 +520,8 @@ public class MatchManager
         // remove from cycle
         match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
         // remove hand from dict
-        foreach (var card in match.PlayerHands[playerId]) {
+        foreach (var card in match.PlayerHands[playerId])
+        {
             match.TableCards.Add(card);
         }
         match.PlayerHands.Remove(playerId);
@@ -502,7 +536,8 @@ public class MatchManager
         return responseData;
     }
 
-    public DataInfo Disconnect(string playerId, string matchId = "") {
+    public DataInfo Disconnect(string playerId, string matchId = "")
+    {
         if (string.IsNullOrEmpty(matchId))
         {
             matchId = GetMatchFromPlayer(playerId);
@@ -524,7 +559,9 @@ public class MatchManager
         //adjust status based on if player is elimanted or not.
         if(match.PlayerStatuses[playerId] == PlayerStatus.Eliminated) {
             match.PlayerStatuses[playerId] = PlayerStatus.DisconnectedEliminated;
-        } else if(match.PlayerStatuses[playerId] == PlayerStatus.Active) {
+        }
+        else if (match.PlayerStatuses[playerId] == PlayerStatus.Active)
+        {
             match.PlayerStatuses[playerId] = PlayerStatus.DisconnectedActive;
         }
 
@@ -536,7 +573,8 @@ public class MatchManager
         return responseData;
     }
 
-    public bool Rejoin (string playerId) {
+    public bool Rejoin(string playerId)
+    {
         var matchId = GetMatchFromPlayer(playerId);
 
         // Check if lookup found something
@@ -553,8 +591,14 @@ public class MatchManager
         if (match.PlayerStatuses.TryGetValue(playerId, out var status)) {
             if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedEliminated) {
                 match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
+                if (match.CurrentTurnPlayerId == playerId)
+                {
+                    match.NTurns = 0;
+                }
                 return true;
-            } else if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedActive) {
+            }
+            else if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedActive)
+            {
                 match.PlayerStatuses[playerId] = PlayerStatus.Active;
                 return true;
             }
@@ -569,7 +613,12 @@ public class MatchManager
         return match;
     }
 
-    // Check if there is a winner and return winner
+    public bool HasMatchStarted(string matchId)
+    {
+        return _activeMatches.ContainsKey(matchId);
+    }
+
+// Check if there is a winner and return winner
     public string GetWinner(string matchId)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
@@ -579,9 +628,12 @@ public class MatchManager
 
         var activePlayers = GetActive(match);
 
-        if (activePlayers.Count == 1) {
+        if (activePlayers.Count == 1)
+        {
             return activePlayers[0];
-        } else {
+        }
+        else
+        {
             return string.Empty;
         }
     }
@@ -589,7 +641,7 @@ public class MatchManager
     // Get active players and bot players
     public List<string> GetActive(GameState match) {
         var activePlayers = match.PlayerIds
-            .Where (id =>
+            .Where(id =>
                 match.PlayerStatuses.TryGetValue(id, out var status) &&
                 status == PlayerStatus.Active || status == PlayerStatus.DisconnectedActive).ToList();
         return activePlayers;
@@ -599,10 +651,10 @@ public class MatchManager
     public List<string> GetActives(string matchId) {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
-            return new List<string> {};
+            return new List<string> { };
         }
         var activePlayers = match.PlayerIds
-            .Where (id =>
+            .Where(id =>
                 match.PlayerStatuses.TryGetValue(id, out var status) &&
                 status == PlayerStatus.Active).ToList();
         return activePlayers;

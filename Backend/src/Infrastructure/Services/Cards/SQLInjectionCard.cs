@@ -45,6 +45,7 @@ public class SQLInjectionCard : ICardEffect
 
         match.NTurns = 2;
         match.PlayerHands[playerId].Remove(CardId);
+        match.CurrentTurnPlayerId = cardData.Target;
 
         // Standard Cleanup
         if (match.PlayerHands.ContainsKey(playerId))
