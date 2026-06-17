@@ -27,6 +27,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<ConnectionManager>();
 builder.Services.AddSingleton<MessageRouter>();
 builder.Services.AddSingleton<MatchManager>();
+builder.Services.AddSingleton<BotService>();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
