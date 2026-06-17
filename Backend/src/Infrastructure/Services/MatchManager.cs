@@ -86,9 +86,10 @@ public class MatchManager
         int impcards = newState.Deck.Count(card => card == "imp");
 
 
-        if ((size-impcards) < (players.Count*3)) {
+        if ((size - impcards) < (players.Count * 3))
+        {
             Console.WriteLine($"Match {matchId} initialization failed!");
-            newState.Deck = new List<string>{};
+            newState.Deck = new List<string> { };
             return newState;
         }
 
@@ -105,9 +106,12 @@ public class MatchManager
                 }
                 string card = newState.Deck[0];
                 newState.Deck.RemoveAt(0);
-                if (card != "imp") {
+                if (card != "imp")
+                {
                     newState.PlayerHands[player].Add(card);
-                } else {
+                }
+                else
+                {
                     newState.TableCards.Add(card);
                     i--;
                 }
@@ -445,6 +449,10 @@ public class MatchManager
         {
             // remove from cycle
             match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
+            if (match.CurrentTurnPlayerId == playerId) 
+            {
+                match.NTurns = 0;
+            }
             // remove hand from dict
             match.PlayerHands.Remove(playerId);
             responseData.Message = "Removed";
@@ -492,7 +500,8 @@ public class MatchManager
         // remove from cycle
         match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
         // remove hand from dict
-        foreach (var card in match.PlayerHands[playerId]) {
+        foreach (var card in match.PlayerHands[playerId])
+        {
             match.TableCards.Add(card);
         }
         match.PlayerHands.Remove(playerId);
@@ -507,7 +516,8 @@ public class MatchManager
         return responseData;
     }
 
-    public DataInfo Disconnect(string playerId, string matchId = "") {
+    public DataInfo Disconnect(string playerId, string matchId = "")
+    {
         if (string.IsNullOrEmpty(matchId))
         {
             matchId = GetMatchFromPlayer(playerId);
@@ -524,9 +534,12 @@ public class MatchManager
             Console.WriteLine($"Cannot find match {matchId}");
             return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
-        if(match.PlayerStatuses[playerId] == PlayerStatus.Eliminated) {
+        if (match.PlayerStatuses[playerId] == PlayerStatus.Eliminated)
+        {
             match.PlayerStatuses[playerId] = PlayerStatus.DisconnectedEliminated;
-        } else if(match.PlayerStatuses[playerId] == PlayerStatus.Active) {
+        }
+        else if (match.PlayerStatuses[playerId] == PlayerStatus.Active)
+        {
             match.PlayerStatuses[playerId] = PlayerStatus.DisconnectedActive;
         }
         var responseData = new DataInfo
@@ -537,7 +550,8 @@ public class MatchManager
         return responseData;
     }
 
-    public bool Rejoin (string playerId) {
+    public bool Rejoin(string playerId)
+    {
         var matchId = GetMatchFromPlayer(playerId);
 
         // Check if lookup found something
@@ -551,11 +565,19 @@ public class MatchManager
             return false;
         }
 
-        if (match.PlayerStatuses.TryGetValue(playerId, out var status)) {
-            if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedEliminated) {
+        if (match.PlayerStatuses.TryGetValue(playerId, out var status))
+        {
+            if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedEliminated)
+            {
                 match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
+                if (match.CurrentTurnPlayerId == playerId)
+                {
+                    match.NTurns = 0;
+                }
                 return true;
-            } else if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedActive) {
+            }
+            else if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedActive)
+            {
                 match.PlayerStatuses[playerId] = PlayerStatus.Active;
                 return true;
             }
@@ -567,6 +589,11 @@ public class MatchManager
     {
         string match = _activeMatches.FirstOrDefault(m => m.Value.PlayerIds.Contains(playerId)).Key;
         return match;
+    }
+
+    public bool HasMatchStarted(string matchId)
+    {
+        return _activeMatches.ContainsKey(matchId);
     }
 
     public string GetWinner(string matchId)
@@ -597,19 +624,21 @@ public class MatchManager
         return activePlayers;
     }
 
-    public List<string> GetActives(string matchId) {
+    public List<string> GetActives(string matchId)
+    {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
-            return new List<string> {};
+            return new List<string> { };
         }
         var activePlayers = match.PlayerIds
-            .Where (id =>
+            .Where(id =>
                 match.PlayerStatuses.TryGetValue(id, out var status) &&
                 status == PlayerStatus.Active).ToList();
         return activePlayers;
     }
 
-    public int GetDeckSize(string matchId) {
+    public int GetDeckSize(string matchId)
+    {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
             return -1;

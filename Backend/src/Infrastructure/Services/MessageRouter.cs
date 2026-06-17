@@ -228,11 +228,12 @@ public class MessageRouter
 
     public async Task Next_player(string lobbyId, string playerId, string newLimit, ConnectionManager connectionManager, MatchManager matchManager)
     {
+        // check player card limit and remove player if over the limit
+        var end = matchManager.CheckCardLimit(lobbyId, playerId, newLimit);
+
         // next turn
         var responseData = matchManager.NextTurn(lobbyId, playerId);
 
-        // check player card limit and remove player if over the limit
-        var end = matchManager.CheckCardLimit(lobbyId, playerId, newLimit);
         // Send error if there is an error
         if (!string.IsNullOrEmpty(end.Error))
         {
