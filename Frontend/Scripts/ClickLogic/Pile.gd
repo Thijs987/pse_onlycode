@@ -2,7 +2,7 @@ extends Node2D
 
 @onready var counter_label: Label = $PileArea/CounterLabel
 @onready var hand_reference = $"../PlayerHand"
-
+@onready var CardLogic = $"../CardLogic"
 # Deze aanpassen voor het goeie aantal kaarten
 @export var card_count: int = 40
 
@@ -28,6 +28,10 @@ func decrease_counter():
 	if controller.interaction_disabled:
 		return
 		
+	if CardLogic.first_combo_card != null:
+		print("Cant draw card when playing cards")
+		return
+	
 	if turns == controller.PId:
 		if card_count > 0:
 			card_count -= 1

@@ -133,7 +133,8 @@ func has_another_blanco(card_type: String) -> bool:
 	for c in hand_reference.player_hand:
 		if c.own_card_id == card_type or c.own_card_id == "nocom":
 			count += 1
-		else if c.own_card_id == card_type and 
+		elif card_type == "nocom" and c.own_card_id in blanco:
+			count += 1
 	return count >= 2
 
 
