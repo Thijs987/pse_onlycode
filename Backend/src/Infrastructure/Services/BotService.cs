@@ -410,6 +410,7 @@ public class BotService
                 var winnerData = new DataInfo { NextPlayer = winnerId };
                 var gameOverMessage = MakeMessage("GAME_OVER", winnerId, winnerData);
                 await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(gameOverMessage));
+                _matchManager.EndMatch(lobbyId);
                 return; // Stop broadcasting NEXT_TURN
             }
         }

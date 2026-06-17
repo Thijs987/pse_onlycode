@@ -664,9 +664,16 @@ public class MatchManager
     // Get the current deck size
     public int GetDeckSize(string matchId) {
         if (!_activeMatches.TryGetValue(matchId, out var match))
-        {
-            return -1;
-        }
+            return 0;
+
         return match.Deck.Count;
+    }
+
+    public void EndMatch(string matchId)
+    {
+        if (_activeMatches.TryRemove(matchId, out _))
+        {
+            Console.WriteLine($"Match {matchId} successfully cleaned up and removed from active matches.");
+        }
     }
 }

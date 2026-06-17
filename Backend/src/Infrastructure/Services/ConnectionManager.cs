@@ -29,7 +29,7 @@ public class ConnectionManager
         {
             try { await oldSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Reconnected", CancellationToken.None); } catch { }
             _sockets.TryRemove(playerId, out _);
-            RemoveFromLobby(playerId);
+            RemoveFromLobby(playerId, matchManager);
         }
         _sockets.TryAdd(playerId, socket);
         List<string> existingPlayers = new List<string>();
@@ -139,11 +139,11 @@ public class ConnectionManager
             var responseData = matchManager.Disconnect(playerId);
             if (!matchManager.IsMatchActive(lobbyId))
             {
-                RemoveFromLobby(playerId);
+                RemoveFromLobby(playerId, matchManager);
             }
             else if (matchManager.GetActives(lobbyId).Count <= 0) 
             {
-                RemoveLobby(playerId);
+                RemoveLobby(playerId, matchManager);
             }
             responseData.Message = $"{playerId} disconnected.";
             _sockets.TryRemove(playerId, out _);
@@ -186,7 +186,7 @@ public class ConnectionManager
         _connectionToLobby.TryAdd(connectionId, lobbyId);
     }
 
-    public void RemoveFromLobby(string connectionId)
+    public void RemoveFromLobby(string connectionId, MatchManager matchManager)
     {
         if (_connectionToLobby.TryRemove(connectionId, out string? lobbyId))
         {
@@ -196,6 +196,8 @@ public class ConnectionManager
                 if (lobbyConnections.IsEmpty)
                 {
                     _lobbies.TryRemove(lobbyId, out _);
+                    _lobbyHosts.TryRemove(lobbyId, out _);
+                    matchManager.EndMatch(lobbyId);
                     Console.WriteLine($"Lobby {lobbyId} is empty and was destroyed.");
                 }
             }
@@ -215,7 +217,7 @@ public class ConnectionManager
         else
         {
             // Bot player
-            RemoveFromLobby(connectionId);
+            RemoveFromLobby(connectionId, matchManager);
             
             var leaveMessage = new NetworkMessage
             {
@@ -227,7 +229,7 @@ public class ConnectionManager
         }
     }
 
-    public void RemoveLobby(string connectionId)
+    public void RemoveLobby(string connectionId, MatchManager matchManager)
     {
         if(!_connectionToLobby.TryRemove(connectionId, out string? lobbyId)) {
             return;
@@ -240,7 +242,8 @@ public class ConnectionManager
             foreach(var player in lobbyConnections.Keys) {
                 _connectionToLobby.TryRemove(player,out _);
             }
-            _lobbies.TryRemove(lobbyId, out _);
+            _lobbyHosts.TryRemove(lobbyId, out _);
+            matchManager.EndMatch(lobbyId);
             Console.WriteLine($"Lobby {lobbyId} is empty and was destroyed.");
         }
     }
