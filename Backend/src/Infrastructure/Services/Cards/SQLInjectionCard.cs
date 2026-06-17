@@ -7,29 +7,31 @@ public class SQLInjectionCard : ICardEffect
 {
     public string CardId => "sql";
 
-    public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
+    public DataInfo ApplyEffect(GameState match, string playerId, DataInfo cardData)
     {
         // TODO: Write the actual logic
         var responseData = new DataInfo{
             CardId = CardId
         };
 
-        if (!matchState.PlayerIds.Contains(cardData.Target)){
+        if (!match.PlayerIds.Contains(cardData.Target)){
             responseData.Error = $"{cardData.Target} not in game.";
             return responseData;
         }
 
-        matchState.CurrentTurnPlayerId = cardData.Target;
-        matchState.NTurns = 2;
+        match.NTurns = 2;
+        match.PlayerHands[playerId].Remove(CardId);
+        match.CurrentTurnPlayerId = cardData.Target;
 
-        if (matchState.PlayerHands.ContainsKey(playerId))
+        // Standard Cleanup
+        if (match.PlayerHands.ContainsKey(playerId))
         {
-            matchState.PlayerHands[playerId].Remove(CardId);
+            match.PlayerHands[playerId].Remove(CardId);
         }
 
         responseData.NextPlayer = cardData.Target;
-        responseData.Turns = matchState.NTurns;
-        responseData.Message = $"{playerId} launched an SQL Injection! {cardData.Target} must play {matchState.NTurns} turns.";
+        responseData.Turns = match.NTurns;
+        responseData.Message = $"{playerId} launched a DDos attack! {cardData.Target} must play {match.NTurns} turns.";
 
         return responseData;
     }

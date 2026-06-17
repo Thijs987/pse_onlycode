@@ -52,6 +52,11 @@ public class ConnectionManager
         if (rejoin == true)
         {
             matchManager.Rejoin(playerId);
+            var responseData = new DataInfo{
+                Cards = matchManager.GetPlayerHand(lobbyId,playerId)
+            };
+            var response = router.MakeMessage("HAND", playerId, responseData);
+            await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(response));
             Console.WriteLine($"Socket Connected: {playerId} rejoined Lobby {lobbyId}");
             action = "PLAYER_REJOINED";
             message = $"{playerId} has rejoined the game!";
@@ -129,8 +134,10 @@ public class ConnectionManager
         }
         finally
         {
-            RemoveFromLobby(playerId);
-            var responseData = matchManager.RemoveFromMatch(playerId, "", PlayerStatus.Disconnected);
+            var responseData = matchManager.Disconnect(playerId);
+            if (matchManager.GetActives(lobbyId).Count <= 0) {
+                RemoveLobby(playerId);
+            }
             responseData.Message = $"{playerId} disconnected.";
             _sockets.TryRemove(playerId, out _);
 
@@ -195,7 +202,6 @@ public class ConnectionManager
         {
             // Bot player
             RemoveFromLobby(connectionId);
-            matchManager.RemoveFromMatch(connectionId, "", PlayerStatus.Disconnected);
             
             var leaveMessage = new NetworkMessage
             {
@@ -204,6 +210,23 @@ public class ConnectionManager
                 Data = new DataInfo { Message = $"{connectionId} was kicked." }
             };
             await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
+        }
+    }
+
+    public void RemoveLobby(string connectionId)
+    {
+        if(!_connectionToLobby.TryRemove(connectionId, out string? lobbyId)) {
+            return;
+        }
+        if (string.IsNullOrEmpty(lobbyId)) {
+            return;
+        }
+        if (_lobbies.TryRemove(lobbyId, out var lobbyConnections))
+        {
+            foreach(var player in lobbyConnections.Keys) {
+                _connectionToLobby.TryRemove(player,out _);
+            }
+            Console.WriteLine($"Lobby {lobbyId} is empty and was destroyed.");
         }
     }
 

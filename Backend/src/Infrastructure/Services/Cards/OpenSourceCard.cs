@@ -7,22 +7,22 @@ public class OpenSourceCard : ICardEffect
 {
     public string CardId => "os";
 
-    public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
+    public DataInfo ApplyEffect(GameState match, string playerId, DataInfo cardData)
     {
         if (cardData.Target == "view")
         {
             // Look at bottom card
-            if (matchState.Deck.Count == 0) return new DataInfo { Error = "Deck is empty!" };
+            if (match.Deck.Count == 0) return new DataInfo { Error = "Deck is empty!" };
 
-            if (matchState.PlayerHands.ContainsKey(playerId))
+            if (match.PlayerHands.ContainsKey(playerId))
             {
-                matchState.PlayerHands[playerId].Remove(CardId);
+                match.PlayerHands[playerId].Remove(CardId);
             }
 
-            matchState.PendingAction = CardId;
-            matchState.PendingActionPlayerId = playerId;
+            match.PendingAction = CardId;
+            match.PendingActionPlayerId = playerId;
 
-            string bottomCard = matchState.Deck.Last();
+            string bottomCard = match.Deck.Last();
 
             return new DataInfo
             {
@@ -35,48 +35,48 @@ public class OpenSourceCard : ICardEffect
         else if (cardData.Target == "take" || cardData.Target == "top")
         {
             // Resolve choice
-            if (matchState.PendingAction != CardId || matchState.PendingActionPlayerId != playerId)
+            if (match.PendingAction != CardId || match.PendingActionPlayerId != playerId)
             {
                 return new DataInfo { Error = "Not resolving Open Source card!" };
             }
 
-            if (matchState.Deck.Count == 0) return new DataInfo { Error = "Deck is empty!" };
+            if (match.Deck.Count == 0) return new DataInfo { Error = "Deck is empty!" };
 
-            string bottomCard = matchState.Deck.Last();
-            matchState.Deck.RemoveAt(matchState.Deck.Count - 1);
+            string bottomCard = match.Deck.Last();
+            match.Deck.RemoveAt(match.Deck.Count - 1);
 
             if (cardData.Target == "take")
             {
-                if (matchState.PlayerHands.ContainsKey(playerId))
+                if (match.PlayerHands.ContainsKey(playerId))
                 {
-                    matchState.PlayerHands[playerId].Add(bottomCard);
+                    match.PlayerHands[playerId].Add(bottomCard);
                 }
             }
             else if (cardData.Target == "top")
             {
-                matchState.Deck.Insert(0, bottomCard);
+                match.Deck.Insert(0, bottomCard);
             }
 
             // Clear pending action
-            matchState.PendingAction = string.Empty;
-            matchState.PendingActionPlayerId = string.Empty;
+            match.PendingAction = string.Empty;
+            match.PendingActionPlayerId = string.Empty;
 
             // End turn
-            matchState.NTurns--;
-            if (matchState.NTurns <= 0)
+            match.NTurns--;
+            if (match.NTurns <= 0)
             {
-                int currentIndex = matchState.PlayerIds.IndexOf(playerId);
-                int nextIndex = (currentIndex + 1) % matchState.PlayerIds.Count;
-                matchState.CurrentTurnPlayerId = matchState.PlayerIds[nextIndex];
-                matchState.NTurns = 1;
+                int currentIndex = match.PlayerIds.IndexOf(playerId);
+                int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
+                match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
+                match.NTurns = 1;
             }
 
             return new DataInfo
             {
                 CardId = CardId,
                 Target = cardData.Target,
-                NextPlayer = matchState.CurrentTurnPlayerId,
-                Turns = matchState.NTurns,
+                NextPlayer = match.CurrentTurnPlayerId,
+                Turns = match.NTurns,
                 Message = $"{playerId} resolved Open Source by choosing '{cardData.Target}'"
             };
         }

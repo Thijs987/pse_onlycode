@@ -88,13 +88,19 @@ public class MessageRouter
                     var players = connectionManager.GetPlayers(lobbyId);
 
                     GameState newState = matchManager.StartNewMatch(lobbyId, players);
-                    responseData = new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
+                    if(newState.Deck.Count == 0) {
+                        responseData = new DataInfo {Message = "incorrect card configuration"};
+                        response = MakeMessage("ERROR", playerId, responseData);
+                        await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
+                    } else {
+                        responseData = new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
 
-                    foreach (var player in players)
-                    {
-                        responseData.Cards = newState.PlayerHands[player];
-                        response = MakeMessage("MATCH_STARTED", player, responseData);
-                        await connectionManager.SendMessageAsync(player, SerializeMsg(response));
+                        foreach (var player in players)
+                        {
+                            responseData.Cards = newState.PlayerHands[player];
+                            response = MakeMessage("MATCH_STARTED", player, responseData);
+                            await connectionManager.SendMessageAsync(player, SerializeMsg(response));
+                        }
                     }
 
                     // If the first player up is a bot, let it play immediately.
@@ -113,17 +119,37 @@ public class MessageRouter
                     {
                         // If the move was valid, broadcast the result to EVERYONE in the game
 
-                        response = MakeMessage("CARD_PLAYED", playerId, responseData);
-                        if (responseData.CardId == "imp")
-                        {
+
+                        List <string> specialCards = new List <string> {"goto", "vibe", "inf", "nocom"};
+
+                        var action = "CARD_PLAYED";
+
+                        response = MakeMessage(action, playerId, responseData);
+                        if (responseData.CardId == "imp") {
                             await Next_player(lobbyId, playerId, "0", connectionManager, matchManager);
                         }
                         else if (responseData.IsPrivate == true)
                         {
                             await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         }
-                        else
-                        {
+                        else if (specialCards.Contains(responseData.CardId)) {
+                            var dataBroad = new DataInfo {
+                                Target = responseData.Target,
+                                Cards = responseData.Cards
+                            };
+                            var broadMessage = MakeMessage(action,playerId, dataBroad);
+                            await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
+                            await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
+                        } else if (responseData.CardId == "trojan") {
+                            var dataBroad = new DataInfo {
+                                CardId = responseData.CardId,
+                                Target = responseData.Target
+                            };
+                            var broadMessage = MakeMessage(action,playerId, dataBroad);
+                            await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
+                            await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
+                        }
+                        else {
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
 
@@ -214,8 +240,17 @@ public class MessageRouter
             await connectionManager.SendMessageAsync(playerId, SerializeMsg(errorMessage));
         }
 
-        if (end.Message == "Removed")
-        {
+        if(newLimit == "1") {
+            var deck_size = matchManager.GetDeckSize(lobbyId);
+            var message = new DataInfo {
+                Message = $"{deck_size}"
+                };
+            var limitMessage = MakeMessage("DECK_SIZE", playerId,message);
+            //broadcast remove player
+            await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(limitMessage));
+        }
+
+        if (end.Message == "Removed") {
             var endPlayerMessage = MakeMessage("CARD_LIMIT", playerId, end);
             //broadcast remove player
             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(endPlayerMessage));

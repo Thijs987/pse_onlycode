@@ -7,7 +7,7 @@ public class MergeConflictCard : ICardEffect
 {
     public string CardId => "merge";
 
-    public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
+    public DataInfo ApplyEffect(GameState match, string playerId, DataInfo cardData)
     {
         // Standard Cleanup
         var responseData = new DataInfo{

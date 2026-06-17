@@ -2,5 +2,6 @@ public enum PlayerStatus
 {
     Active,
     Eliminated,
-    Disconnected
+    DisconnectedEliminated,
+    DisconnectedActive
 }
