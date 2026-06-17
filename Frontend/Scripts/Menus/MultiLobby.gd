@@ -52,13 +52,9 @@ func _ready() -> void:
 	gscws.lobby_joined.connect(_on_lobby_joined_success)
 	gscws.lobby_left.connect(_on_lobby_left)
 
-func _on_add_bot():
-	controller.Add_Bot()
-
 	update_views()
 
 	controller.Get_Lobbies()
-	gscws.lobby_left.connect(_on_lobby_left)
 
 func _on_add_bot():
 	controller.Add_Bot()
@@ -77,14 +73,6 @@ func _on_lobby_left() -> void:
 	update_lobby_list()
 	update_views()
 	controller.Get_Lobbies()
-
-func _on_lobby_left() -> void:
-	in_lobby.text = "Not in lobby"
-	in_lobby_state = false
-	created_lobby = false
-	player_count = 0
-	player_list = ["", "", "", ""]
-	update_lobby_list()
 
 func _on_message(msg):
 	if msg["action"] == "MATCH_STARTED" and match_started == false:
