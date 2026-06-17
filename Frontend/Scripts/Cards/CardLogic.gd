@@ -129,9 +129,11 @@ func sql_attack() -> String:
 # Checks if you have a second blanco card
 func has_another_blanco(card_type: String) -> bool:
 	var count = 0
+	var blanco = ["nocom", "goto", "inf", "vibe"]
 	for c in hand_reference.player_hand:
 		if c.own_card_id == card_type or c.own_card_id == "nocom":
 			count += 1
+		else if c.own_card_id == card_type and 
 	return count >= 2
 
 
