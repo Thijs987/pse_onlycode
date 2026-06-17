@@ -33,19 +33,19 @@ func _newturn(player):
 
 ### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
-#	if controller.interaction_disabled:
-#		return
-#	if discard_pile == null:
-#		print("Error: DiscardPile node not found!")
-#		return
-#	var discard_area = discard_pile.get_node_or_null("DiscardPileArea")
-#	if discard_area == null:
-#		print("Error: DiscardPileArea node not found!")
-#		return
-	var discard_area = discard_pile.get_node("DiscardPileArea")
-	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
+	if controller.interaction_disabled:
+		return
+	if discard_pile == null:
+		print("Error: DiscardPile node not found!")
+		return
+	var discard_area = discard_pile.get_node_or_null("DiscardPileArea")
+	if discard_area == null:
+		print("Error: DiscardPileArea node not found!")
+		return
 
-	if discard_area.overlaps_area(card.get_node("Area2D")) and turn == true:
+#	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
+
+	if discard_area.overlaps_area(card.get_node("Area2D")) and turns == controller.PId:
 		card.movable = false
 
 		highlight_card(card, false)
