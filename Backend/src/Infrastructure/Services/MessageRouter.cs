@@ -274,22 +274,22 @@ public class MessageRouter
     // private async Task DriveBotsAsync(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
     private async Task BotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
     {
+        // The bot has to wait before playing for a race condition.
+        // If the bot has the first turn in the match, playing too fast will mess up the playerhand.gd _ready because of multiple messages.
+        await Task.Delay(1500);
         // Don't drive bots if there's no human left to play against,
         // otherwise bots would pass the turn among themselves forever.
         var current = matchManager.GetCurrentTurnPlayer(lobbyId);
-        Console.WriteLine($"Current before{current}");
         while (lobbyHasHuman(lobbyId, connectionManager, matchManager) && !string.IsNullOrEmpty(current) && _botService.IsBot(current))
         {
             await Task.Delay(500);
             await _botService.BotPlayCard(lobbyId, current);
-            Console.WriteLine($"Current During{current}");
             // If the current turn player did not change and there is not a pending action.
             if (current == matchManager.GetCurrentTurnPlayer(lobbyId) && string.IsNullOrEmpty(matchManager.GetPendingAction(lobbyId, current)))
             {
                 await _botService.DrawCard(lobbyId, current);
             }
             current = matchManager.GetCurrentTurnPlayer(lobbyId);
-            Console.WriteLine($"Current After{current}");
         }
 
         // TODO: remove lobby of bots
