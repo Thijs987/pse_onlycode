@@ -275,6 +275,7 @@ public class MessageRouter
                 var gameOverMessage = MakeMessage("GAME_OVER", winnerId, winnerData);
                 await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(gameOverMessage));
                 matchManager.EndMatch(lobbyId);
+                botService.CleanUpLobby(lobbyId);
                 return; // Stop broadcasting NEXT_TURN
             }
         }

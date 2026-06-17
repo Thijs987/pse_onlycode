@@ -669,6 +669,7 @@ public class MatchManager
         return match.Deck.Count;
     }
 
+    // Removes a match from active tracking to prevent memory leaks when a game ends or is abandoned
     public void EndMatch(string matchId)
     {
         if (_activeMatches.TryRemove(matchId, out _))

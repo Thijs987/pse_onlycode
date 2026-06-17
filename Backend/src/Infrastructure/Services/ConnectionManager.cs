@@ -144,6 +144,7 @@ public class ConnectionManager
             else if (matchManager.GetActives(lobbyId).Count <= 0) 
             {
                 RemoveLobby(playerId, matchManager);
+                router.botService.CleanUpLobby(lobbyId);
             }
             responseData.Message = $"{playerId} disconnected.";
             _sockets.TryRemove(playerId, out _);
