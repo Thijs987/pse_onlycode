@@ -45,7 +45,7 @@ func play_card(card):
 		print("Error: DiscardPileArea node not found!")
 		return
 
-	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
+	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turn:
 		card.movable = false
 
 		highlight_card(card, false)
