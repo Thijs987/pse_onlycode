@@ -36,13 +36,11 @@ public class MatchManager
             newState.PlayerStatuses[player] = PlayerStatus.Active;
         }
 
-        if (data.Cards.Count != 15) {
-            Console.WriteLine($"Match {matchId} initialization failed!");
-            newState.Deck = new List<string>{};
-            return newState;
-        }
-
         var pileCards = new List <int> {};
+
+        if (data.Cards.Count != 15) {
+            pileCards = new List <int> {4,4,4,2,0,4,2,4,2,4,2,2,2,2,2};
+        }
 
         foreach(var card in data.Cards) {
             int x;
