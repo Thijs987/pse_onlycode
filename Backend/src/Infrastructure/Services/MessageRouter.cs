@@ -298,6 +298,7 @@ public class MessageRouter
 
     public async Task CheckBotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager, DataInfo responseData)
     {
+        Console.WriteLine(botService.IsBot(responseData.NextPlayer, lobbyId));
         // If the turn now lands on a bot.
         if (botService.IsBot(responseData.NextPlayer, lobbyId))
         {
