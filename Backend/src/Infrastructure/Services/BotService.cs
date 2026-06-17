@@ -86,7 +86,19 @@ public class BotService
         return botId;
     }
 
-    public bool RemoveBot(string botId) => _bots.TryRemove(botId, out _);
+    public bool RemoveBot(string lobbyId, string botId)
+    {
+        if (_bots.TryGetValue(lobbyId, out var bots))
+        {
+            bots.Remove(botId);
+            _bots[lobbyId] = bots;
+            return true;
+        } else
+        {
+            return false;
+        }
+    }
+
 
     // True when the given player id belongs to a bot.
     public bool IsBot(string playerId, string lobbyId)

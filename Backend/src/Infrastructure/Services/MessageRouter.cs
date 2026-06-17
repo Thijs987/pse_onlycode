@@ -76,7 +76,7 @@ public class MessageRouter
                     {
                         if (botService.IsBot(target, lobbyId))
                         {
-                            botService.RemoveBot(target);
+                            botService.RemoveBot(lobbyId, target);
                         }
                         await connectionManager.KickPlayerAsync(target, lobbyId, matchManager);
                     }
