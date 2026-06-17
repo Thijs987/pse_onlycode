@@ -33,7 +33,6 @@ func _newturn(player):
 	if player != null:
 		turns = player
 
-### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
 	if controller.interaction_disabled:
 		return
@@ -56,39 +55,39 @@ func play_card(card):
 		var blanco = ["nocom", "goto", "inf", "vibe"]
 
 		if current_id in blanco:
-			if first_combo_card == null: # EERSTE BLANCO KAART
+			if first_combo_card == null: # First blanco card played
 				if has_another_blanco(current_id):
 					print("Eerste combo-kaart geselecteerd: ", current_id)
 					first_combo_card = card
-					
-					# Visuele feedback: zet de kaart bijvoorbeeld een stukje omhoog
+
+					# Place the card visually
 					first_combo_card.position.y -= 30
-					first_combo_card.position.x -= 100
-					first_combo_card.movable = false # Zorg dat je deze niet nogmaals kunt slepen
-					
+					first_combo_card.position.x -= 200
+					first_combo_card.movable = false
+
 					return true
 				else:
-					print("Je hebt geen andere blanco kaart in je hand om een combo te maken!")
+					print("You dont have a second blanco card")
 					card.movable = true
 					return false
-			else: # TWEEDE BLANCO KAART
+			else: # Second blanco card
 				# Checks if type matches or at least 1 card is a nocom
 				if current_id == first_combo_card.own_card_id or current_id == "nocom" or first_combo_card.own_card_id == "nocom":
 					played_cards = [first_combo_card.own_card_id, current_id]
 					print("Geldige combo gemaakt! Versturen naar server: ", played_cards)
 					
-					# Haal nu pas BEIDE kaarten definitief uit de hand en de game
+					# Play both cards
 					hand_reference.remove_card_from_hand(first_combo_card)
 					hand_reference.remove_card_from_hand(card)
-					
+
 					first_combo_card.queue_free()
 					card.queue_free()
+
+					first_combo_card = null # Reset combo flag
 					
-					first_combo_card = null # Reset de combo-vlag voor de volgende keer
-					
-					# TODO: Als je combo een target nodig heeft (zoals SQL), kun je hier target_id ophalen
+					# Select target is a TODO
 				else:
-					print("Ongeldige combo! Kaart moet van hetzelfde type zijn of een 'no comment'.")
+					print("Bad combo, cards need to be of same type or 1 has to be nocom")
 					card.movable = true
 					return false
 
@@ -131,9 +130,9 @@ func sql_attack() -> String:
 func has_another_blanco(card_type: String) -> bool:
 	var count = 0
 	for c in hand_reference.player_hand:
-		if c.own_card_id == card_type:
+		if c.own_card_id == card_type or c.own_card_id == "nocom":
 			count += 1
-	return count >= 1
+	return count >= 2
 
 
 # Starts dragging of current card under mouse.
@@ -141,6 +140,13 @@ func has_another_blanco(card_type: String) -> bool:
 func start_dragging(card):
 	if controller.interaction_disabled:
 		return
+		
+	if first_combo_card != null: # Player played a blanco card
+		var blanco = ["nocom", "goto", "inf", "vibe"]
+		if not card.own_card_id in blanco:
+			print("Play a blanco card!")
+			return
+
 	card.scale = Vector2(1.0, 1.0)
 	dragging_card = card
 	card.z_index = 99 # Above all other cards

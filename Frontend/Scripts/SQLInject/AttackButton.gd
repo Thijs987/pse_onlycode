@@ -12,5 +12,4 @@ func setup_box(player_name: String) -> void:
 	target_player_id = player_name
 
 func _on_pressed() -> void:
-	# Schiet ons eigen signaal af mét het opgeslagen ID erbij
 	button_clicked.emit(target_player_id)
