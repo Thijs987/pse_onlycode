@@ -23,7 +23,7 @@ public class MatchManager
         }
     }
 
-    public GameState StartNewMatch(string matchId, List<string> players)
+    public GameState StartNewMatch(string matchId, List<string> players, DataInfo data)
     {
         var newState = new GameState
         {
@@ -36,23 +36,59 @@ public class MatchManager
             newState.PlayerStatuses[player] = PlayerStatus.Active;
         }
 
+        if (data.Cards.Count != 15) {
+            Console.WriteLine($"Match {matchId} initialization failed!");
+            newState.Deck = new List<string>{};
+            return newState;
+        }
+
+        var pileCards = new List <int> {};
+
+        foreach(var card in data.Cards) {
+            int x;
+
+            if (!Int32.TryParse(card, out x))
+            {
+                Console.WriteLine($"Match {matchId} initialization failed!");
+                newState.Deck = new List<string>{};
+                return newState;
+            }
+            pileCards.Add(x);
+        }
+
         var allCards = new Dictionary<string, int>()
         {
-            {"blue", 0},
-            {"cm", 0},
-            {"ddos", 0},
-            {"err", 0},
-            {"garb", 0},
-            {"goto", 20},
-            {"imp", 0},
-            {"inf", 0},
-            {"merge", 0},
-            {"miracle", 0},
-            {"nocom", 0},
-            {"sql", 0},
-            {"trojan", 0},
-            {"vibe", 0},
-            {"test", 0}
+            // {"blue", 0},
+            // {"cm", 0},
+            // {"ddos", 0},
+            // {"err", 0},
+            // {"garb", 0},
+            // {"goto", 20},
+            // {"imp", 0},
+            // {"inf", 0},
+            // {"merge", 0},
+            // {"miracle", 0},
+            // {"nocom", 0},
+            // {"sql", 0},
+            // {"trojan", 0},
+            // {"vibe", 0},
+            // {"test", 0}
+
+            {"blue", pileCards[0]},
+            {"cm", pileCards[1]},
+            {"ddos", pileCards[2]},
+            {"err", pileCards[3]},
+            {"garb", pileCards[4]},
+            {"goto", pileCards[5]},
+            {"imp", pileCards[6]},
+            {"inf", pileCards[7]},
+            {"merge", pileCards[8]},
+            {"miracle", pileCards[9]},
+            {"nocom", pileCards[10]},
+            {"sql", pileCards[11]},
+            {"trojan", pileCards[12]},
+            {"vibe", pileCards[13]},
+            {"test", pileCards[14]}
         };
 
         foreach (var card in allCards)
@@ -67,9 +103,10 @@ public class MatchManager
 
         int size = newState.Deck.Count;
         int impcards = newState.Deck.Count(card => card == "imp");
+        int playerCount = players.Count;
 
-
-        if ((size-impcards) < (players.Count*initialHandSize)) {
+        if ((size-impcards) < (playerCount*initialHandSize) ||
+            size < ((newState.CardLimit+1)*playerCount)) {
             Console.WriteLine($"Match {matchId} initialization failed!");
             newState.Deck = new List<string>{};
             return newState;

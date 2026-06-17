@@ -41,7 +41,7 @@ public class MessageRouter
                     // Changed matchId to lobbyId
                     var players = connectionManager.GetPlayers(lobbyId);
 
-                    GameState newState = matchManager.StartNewMatch(lobbyId, players);
+                    GameState newState = matchManager.StartNewMatch(lobbyId, players, data);
                     if(newState.Deck.Count == 0) {
                         responseData = new DataInfo {Message = "incorrect card configuration"};
                         response = MakeMessage("ERROR", playerId, responseData);
@@ -84,7 +84,8 @@ public class MessageRouter
                         {
                             await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         }
-                        else if (specialCards.Contains(responseData.CardId)) {
+
+                        if (specialCards.Contains(responseData.CardId)) {
                             var dataBroad = new DataInfo {
                                 Target = responseData.Target,
                                 Cards = responseData.Cards
