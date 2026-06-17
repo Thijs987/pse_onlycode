@@ -3,6 +3,7 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
+// TODO: broadcast of which cards where played
 public class GoToCard : ICardEffect
 {
     public string CardId => "goto";
