@@ -126,11 +126,13 @@ public class BotService
         var pendingAction = _matchManager.GetPendingAction(lobbyId, botId);
         if (!string.IsNullOrEmpty(pendingAction))
         {
+            Console.WriteLine($"in bpc pending if '{pendingAction}'");
             if (pendingAction == "os")
             {
+                Console.WriteLine("in os if");
                 var target = _random.Next(2) == 0 ? "take" : "top";
                 var responseData = _matchManager.TryPlayCard(lobbyId, botId, new DataInfo { CardId = "os", Target = target });
-                if (responseData.Error == "")
+                if (string.IsNullOrEmpty(responseData.Error))
                 {
                     await SendCardPlayed(lobbyId, botId, responseData);
                 }
@@ -170,6 +172,7 @@ public class BotService
                 await SendCardPlayed(lobbyId, botId, responseData);
 
                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
+                    Console.WriteLine("Imp end if");
                     return;
             }
         }
@@ -218,6 +221,7 @@ public class BotService
                 // Go back to the loop in MessageRouter.
                 // That will give the turn back to this bot for PendingAction handling or give turn to next one.
                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || !string.IsNullOrEmpty(_matchManager.GetPendingAction(lobbyId, botId)))
+                    Console.WriteLine("End if");
                     break;
 
             }
@@ -261,85 +265,6 @@ public class BotService
 
         return playableCards;
     }
-
-    // public async Task ProcessBotTurnAsync(string lobbyId, string botId)
-    // {
-    //     await Task.Delay(1500);
-
-    //     var pendingAction = _matchManager.GetPendingAction(lobbyId, botId);
-    //     if (!string.IsNullOrEmpty(pendingAction))
-    //     {
-    //         if (pendingAction == "os")
-    //         {
-    //             var target = _random.Next(2) == 0 ? "take" : "top";
-    //             var responseData = _matchManager.TryPlayCard(lobbyId, botId, new DataInfo { CardId = "os", Target = target });
-    //             if (responseData.Error == "")
-    //             {
-    //                 await SendCardPlayed(lobbyId, botId, responseData);
-    //             }
-    //         }
-    //         return;
-    //     }
-
-    //     var hand = _matchManager.GetPlayerHand(lobbyId, botId);
-
-    //     bool playedCard = true;
-    //     while (playedCard)
-    //     {
-    //         playedCard = false;
-
-    //         // For imp:
-    //         // No cards => CardId="imp", Cards=[]
-    //         // Discard => CardId=DiscardCard, Cards=["imp", DiscardCard]
-    //         if (hand.Contains("imp"))
-    //         {
-    //             var cardToDiscard = hand.FirstOrDefault(c => c != "imp", "");
-    //             var cardData = new DataInfo { CardId = "imp" };
-    //             if (cardToDiscard != null)
-    //             {
-    //                 cardData.CardId = cardToDiscard;
-    //                 cardData.Cards = new List<string> { "imp", cardToDiscard};
-    //             }
-
-    //             // Does the Imp go through TryPlayCard?
-    //             var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
-    //             if (responseData.Error == "")
-    //             {
-    //                 await SendCardPlayed(lobbyId, botId, responseData);
-
-    //                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
-    //                     return;
-
-    //                 playedCard = true;
-    //                 await Task.Delay(1500);
-    //                 continue;
-    //             }
-    //         }
-
-    //         foreach (var cardId in hand.Distinct().ToList())
-    //         {
-    //             if (cardId == "imp") continue;
-
-    //             var cardData = BuildCardData(lobbyId, botId, cardId, hand);
-    //             if (cardData == null) continue;
-
-    //             var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
-    //             if (responseData.Error == "")
-    //             {
-    //                 await SendCardPlayed(lobbyId, botId, responseData);
-
-    //                 if (_matchManager.GetCurrentTurnPlayer(lobbyId) != botId || _matchManager.GetPendingAction(lobbyId, botId) != "")
-    //                     return;
-
-    //                 playedCard = true;
-    //                 await Task.Delay(1500);
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     await DrawCard(lobbyId, botId);
-    // }
 
     // Builds the DataInfo needed to attempt playing cardId, or null if the bot
     // can't satisfy that card's requirements (target/combo) right now.

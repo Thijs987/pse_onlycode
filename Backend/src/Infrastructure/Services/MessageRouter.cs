@@ -322,7 +322,9 @@ public class MessageRouter
         while (lobbyHasHuman(lobbyId, connectionManager, matchManager) && !string.IsNullOrEmpty(current) && botService.IsBot(current, lobbyId))
         {
             await Task.Delay(500);
+            Console.WriteLine($"Pending action: {matchManager.GetPendingAction(lobbyId, current)}");
             await botService.BotPlayCard(lobbyId, current);
+            Console.WriteLine($"Current: {matchManager.GetCurrentTurnPlayer(lobbyId)}");
             // If the current turn player did not change and there is not a pending action.
             if (current == matchManager.GetCurrentTurnPlayer(lobbyId) && string.IsNullOrEmpty(matchManager.GetPendingAction(lobbyId, current)))
             {
@@ -332,17 +334,5 @@ public class MessageRouter
         }
 
         // TODO: remove lobby of bots
-        // TODO normal turn procs drawcard and thus only plays one card.
-        // But why? There is a foreach loop in botservice.botplaycard.
-        // This should keep it in there and play everyuthing playable.
     }
-    //     private async Task BotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
-    //     {
-    //         var current = matchManager.GetCurrentTurnPlayer(lobbyId);
-    //         while (botService.hasHuman() && !string.IsNullOrEmpty(current) && botService.IsBot(current))
-    //         {
-    //             await botService.ProcessBotTurnAsync(lobbyId, current);
-    //             current = matchManager.GetCurrentTurnPlayer(lobbyId);
-    //         }
-    //     }
 }
