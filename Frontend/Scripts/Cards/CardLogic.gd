@@ -101,6 +101,8 @@ func play_card(card):
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
 			target_id = await sql_attack()
+			data = {cardId = current_id,
+					target = target_id}
 
 		else:
 			hand_reference.remove_card_from_hand(card)

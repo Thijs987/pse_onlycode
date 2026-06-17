@@ -59,10 +59,10 @@ public class MatchManager
         {
             {"blue", 0},
             {"cm", 0},
-            {"ddos", 0},
+            {"ddos", 20},
             {"err", 0},
             {"garb", 0},
-            {"goto", 20},
+            {"goto", 0},
             {"imp", 0},
             {"inf", 0},
             {"merge", 0},

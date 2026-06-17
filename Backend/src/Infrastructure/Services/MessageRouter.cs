@@ -132,7 +132,7 @@ public class MessageRouter
                         {
                             await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         }
-                        
+
                         if (specialCards.Contains(responseData.CardId)) {
                             var dataBroad = new DataInfo {
                                 Target = responseData.Target,
@@ -151,7 +151,6 @@ public class MessageRouter
                             await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
                         }
                         else if (responseData.IsPrivate == false) {
-                            
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
 

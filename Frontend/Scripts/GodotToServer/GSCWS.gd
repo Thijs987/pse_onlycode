@@ -133,10 +133,11 @@ func _handle_message(text: String):
 
 		"CARD_PLAYED":
 			#print("CP")
-			card_played.emit(
-				msg["playerId"],
-				msg["data"]["cardId"]
-			)
+			#card_drawn.emit(
+				#msg["data"]["target"],
+				#1
+			#)
+			pass
 
 		"CARD_DRAWN":
 			#print("CD")
