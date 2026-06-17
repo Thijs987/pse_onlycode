@@ -1,0 +1,200 @@
+[gd_scene format=3 uid="uid://bdxchheqi80lr"]
+
+[ext_resource type="Script" uid="uid://bhv02iytie5b3" path="res://Scripts/Menus/MultiLobby.gd" id="1_tj0e8"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_q72hu"]
+font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
+
+[node name="MultiLobby" type="Control" unique_id=1520286451 node_paths=PackedStringArray("create_lobby_button", "join_lobby_button", "start_lobby_button")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_tj0e8")
+game_scene = &"uid://qekpyka670e2"
+create_lobby_button = NodePath("BrowserView/VBoxContainer/HBoxContainer/CreateLobby")
+join_lobby_button = NodePath("BrowserView/VBoxContainer/HBoxContainer4/JoinLobby")
+start_lobby_button = NodePath("InLobbyView/HBoxContainer5/StartLobby")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.9217038, 0.9217038, 0.9217038, 1)
+
+[node name="BrowserView" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="InLobbyView" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="BrowserView" unique_id=1959023052]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -23.0
+offset_bottom = 23.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="InLobbyView"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 50.0
+offset_right = 100.0
+offset_bottom = 100.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="CurrentlyInLobby" type="Label" parent="InLobbyView/HBoxContainer2" unique_id=931800321]
+layout_mode = 2
+text = "Not in lobby"
+label_settings = SubResource("LabelSettings_q72hu")
+horizontal_alignment = 1
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="BrowserView/VBoxContainer" unique_id=294298922]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="LineEdit" type="LineEdit" parent="BrowserView/VBoxContainer/HBoxContainer3" unique_id=1274674973]
+custom_minimum_size = Vector2(200, 40)
+layout_mode = 2
+placeholder_text = "Lobby id"
+alignment = 1
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="BrowserView/VBoxContainer" unique_id=1678212418]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="JoinLobby" type="Button" parent="BrowserView/VBoxContainer/HBoxContainer4" unique_id=189700080]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Join lobby"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="BrowserView/VBoxContainer" unique_id=711806622]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="CreateLobby" type="Button" parent="BrowserView/VBoxContainer/HBoxContainer" unique_id=1151753198]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Create lobby"
+
+[node name="MainMenuHBox" type="HBoxContainer" parent="BrowserView/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="MainMenuButton" type="Button" parent="BrowserView/VBoxContainer/MainMenuHBox"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Back"
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="InLobbyView"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = 50.0
+offset_right = 100.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="StartLobby" type="Button" parent="InLobbyView/HBoxContainer5" unique_id=1364728254]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Start"
+
+[node name="PlayerList" type="Label" parent="InLobbyView"]
+layout_mode = 0
+offset_left = 842.0
+offset_top = 164.0
+offset_right = 1053.0
+offset_bottom = 187.0
+text = "current players"
+label_settings = SubResource("LabelSettings_q72hu")
+horizontal_alignment = 1
+
+[node name="LobbyItemList" type="ItemList" parent="BrowserView"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+anchor_top = 0.0
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 50.0
+offset_top = 50.0
+offset_right = 350.0
+offset_bottom = -150.0
+grow_vertical = 2
+
+[node name="RefreshButton" type="Button" parent="BrowserView"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 50.0
+offset_top = -100.0
+offset_right = 350.0
+offset_bottom = -50.0
+grow_vertical = 0
+text = "Refresh Lobbies"
+
+
+
+[node name="ErrorDialog" type="AcceptDialog" parent="BrowserView"]
+title = "Error"
+
+[node name="HBoxContainer6" type="HBoxContainer" parent="InLobbyView"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = 120.0
+offset_right = 100.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="LeaveLobby" type="Button" parent="InLobbyView/HBoxContainer6"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Back"

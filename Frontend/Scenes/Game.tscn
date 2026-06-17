@@ -1,0 +1,93 @@
+[gd_scene format=3 uid="uid://qekpyka670e2"]
+
+[ext_resource type="Texture2D" uid="uid://ddi0wy7qoyp4c" path="res://Sprites/Table.jpeg" id="1_71axn"]
+[ext_resource type="Script" uid="uid://bkjjiqdqugih7" path="res://Scripts/ClickLogic/Pile.gd" id="2_dahhg"]
+[ext_resource type="Texture2D" uid="uid://bglcmj03jm8lb" path="res://Sprites/Card_deck_sprite.png" id="3_3so38"]
+[ext_resource type="Script" uid="uid://uchns3vel8n1" path="res://Scripts/ClickLogic/DiscardPile.gd" id="4_3cx6b"]
+[ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://Scripts/Cards/CardLogic.gd" id="5_wxwew"]
+[ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://Scripts/Cards/PlayerHand.gd" id="6_acvyw"]
+[ext_resource type="Script" uid="uid://dis0yyp8e3chk" path="res://Scripts/ClickLogic/InputManager.gd" id="7_alh3a"]
+[ext_resource type="Script" uid="uid://br3mo8m8v4kiw" path="res://Scripts/GodotToServer/GSHTTP.gd" id="8_4q8tf"]
+[ext_resource type="Script" uid="uid://dg8okmsqxxyxb" path="res://Scripts/GodotToServer/GSCWS.gd" id="9_x3xnh"]
+[ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://Scripts/GodotToServer/Controller.gd" id="10_8r6kd"]
+[ext_resource type="Script" uid="uid://ltey2a6xnpbk" path="res://Scripts/Menus/GameUI.gd" id="11_gameui"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
+size = Vector2(89, 88)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_efxa6"]
+size = Vector2(421.5, 218)
+
+[node name="Game" type="Node2D" unique_id=1499448830]
+
+[node name="Background" type="Node2D" parent="." unique_id=234779892]
+
+[node name="Table" type="Sprite2D" parent="Background" unique_id=950271474]
+position = Vector2(575.99994, 270)
+scale = Vector2(2.1893203, 2.1893206)
+texture = ExtResource("1_71axn")
+
+[node name="TurnLabel" type="Label" parent="Background" unique_id=110888612]
+offset_left = 684.0
+offset_top = 184.0
+offset_right = 766.0
+offset_bottom = 207.0
+
+[node name="Pile" type="Node2D" parent="." unique_id=738463849]
+script = ExtResource("2_dahhg")
+
+[node name="PileArea" type="Area2D" parent="Pile" unique_id=1734952556]
+position = Vector2(579, 275)
+collision_mask = 2
+
+[node name="Pile" type="Sprite2D" parent="Pile/PileArea" unique_id=337770192]
+position = Vector2(-2.0000002, -150.00002)
+scale = Vector2(0.08100327, 0.08100327)
+texture = ExtResource("3_3so38")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Pile/PileArea" unique_id=875606098]
+position = Vector2(-4, -150)
+shape = SubResource("RectangleShape2D_1bvp3")
+
+[node name="CounterLabel" type="Label" parent="Pile/PileArea" unique_id=293749745]
+offset_left = 34.0
+offset_top = -131.0
+offset_right = 74.0
+offset_bottom = -108.0
+metadata/_edit_use_anchors_ = true
+
+[node name="DiscardPile" type="Node2D" parent="." unique_id=231680211]
+script = ExtResource("4_3cx6b")
+
+[node name="DiscardPileArea" type="Area2D" parent="DiscardPile" unique_id=1594361609]
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DiscardPile/DiscardPileArea" unique_id=403654840]
+position = Vector2(575.75, 128)
+shape = SubResource("RectangleShape2D_efxa6")
+
+[node name="DiscardPileLocation" type="Area2D" parent="DiscardPile" unique_id=2028668179]
+position = Vector2(436, 179)
+collision_layer = 8
+
+[node name="CardLogic" type="Node2D" parent="." unique_id=1659768658]
+script = ExtResource("5_wxwew")
+
+[node name="PlayerHand" type="Node2D" parent="." unique_id=1343786011]
+script = ExtResource("6_acvyw")
+
+[node name="InputManager" type="Node2D" parent="." unique_id=174033307]
+script = ExtResource("7_alh3a")
+
+[node name="GSCHTTP" type="Node2D" parent="." unique_id=1025658604]
+script = ExtResource("8_4q8tf")
+
+[node name="GSCWS" type="Node2D" parent="." unique_id=195162327]
+script = ExtResource("9_x3xnh")
+
+[node name="Controller" type="Node2D" parent="." unique_id=989713340]
+script = ExtResource("10_8r6kd")
+
+[node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
+script = ExtResource("11_gameui")
