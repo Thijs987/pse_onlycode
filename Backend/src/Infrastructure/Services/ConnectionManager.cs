@@ -207,7 +207,7 @@ public class ConnectionManager
         {
             // Bot player
             RemoveFromLobby(connectionId);
-            
+
             var leaveMessage = new NetworkMessage
             {
                 Action = "PLAYER_LEFT",

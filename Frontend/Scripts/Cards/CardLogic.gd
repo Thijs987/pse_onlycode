@@ -125,7 +125,8 @@ func play_card(card):
 
 			if hand_reference.player_hand.size() == 0: # No other cards
 				print("No other cards in hand, play only improved hardware")
-				controller.Play_Card(controller.PId, [current_id], "")
+				data = {cardId = card}
+				controller.Play_Card(controller.PId,data)
 			else: # Choose another card
 				print("Chose card to play without effect")
 				imp_hardware_active = true
@@ -188,8 +189,12 @@ func start_dragging(card):
 		card.queue_free()
 		var target_id = await sql_attack() 
 		
-		var played_cards = ["trojan", gift_card_id]
-		controller.Play_Card(controller.PId, played_cards, target_id)
+		var data = {cardId = "trojan",
+					target = target_id,
+					cards = [gift_card_id]}
+		
+		#var played_cards = ["trojan", gift_card_id]
+		controller.Play_Card(controller.PId, data)
 		return
 		
 	if imp_hardware_active:
@@ -202,8 +207,11 @@ func start_dragging(card):
 		hand_reference.remove_card_from_hand(card)
 		card.queue_free()
 
-		var played_cards = ["imp", sacrifice_card_id]
-		controller.Play_Card(controller.PId, played_cards, "")
+		#var played_cards = ["imp", sacrifice_card_id]
+		
+		var data = {cardId = sacrifice_card_id,}
+
+		controller.Play_Card(controller.PId, data)
 		return
 
 	if first_combo_card != null: # Player played a blanco card

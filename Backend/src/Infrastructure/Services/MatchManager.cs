@@ -59,17 +59,17 @@ public class MatchManager
         {
             {"blue", 0},
             {"cm", 0},
-            {"ddos", 20},
+            {"ddos", 0},
             {"err", 0},
             {"garb", 0},
-            {"goto", 0},
+            {"goto", 20},
             {"imp", 0},
             {"inf", 0},
             {"merge", 0},
             {"miracle", 0},
             {"nocom", 0},
             {"sql", 0},
-            {"trojan", 20},
+            {"trojan", 0},
             {"vibe", 0},
             {"test", 0}
 
@@ -118,12 +118,14 @@ public class MatchManager
 
             for (int i = 0; i < initialHandSize; i++)
             {
-                if (newState.Deck.Count < 0)
+                if (newState.Deck.Count == 0)
                 {
-                    continue;
+                    GenerateDeck(newState);
                 }
+
                 string card = newState.Deck[0];
                 newState.Deck.RemoveAt(0);
+
                 if (card != "imp")
                 {
                     newState.PlayerHands[player].Add(card);
@@ -135,6 +137,7 @@ public class MatchManager
                 }
             }
         }
+
         var rand = new Random();
         newState.Deck = newState.Deck.OrderBy(_ => rand.Next()).ToList();
 
