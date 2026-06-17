@@ -28,7 +28,7 @@ func decrease_counter():
 	if controller.interaction_disabled:
 		return
 		
-	if CardLogic.first_combo_card != null:
+	if CardLogic.first_combo_card != null or CardLogic.trojan_selecting_gift == true:
 		print("Cant draw card when playing cards")
 		return
 	
