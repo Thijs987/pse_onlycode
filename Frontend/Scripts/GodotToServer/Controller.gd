@@ -59,7 +59,6 @@ func Update_From_Server(msg: Dictionary):
 	print(Last_Message)
 	Last_Data = msg.get("data", {})
 	
-	# 1. ALS ER IEMAND JOINED: Voeg ze toe aan de spelerslijst (als ze er nog niet in staan)
 	if Last_Message.get("action") == "PLAYER_JOINED":
 		var joined_id = Last_Message.get("playerId")
 		if joined_id and not All_Player_Ids.has(joined_id):
@@ -73,7 +72,6 @@ func Update_From_Server(msg: Dictionary):
 		if Last_Data.has("cardId"):
 			Player_Hand.erase(Last_Data["cardId"])
 	
-	# 2. BIJ MATCH_STARTED: We hoeven de lijst niet meer te wissen, want we hebben hem al opgebouwd!
 	if Last_Message.get("action") == "MATCH_STARTED":
 		if Last_Data.has("cards"):
 			Player_Hand = Last_Data["cards"]
