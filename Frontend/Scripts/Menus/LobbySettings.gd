@@ -95,7 +95,7 @@ func _on_submit():
 		return
 
 	Result.text = "Settings Accepted"
-	
+
 	controller.custom_set = CusSet.duplicate()
 
 

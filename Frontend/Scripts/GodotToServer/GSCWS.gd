@@ -71,7 +71,7 @@ func Draw_Card():
 # Function to start match
 func Start_Match(custom_set: Dictionary):
 	var no_un := int(custom_set.get("Unplayable", 0))
-	
+
 	var no_merge := 0
 	var no_blue := 0
 	var no_err := 0
@@ -104,7 +104,7 @@ func Start_Match(custom_set: Dictionary):
 		"os": int(custom_set.get("OpS", 0)),
 		"trojan": int(custom_set.get("TH", 0))
 	}
-	
+
 	_Send(_Make_Message("START_MATCH", {"message": new_set}))
 
 # Function to add bot
