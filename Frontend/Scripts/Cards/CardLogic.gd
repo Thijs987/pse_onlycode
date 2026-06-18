@@ -150,7 +150,14 @@ func play_card(card):
 			controller.Play_Card(controller.PId, initial_data)
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
-			var decision = await open_source_menu()
+			var server_cards = controller.Last_Data.get("cards", [])
+			var kaart_om_te_tonen = "imp" # Fallback voor de zekerheid
+			
+			if server_cards.size() > 0:
+				kaart_om_te_tonen = server_cards[0] # Pak de eerste kaart uit de lijst
+			
+			# 4. Geef de ECHTE kaart-ID mee aan het menu!
+			var decision = await open_source_menu(kaart_om_te_tonen)
 			
 			var final_data = {
 				cardId = current_id,
@@ -169,17 +176,17 @@ func play_card(card):
 		return true
 	return false
 
-func open_source_menu():
+func open_source_menu(card_id_to_show: String):
 	os_active = true
 	var os_screen = OS_MENU_SCENE.instantiate()
 	get_tree().root.add_child(os_screen)
 	
-	# Pauzeer het spel (behalve het menu zelf) net als bij SQL attack
+	# Vertel het menu welke kaart het moet tonen
+	if os_screen.has_method("toon_kaart"):
+		os_screen.toon_kaart(card_id_to_show)
+	
 	get_tree().paused = true 
-	
-	# Wacht tot het menu het signaal choice_selected afgeeft
 	var gekozen_keuze = await os_screen.choice_selected
-	
 	get_tree().paused = false
 	
 	os_active = false
