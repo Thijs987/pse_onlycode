@@ -14,8 +14,13 @@ public static class LobbyEndpoints
         });
 
         // POST /api/lobbies/create?hostId=Player_x
-        group.MapPost("/create", (string? hostId, ConnectionManager manager) =>
+        group.MapPost("/create", (HttpContext context, string? hostId, ConnectionManager manager) =>
         {
+            var username = context.User.FindFirst("username")?.Value;
+            if (!string.IsNullOrEmpty(username))
+            {
+                hostId = username;
+            }
             string newLobbyId = manager.CreateLobby(hostId);
             return Results.Ok(new { LobbyId = newLobbyId });
         });

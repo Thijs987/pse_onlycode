@@ -98,9 +98,14 @@ func _on_message(msg):
 				player_count -= 1
 				update_lobby_list()
 				break
+	elif msg["action"] == "HOST_TRANSFERRED":
+		var new_host = msg.get("playerId", msg.get("PlayerId", ""))
+		if new_host == controller.PId:
+			created_lobby = true
+			update_lobby_list()
 	elif msg["action"] == "ERROR":
-		if msg["playerId"] == controller.PId:
-			print("ERROR type stuff")
+		if msg.get("playerId", msg.get("PlayerId", "")) == controller.PId:
+			print("ERROR: ", msg.get("data", {}).get("error", "Unknown error"))
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _on_create_lobby() -> void:

@@ -1,9 +1,10 @@
 extends Control
 
 # Zet op false bij testen met server ipv local
-const USE_LOCAL_MOCK = true 
+const USE_LOCAL_MOCK = false 
 
-const BASE_URL = "https://codegreen-uva.ddns.net"
+# Automatically use localhost in Godot Editor, and the actual server for exported builds
+var BASE_URL: String = "https://localhost:6969" if OS.has_feature("editor") else "https://codegreen-uva.ddns.net"
 
 const REGISTER_ENDPOINT = "/api/auth/register"
 const LOGIN_ENDPOINT = "/api/auth/login"
@@ -119,11 +120,25 @@ func _send_auth_request(endpoint: String, data: Dictionary, status_label: Label)
 	var json_data = JSON.parse_string(response_body)
 	
 	if response_code == 200:
-		if json_data and json_data.has("id"):
-			controller.PId = json_data["id"]
+		if endpoint == LOGIN_ENDPOINT and json_data:
+			# Login response contains: { user: {...}, token: "...", expires: "..." }
+			if json_data.has("token"):
+				var user_data = json_data.get("user", {})
+				auth_manager.set_auth(json_data["token"], user_data)
+				if json_data.has("expires"):
+					auth_manager.set_token_expires(str(json_data["expires"]))
+				# Set player ID from user data
+				controller.PId = str(user_data.get("username", ""))
+			elif json_data.has("username"):
+				# Fallback: no JWT configured on server
+				controller.PId = str(json_data["username"])
+		elif json_data and json_data.has("username"):
+			controller.PId = str(json_data["username"])
 		return true
 	elif response_code == 401 or response_code == 400:
-		if json_data and json_data.has("Message"):
+		if json_data and json_data.has("message"):
+			status_label.text = json_data["message"]
+		elif json_data and json_data.has("Message"):
 			status_label.text = json_data["Message"]
 		else:
 			status_label.text = "Authentication failed (" + str(response_code) + ")."

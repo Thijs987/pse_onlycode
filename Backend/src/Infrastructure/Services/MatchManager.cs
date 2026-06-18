@@ -40,11 +40,12 @@ public class MatchManager
 
         var pileCards = new List <int> {};
 
-        if (data.Cards.Count != 15) {
+        if (data == null || data.Cards == null || data.Cards.Count != 15) {
             pileCards = new List <int> {2,4,4,2,0,4,4,4,2,4,4,4,4,4,0};
         }
 
-        foreach(var card in data.Cards) {
+        if (data != null && data.Cards != null) {
+            foreach(var card in data.Cards) {
             int x;
 
             if (!Int32.TryParse(card, out x))
@@ -54,6 +55,7 @@ public class MatchManager
                 return newState;
             }
             pileCards.Add(x);
+            }
         }
 
         var allCards = new Dictionary<string, int>()

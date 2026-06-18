@@ -73,7 +73,8 @@ public class MessageRouter
 
                 case "KICK_PLAYER":
                     var target = message.Data?.Target;
-                    if (!string.IsNullOrEmpty(target))
+                    // Prevent kicking yourself and ensure you are the host
+                    if (!string.IsNullOrEmpty(target) && target != playerId && connectionManager.IsHost(lobbyId, playerId))
                     {
                         if (botService.IsBot(target, lobbyId))
                         {
@@ -81,9 +82,23 @@ public class MessageRouter
                         }
                         await connectionManager.KickPlayerAsync(target, lobbyId, matchManager);
                     }
+                    else if (target == playerId)
+                    {
+                        Log.Warning("{PlayerId} tried to kick themselves from {LobbyId}", playerId, lobbyId);
+                    }
+                    else if (!connectionManager.IsHost(lobbyId, playerId))
+                    {
+                        Log.Warning("{PlayerId} tried to kick {Target} from {LobbyId} but is not the host", playerId, target, lobbyId);
+                    }
                     break;
 
                 case "START_MATCH":
+                    if (!connectionManager.IsHost(lobbyId, playerId))
+                    {
+                        Log.Warning("{PlayerId} tried to start match in {LobbyId} but is not the host", playerId, lobbyId);
+                        break;
+                    }
+                    
                     // matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
                     // Changed matchId to lobbyId
                     var players = connectionManager.GetPlayers(lobbyId);

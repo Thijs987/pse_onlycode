@@ -182,6 +182,20 @@ if (authEnabled)
                     if (!string.IsNullOrEmpty(accessToken))
                     {
                         context.Token = accessToken;
+                        return Task.CompletedTask;
+                    }
+
+                    // Fallback: accept access_token from query string for WebSocket connections,
+                    // since WS clients (e.g. Godot) cannot set custom headers during handshake.
+                    // We check the path instead of IsWebSocketRequest because the latter might not be set yet.
+                    var path = context.Request.Path.Value ?? string.Empty;
+                    if (path.StartsWith("/lobby", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var queryToken = context.Request.Query["access_token"].FirstOrDefault();
+                        if (!string.IsNullOrEmpty(queryToken))
+                        {
+                            context.Token = queryToken;
+                        }
                     }
 
                     return Task.CompletedTask;
@@ -290,7 +304,7 @@ app.Use(async (context, next) =>
 
     var path = context.Request.Path.Value ?? string.Empty;
     // Public endpoints that should be exempt from CSRF (they create the session/token)
-    if (path.StartsWith("/api/auth/login") || path.StartsWith("/api/auth/register") || path.StartsWith("/api/auth/verify-email"))
+    if (path.StartsWith("/api/auth/login") || path.StartsWith("/api/auth/register") || path.StartsWith("/api/auth/verify-email") || path.StartsWith("/api/lobbies"))
     {
         await next();
         return;
@@ -333,8 +347,8 @@ app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManage
 
         if (authEnabled)
         {
-            // Use the authenticated subject claim as the authoritative player identifier when available.
-            var authenticatedPlayerId = context.User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+            // Use the authenticated username claim as the authoritative player identifier so it displays correctly in-game.
+            var authenticatedPlayerId = context.User.FindFirst("username")?.Value;
             if (!string.IsNullOrEmpty(authenticatedPlayerId))
             {
                 playerId = authenticatedPlayerId;

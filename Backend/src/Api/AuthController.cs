@@ -33,8 +33,8 @@ public class UserController : ControllerBase
         var result = await _auth.Register(request.Email, request.Username, request.Password, ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString(), baseUrl: configuredBase);
         if (!result.IsSuccess)
         {
-            // authentication error
-            return Unauthorized(result.Error);
+            // validation or duplicate error
+            return BadRequest(result.Error);
         }
 
         return Ok(result.Value);
