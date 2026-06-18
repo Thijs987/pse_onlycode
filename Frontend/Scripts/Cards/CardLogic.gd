@@ -53,7 +53,7 @@ func play_card(card):
 	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
 		card.movable = false
 		highlight_card(card, false)
-		controller.Play_Card(controller.PId, card.own_card_id)
+		#controller.Play_Card(controller.PId, card.own_card_id)
 
 		var current_id = card.own_card_id
 		var played_cards = []
@@ -287,9 +287,11 @@ func hovered_away_card(card):
 func highlight_card(card, hovered):
 	if hovered:
 		card.scale = Vector2(1.1, 1.1)
-		if not dragging_card:
-			card_tooltip.show_tooltip(card.own_card_id)
-			card_tooltip.global_position = card.global_position
+		#Tooltip crashes game when drawing card
+		#if not dragging_card:
+			#print(card.own_card_id)
+			#card_tooltip.show_tooltip(card.own_card_id)
+			#card_tooltip.global_position = card.global_position
 	else:
 		card.scale = Vector2(1.0, 1.0)
 		card_tooltip.hide_tooltip()

@@ -130,6 +130,16 @@ func _handle_message(text: String):
 			pass
 
 		"CARD_PLAYED":
+			if (msg.has("playerId") && msg.has("data") && msg.get("data").has("cardId")):
+				var player = msg.get("playerId")
+				var data = msg.get("data") 
+				var card = msg.get("cardId")
+				# might bug for trojan, be wary
+				if (data.has("cards") && data.has("cards")):
+					var cards = data.get("cards")
+					card_played.emit(player, cards[0])
+					card = cards[1]
+				card_played.emit(player, card)
 			#print("CP")
 			#card_drawn.emit(
 				#msg["data"]["target"],

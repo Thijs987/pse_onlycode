@@ -68,7 +68,7 @@ public class MatchManager
             {"goto", 20},
             {"imp", 0},
             {"inf", 0},
-            {"merge", 0},
+            {"merge", 20},
             {"miracle", 0},
             {"nocom", 0},
             {"sql", 0},
