@@ -1,7 +1,44 @@
 using Application.Interfaces;
 using Domain;
+using Serilog;
 
 namespace Infrastructure.Services.Cards;
+
+//request =
+// {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "inf",
+//     "target": "Player_2",
+//     "cards": ["inf", "inf"] <- [always inf, other blanco card]
+//   }
+// }
+
+//response target =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "inf", <- received card from top of deck
+//     "target": "Player_2",
+//     "turns": 1,
+//     "cards": [ "inf", "inf"] <- [always inf, other blanco card]
+//     "isPrivate": false
+//   }
+// }
+
+//response for others =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "target": "Player_2",
+//     "turns": 1,
+//     "cards": [ "inf", "inf"], <- [always inf, other blanco card]
+//     "isPrivate": false
+//   }
+// }
 
 public class InfiniteForLoopCard : ICardEffect
 {
@@ -42,7 +79,7 @@ public class InfiniteForLoopCard : ICardEffect
         if (match.Deck.Count <= 0)
         {
             // Refill deck
-            Console.WriteLine("Deck empty");
+            Log.Information("Deck empty for match {MatchId} while processing {CardId}", match.MatchId, CardId);
             match.Deck = new List<string>(match.TableCards);
             match.TableCards = [];
             var rand = new Random();
@@ -61,7 +98,6 @@ public class InfiniteForLoopCard : ICardEffect
         var card = match.Deck[0];
 
         match.Deck.RemoveAt(0);
-        Console.WriteLine($"The first card is {card}");
 
         match.PlayerHands[target].Add(card);
 

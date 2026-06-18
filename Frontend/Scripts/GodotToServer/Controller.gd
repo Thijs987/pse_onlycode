@@ -1,12 +1,16 @@
 extends Node2D
 
+@onready var LobbySettings = $"../LobbySettings"
+
 # In order to make use of this signal put
 # "Controller.message_updated.connect(_on_message)" in _ready()
 # Then create the function "_on_message" or any other name as long as it
 # Matches what is inbetween the brackets.
 # This function will get access to the message sent by the server
 signal message_updated(msg)
-
+signal lobbies_updated(lobbies)
+signal lobby_join_failed()
+signal lobby_left()
 var PId := "" # SHOULD CHANGE THIS BACK TO ""
 
 var Last_Message := {}
@@ -30,6 +34,10 @@ func Join_Lobby(Lobby_Id: String, Player_Id: String):
 	PId = Player_Id
 	gscws.Join_Lobby(Lobby_Id, PId)
 
+func Leave_Lobby():
+	interaction_disabled = true
+	gscws.Leave_Lobby()
+
 func Play_Card(Player_Id: String, card_id: String):
 	PId = Player_Id
 	gscws.Play_Card(card_id)
@@ -41,7 +49,16 @@ func Draw_Card(Player_Id: String):
 func Start_Match(Player_Id: String):
 	interaction_disabled = false
 	PId = Player_Id
-	gscws.Start_Match()
+	var cus_set = {}
+	if LobbySettings != null and "CusSet" in LobbySettings:
+		cus_set = LobbySettings.CusSet
+	gscws.Start_Match(cus_set)
+
+func Add_Bot():
+	gscws.Add_Bot()
+
+func Kick_Player(target_id: String):
+	gscws.Kick_Player(target_id)
 
 # From_Hand is a bool that describes whether the given card comes from a player hand
 func Gift_Card(Opponent_Id: String, CardId: String, From_Hand: bool):
@@ -81,6 +98,7 @@ func Update_From_Server(msg: Dictionary):
 
 func Update_Lobbies(lobbies: Array):
 	Active_Lobbies = lobbies
+	lobbies_updated.emit(lobbies)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

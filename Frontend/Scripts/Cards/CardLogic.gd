@@ -10,7 +10,7 @@ var dragging_card
 var is_hovering
 var card_offsetx
 var card_offsety
-var turn = false
+var turns
 var tooltip_scene = preload("uid://b0ems5mni4412")
 var card_tooltip
 
@@ -33,9 +33,7 @@ func _process(_delta: float) -> void:
 
 func _newturn(player):
 	if player != null:
-		if controller.PId == player:
-			turn = true
-			
+		turns = player
 
 ### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
@@ -49,13 +47,13 @@ func play_card(card):
 		print("Error: DiscardPileArea node not found!")
 		return
 
-	if discard_area.overlaps_area(card.get_node("Area2D")) and turn == true:
-		card.movable = false
+#	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
+
+	if discard_area.overlaps_area(card.get_node("Area2D")) and turns == controller.PId:
+		card.set_meta("pending", true)
+		card.modulate.a = 0.5
 
 		highlight_card(card, false)
-
-		hand_reference.remove_card_from_hand(card)
-		card.visible = false
 
 		controller.Play_Card(controller.PId, card.own_card_id)
 
@@ -78,7 +76,8 @@ func stop_dragging():
 	if dragging_card and dragging_card.movable == true:
 		play_card(dragging_card)
 	var released_card = dragging_card # Temp variable for add_card_to_hand
-	if released_card and released_card.movable == true:
+	if released_card and (released_card.movable == true or released_card.has_meta("pending")):
+		released_card.scale = Vector2(1.1, 1.1)
 		dragging_card = null
 		hand_reference.add_card_to_hand(released_card)
 		if released_card.global_position == released_card.hand_position:

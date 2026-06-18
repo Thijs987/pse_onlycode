@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var card_logic = $"../CardLogic"
 @onready var turn_label: Label = $"../Background/TurnLabel"
+@onready var turn_timer: Timer = $"../TurnTimer"
 
 @export var hand_curve = Curve
 @export var rotation_curve = Curve
@@ -18,8 +19,6 @@ const HAND_Y = 500
 var player_hand = []
 var center_screen_x
 
-var turn_timer
-
 signal next_turn(player)
 
 
@@ -31,7 +30,12 @@ func _ready() -> void:
 			next_turn.emit(player)
 			if turn_label != null:
 				turn_label.text = str(player)
+			if player == controller.PId:
+				turn_timer.start()
+			else:
+				turn_timer.stop()
 
+	turn_timer.timeout.connect(_on_timeout)
 	controller.message_updated.connect(_on_message)
 	center_screen_x = get_viewport().size.x / 2
 	for card_id in controller.Player_Hand:
@@ -43,18 +47,47 @@ func _process(_delta: float) -> void:
 
 func _on_message(msg):
 	if msg != null:
+
 		if msg["action"] == "NEXT_TURN":
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
+				if player == controller.PId:
+					turn_timer.start()
+				else:
+					turn_timer.stop()
+			
+			if msg.get("playerId") == controller.PId:
+				var played_id = msg.get("data", {}).get("cardId")
+				for i in range(player_hand.size()):
+					if player_hand[i].own_card_id == played_id and player_hand[i].has_meta("pending"):
+						var card = player_hand[i]
+						player_hand.remove_at(i)
+						card.queue_free()
+						update_card_hand_position()
+						break
+
+		if msg["action"] == "ERROR":
+			if msg.get("playerId") == controller.PId:
+				for card in player_hand:
+					if card.has_meta("pending") and card.get_meta("pending") == true:
+						card.set_meta("pending", false)
+						card.modulate.a = 1.0
+						card.movable = true
+						
 		if msg["action"] == "CARD_PLAYED":
-			var player = msg.get("data", {}).get("nextPlayer")
-			if player != null and player != "":
-				next_turn.emit(player)
+			var next_player = msg.get("data", {}).get("nextPlayer")
+			if next_player != "" and next_player != null:
+				next_turn.emit(next_player)
 				if turn_label != null:
-					turn_label.text = str(player)
+					turn_label.text = str(next_player)
+				if next_player == controller.PId:
+					turn_timer.start()
+				else:
+					turn_timer.stop()
+				
 
 func _on_timeout():
 	controller.Draw_Card(controller.PId)
@@ -62,17 +95,35 @@ func _on_timeout():
 func add_new_card(card_id):
 	var card_scene = preload(CARD_SCENE_PATH)
 	var new_card = card_scene.instantiate()
+
 	card_logic.add_child(new_card)
+
 	new_card.name = "Card"
 	new_card.set_card(card_id)
-	add_card_to_hand(new_card)
+	var pile_pos = $"../Pile/PileArea/Pile".global_position
+	new_card.global_position = pile_pos
+	player_hand.insert(0, new_card)
+	update_card_hand_position()
+
+	animate_draw_card(new_card)
+
+func animate_draw_card(card):
+
+	card.scale = Vector2(0.5, 0.5)
+
+	var tween = get_tree().create_tween()
+	tween.set_parallel(true)
+
+	tween.tween_property(card, "global_position", card.hand_position, 0.4)
+	tween.tween_property(card, "scale", Vector2.ONE, 0.4)
 
 func add_card_to_hand(card):
 	if card not in player_hand:
 		player_hand.insert(0, card)
 		update_card_hand_position()
 	else:
-		card.movable = true
+		if not card.has_meta("pending") or not card.get_meta("pending"):
+			card.movable = true
 		update_card_hand_position()
 		move_to_position(card, card.hand_position)
 

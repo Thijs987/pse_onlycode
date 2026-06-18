@@ -8,6 +8,9 @@ public class LobbyConfiguration : IEntityTypeConfiguration<Lobby>
 {
     public void Configure(EntityTypeBuilder<Lobby> builder)
     {
+        // table name
+        builder.ToTable("Lobbies");
+
         // primary key
         builder.HasKey(x => x.Id);
 

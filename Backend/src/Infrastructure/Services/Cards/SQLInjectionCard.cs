@@ -3,6 +3,30 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
+//request =
+// {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "sql",
+//     "target": "Player_2"
+//   }
+// }
+
+//response =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "sql",
+//     "message": "Player_1 launched a DDos attack! Player_2 must play 2 turns.",
+//     "nextPlayer": "Player_2",
+//     "turns": 2,
+//     "cards": [],
+//     "isPrivate": false
+//   }
+// }
+
 public class SQLInjectionCard : ICardEffect
 {
     public string CardId => "sql";
@@ -21,6 +45,7 @@ public class SQLInjectionCard : ICardEffect
 
         match.NTurns = 2;
         match.PlayerHands[playerId].Remove(CardId);
+        match.CurrentTurnPlayerId = cardData.Target;
 
         // Standard Cleanup
         if (match.PlayerHands.ContainsKey(playerId))
