@@ -56,14 +56,21 @@ func _on_message(msg):
 				if turn_label != null:
 					turn_label.text = str(player)
 			
+			var blanco = ["nocom", "goto", "inf", "vibe"]
 			# For goto/blanco cards[0-1] are played cards[2] is the given card
-			var target = msg.get("data", {}).get("target")
-			if target != null and target != "":
-				var cards = msg.get("data", {}).get("cards")
-				if target == controller.PId && cards != null:
-					for card in cards:
-						add_new_card(card)
+			if msg.get("cardId") in blanco:
+				var target = msg.get("data", {}).get("target")
+				if target != null and target != "":
+					var cards = msg.get("data", {}).get("cards")
+					if target == controller.PId && cards != null:
+						add_new_card(cards[2])
 				
+			if msg.get("cardId") == "trojan":
+				var target = msg.get("data", {}).get("target")
+				if target != null and target != "":
+					var cards = msg.get("data", {}).get("cards")
+					if target == controller.PId && cards != null:
+						add_new_card(cards[0])
 			
 			if msg.get("playerId") == controller.PId:
 				var played_id = msg.get("data", {}).get("cardId")

@@ -102,14 +102,15 @@ public class InfiniteForLoopCard : ICardEffect
 
         // Return a basic response so the game doesn't crash
         responseData.Target = target;
-        responseData.Cards.Add(card);
 
         // Standard Cleanup
         if (match.PlayerHands.ContainsKey(playerId))
         {
             foreach(var cards in sendCards) {
                 match.PlayerHands[playerId].Remove(cards);
+                responseData.Cards.Add(cards);
             }
+            responseData.Cards.Add(card);
         }
         return responseData;
     }
