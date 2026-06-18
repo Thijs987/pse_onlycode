@@ -192,7 +192,6 @@ if (forwardedHeadersEnabled)
 {
     app.UseForwardedHeaders();
 }
-app.MapControllers();
 
 // Apply CORS policy if configured
 if (allowedOrigins != null && allowedOrigins.Length > 0)
@@ -281,6 +280,7 @@ app.Use(async (context, next) =>
     await next();
 });
 
+app.MapControllers();
 // Map minimal auth endpoints (email verification)
 app.MapAuthEndpoints();
 

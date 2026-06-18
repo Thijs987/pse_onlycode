@@ -305,7 +305,7 @@ public class AuthService
             Username = username,
             PasswordHash = PasswordHasher.Hash(password),
             IsEmailVerified = false, // set to true to skip the email verification (if it doesnt work)
-            VerificationToken = verificationToken,
+            VerificationToken = HashVerificationToken(verificationToken),
             VerificationTokenExpiry = verificationExpiry
         };
 
@@ -430,9 +430,14 @@ public class AuthService
             return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Email already verified."));
         }
 
-        // check token and expiry
-        if (user.VerificationToken != token || !user.VerificationTokenExpiry.HasValue ||
-                                                user.VerificationTokenExpiry < DateTime.UtcNow)
+        // validate token and expiry
+        if (string.IsNullOrWhiteSpace(user.VerificationToken) || !user.VerificationTokenExpiry.HasValue || user.VerificationTokenExpiry < DateTime.UtcNow)
+        {
+            await _auditService.LogAuthEventAsync("email_verify_attempt", email, false, "Invalid or expired token", null);
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid or expired verification token."));
+        }
+
+        if (!VerifyVerificationToken(token, user.VerificationToken))
         {
             await _auditService.LogAuthEventAsync("email_verify_attempt", email, false, "Invalid or expired token", null);
             return Result.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid or expired verification token."));
@@ -470,7 +475,8 @@ public class AuthService
             return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Invalid request."));
 
         // generate new token and expiry
-        user.VerificationToken = GenerateVerificationToken();
+        var newToken = GenerateVerificationToken();
+        user.VerificationToken = HashVerificationToken(newToken);
         user.VerificationTokenExpiry = DateTime.UtcNow.AddHours(EmailVerificationTokenExpiryHours);
         await _db.SaveChangesAsync();
 
@@ -478,11 +484,11 @@ public class AuthService
         var effectiveBase = string.IsNullOrWhiteSpace(baseUrl) ? _baseUrl : baseUrl.TrimEnd('/');
         var verificationLink =
             $"{effectiveBase}/api/auth/verify-email" +
-            $"?token={Uri.EscapeDataString(user.VerificationToken)}" +
+            $"?token={Uri.EscapeDataString(newToken)}" +
             $"&email={Uri.EscapeDataString(email)}";
 
         Console.WriteLine($"[VERIFICATION] Resend link for {email}: {verificationLink}");
-        await _emailService.SendVerificationEmailAsync(email, user.Username, user.VerificationToken, verificationLink);
+        await _emailService.SendVerificationEmailAsync(email, user.Username, newToken, verificationLink);
         await _auditService.LogAuthEventAsync("resend_verification", email, true, null, null);
 
         return Result.Success();
@@ -495,5 +501,19 @@ public class AuthService
         var tokenData = new byte[32];
         rng.GetBytes(tokenData);
         return Convert.ToBase64String(tokenData).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+    }
+
+    private static string HashVerificationToken(string token)
+    {
+        if (string.IsNullOrEmpty(token)) throw new ArgumentException("Token must not be empty.", nameof(token));
+        return PasswordHasher.Hash(token);
+    }
+
+    private static bool VerifyVerificationToken(string providedToken, string storedTokenHash)
+    {
+        if (string.IsNullOrWhiteSpace(providedToken) || string.IsNullOrWhiteSpace(storedTokenHash))
+            return false;
+
+        return PasswordHasher.Verify(providedToken, storedTokenHash);
     }
 }
