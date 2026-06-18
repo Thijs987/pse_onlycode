@@ -15,11 +15,43 @@ region_rect = Rect2(92, 83, 223, 70)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_h303d"]
 texture = ExtResource("3_h303d")
-region_rect = Rect2(100, 157, 203, 84)
+region_rect = Rect2(98.5, 154.25, 208, 86.75)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ql1sk"]
 texture = ExtResource("3_h303d")
 region_rect = Rect2(113, 78, 179, 80)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dibtv"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(100, 240.25, 207.5, 78.5)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o6asp"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(102, 315.75, 200, 93)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o42a4"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(113.5, 240.25, 177.5, 78.5)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o7rkd"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(491.5, 330.75, 217, 60)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_x3sen"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_m7sq3"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0qo7l"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(500, 81.75, 205, 77)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_b3loq"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(498.5, 154.25, 208, 91.5)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ypme4"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(510, 78.75, 182, 81.5)
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_dl0pg"]
 load_path = "res://.godot/imported/PressToStart.png-9d0c41c3b543a4dccf84ee832e0800b9.ctex"
@@ -153,9 +185,11 @@ theme_override_styles/pressed = SubResource("StyleBoxTexture_h303d")
 theme_override_styles/hover = SubResource("StyleBoxTexture_ql1sk")
 
 [node name="QuitButton" type="Button" parent="ButtonContainer/PlayButtonsContainer/MainMenuButtons" unique_id=1923007763]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
-text = "Quit"
+theme_override_styles/normal = SubResource("StyleBoxTexture_dibtv")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_o6asp")
+theme_override_styles/hover = SubResource("StyleBoxTexture_o42a4")
 
 [node name="Seperator" type="Control" parent="ButtonContainer/PlayButtonsContainer/MainMenuButtons" unique_id=1914906759]
 custom_minimum_size = Vector2(0, 99.695)
@@ -174,8 +208,11 @@ size_flags_horizontal = 8
 size_flags_vertical = 0
 
 [node name="MuteButton" type="Button" parent="ButtonContainer/MuteButtonContainer/HBoxContainer" unique_id=2100532035]
+custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
-text = "Mute"
+theme_override_styles/normal = SubResource("StyleBoxTexture_o7rkd")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_x3sen")
+theme_override_styles/hover = SubResource("StyleBoxTexture_m7sq3")
 
 [node name="LoginContainer" type="MarginContainer" parent="ButtonContainer" unique_id=1055664539]
 layout_mode = 2
@@ -188,8 +225,11 @@ theme_override_constants/margin_top = 20
 layout_mode = 2
 
 [node name="LoginButton" type="Button" parent="ButtonContainer/LoginContainer/LoginLayout" unique_id=1524910691]
+custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
-text = "Log in"
+theme_override_styles/normal = SubResource("StyleBoxTexture_0qo7l")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_b3loq")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ypme4")
 
 [node name="WelcomeLabel" type="Label" parent="ButtonContainer/LoginContainer/LoginLayout" unique_id=830985289]
 layout_mode = 2
