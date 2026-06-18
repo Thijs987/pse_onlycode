@@ -133,7 +133,6 @@ func add_new_card(card_id):
 	print("Add card: " + new_card.own_card_id)
 	if new_card.own_card_id == "imp": # If you grab an improved hardware, you must play it
 		# For now let the card go into your hand
-		await get_tree().create_timer(0.25).timeout
 		print("Grabbed improved hardware, must play")
 		card_logic.play_card(new_card)
 

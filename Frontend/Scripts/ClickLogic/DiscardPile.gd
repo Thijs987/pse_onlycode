@@ -15,7 +15,7 @@ func _on_card_played(player_id, card_id):
 
 	add_child(card)
 	
-	print("I came to goon")
+	print("I came to goon" + card_id)
 
 	card.set_card(card_id)
 	card.movable = false
