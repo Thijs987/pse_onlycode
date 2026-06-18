@@ -4,16 +4,7 @@ public static class LobbyEndpoints
 {
     public static void MapLobbyEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/lobbies");
-
-        // Check if auth enforcement is enabled and if JWT is configured
-        var enforceAuth = app.Configuration.GetValue("AppSettings:EnforceAuth", false);
-        var authConfigured = !string.IsNullOrWhiteSpace(app.Configuration["Jwt:Key"]);
-
-        if (enforceAuth && authConfigured)
-        {
-            group.RequireAuthorization();
-        }
+        var group = app.MapGroup("/api/lobbies").RequireJwtAuthentication(app.Configuration);
 
         // GET /api/lobbies/active
         group.MapGet("/active", (ConnectionManager manager, MatchManager matchManager) =>
