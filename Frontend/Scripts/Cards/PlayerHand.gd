@@ -61,6 +61,7 @@ func _on_message(msg):
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
+
 				if player == controller.PId:
 					turn_timer.start()
 				else:
@@ -77,6 +78,23 @@ func _on_message(msg):
 				else:
 					turn_timer.stop()
 
+			var blanco = ["nocom", "goto", "inf", "vibe"]
+			# For goto/blanco cards[0-1] are played cards[2] is the given card
+			if msg.get("data", {}).get("cardId") in blanco:
+				var target = msg.get("data", {}).get("target")
+				if target != null and target != "":
+					var cards = msg.get("data", {}).get("cards")
+					if target == controller.PId && cards != null && cards.size() == 3:
+						add_new_card(cards[2], 0)
+				
+			# Trojan horse puts the sent card in cards[0].
+			if msg.get("data", {}).get("cardId") == "trojan":
+				var target = msg.get("data", {}).get("target")
+				if target != null and target != "":
+					var cards = msg.get("data", {}).get("cards")
+					if target == controller.PId && cards != null:
+						add_new_card(cards[0], 0)
+			
 			if msg.get("playerId") == controller.PId:
 				var played_id = msg.get("data", {}).get("cardId")
 				for i in range(player_hands[0].size()):
@@ -128,6 +146,10 @@ func add_new_card(card_id, player_number):
 		new_card.is_others = true
 	player_hands[player_number].insert(0, new_card)
 	update_card_hand_position(player_number)
+	if new_card.own_card_id == "imp": # If you grab an improved hardware, you must play it
+		# For now let the card go into your hand
+		print("Grabbed improved hardware, must play")
+		card_logic.play_card(new_card)
 
 	animate_draw_card(new_card)
 

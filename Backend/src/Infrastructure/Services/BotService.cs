@@ -191,7 +191,6 @@ public class BotService
 
                 foreach (var cardId in playableCards)
                 {
-                    await Task.Delay(Speed);
                     // Prevent it from playing the unplayable (green) cards.
                     // There should not be an imp in the bots hand
                     if (cardId == "imp")
@@ -207,8 +206,6 @@ public class BotService
                         continue;
                     }
 
-                    // TODO: An invalid combo card match will return null.
-                    // This should be prevented.
                     var responseData = _matchManager.TryPlayCard(lobbyId, botId, cardData);
                     if (string.IsNullOrEmpty(responseData.Error))
                     {
@@ -218,6 +215,7 @@ public class BotService
                         // Update hand and set playedcard to true to update PlayableCards.
                         hand = _matchManager.GetPlayerHand(lobbyId, botId);
                         playedCard = true;
+                        await Task.Delay(Speed);
                         break;
                     }
                 }

@@ -31,4 +31,5 @@ func _on_area_2d_mouse_exited() -> void:
 
 func set_card(card_id):
 	own_card_id = card_id
-	sprite.texture = load("res://Sprites/CardIcons/" + card_id + ".png")
+	#print("Player: " + controller.PId + ", Card: " + card_id)
+	sprite.texture = load("res://Sprites/CardIcons/" + str(card_id) + ".png")

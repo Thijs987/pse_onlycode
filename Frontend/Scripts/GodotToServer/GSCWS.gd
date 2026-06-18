@@ -61,8 +61,14 @@ func Leave_Lobby():
 
 
 # Function to play a card
-func Play_Card(card_id: String):
-	_Send(_Make_Message("PLAY_CARD", {"cardId": card_id}))
+#func Play_Card(card_id: Array, OId: String):
+	#if OId == "":
+		#_Send(_Make_Message("PLAY_CARD", { "cardId": card_id }))
+	#else:
+		#_Send(_Make_Message("PLAY_CARD", { "cardId": card_id ,"target": OId }))
+
+func Play_Card(data: Dictionary = {}):
+	_Send(_Make_Message("PLAY_CARD", data))
 
 # Function to draw a card
 func Draw_Card():
@@ -160,11 +166,24 @@ func _handle_message(text: String):
 			pass
 
 		"CARD_PLAYED":
+			if (msg.has("playerId") && msg.has("data") && msg.get("data").has("cardId")):
+				var player = msg.get("playerId")
+				var data = msg.get("data") 
+				var card = data.get("cardId")
+				# might bug for trojan, be wary
+				if (data.has("cards") && data.get("cards").size() >= 2):
+					var cards = data.get("cards")
+					print("extra emit %s", cards[0])
+					card_played.emit(player, cards[0])
+					card = cards[1]
+				print("normal emit" + card)
+				card_played.emit(player, card)
 			#print("CP")
-			card_played.emit(
-				msg["playerId"],
-				msg["data"]["cardId"]
-			)
+			#card_drawn.emit(
+				#msg["data"]["target"],
+				#1
+			#)
+			pass
 
 		"CARD_DRAWN":
 			#print("CD")

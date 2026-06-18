@@ -15,7 +15,7 @@ namespace Infrastructure.Services.Cards;
 //    }
 //   }
 
-//response =
+//response for target  =
 //    {
 //   "action": "PLAY_CARD",
 //   "playerId": "Player_1",
@@ -24,6 +24,18 @@ namespace Infrastructure.Services.Cards;
 //     "cardId": "trojan",
 //      "target":"Player_2",
 //      "cards": ["trojan"]
+//    }
+//   }
+
+//response for others =
+//    {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//    "data":
+//    {
+//     "cardId": "trojan",
+//      "target":"Player_2",
+//      "cards": []
 //    }
 //   }
 

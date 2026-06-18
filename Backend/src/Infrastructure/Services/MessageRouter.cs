@@ -148,11 +148,12 @@ public class MessageRouter
                         {
                             await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         }
-                        
+
                         if (specialCards.Contains(responseData.CardId)) {
                             var dataBroad = new DataInfo {
+                                CardId = responseData.CardId,
                                 Target = responseData.Target,
-                                Cards = responseData.Cards
+                                Cards = [responseData.Cards[0], responseData.Cards[1]]
                             };
                             var broadMessage = MakeMessage(action,playerId, dataBroad);
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
@@ -166,8 +167,7 @@ public class MessageRouter
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
                             await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
                         }
-                        else if (responseData.IsPrivate == false) {
-                            
+                         else if (responseData.IsPrivate == false) {
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
 
@@ -194,7 +194,7 @@ public class MessageRouter
                     // Check for Improved Hardware
                     if (matchManager.GetPlayerHand(lobbyId, playerId).Contains("imp"))
                     {
-                        responseData = new DataInfo { Error = "Hand cotnains imp, cannot draw!"};
+                        responseData = new DataInfo { Error = "Hand contains imp, cannot draw!"};
                         response = MakeMessage("ERROR", playerId, responseData);
                         await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         break;
