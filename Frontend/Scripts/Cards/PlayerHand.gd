@@ -54,7 +54,7 @@ func _on_message(msg):
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
-        if player == controller.PId:
+		if player == controller.PId:
 					turn_timer.start()
 				else:
 					turn_timer.stop()
