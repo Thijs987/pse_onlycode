@@ -17,6 +17,7 @@ func _ready() -> void:
 
 func set_card(card_id):
 	own_card_id = card_id
+	print(card_id)
 	sprite.texture = load("res://Sprites/CardIcons/" + card_id + ".png")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
