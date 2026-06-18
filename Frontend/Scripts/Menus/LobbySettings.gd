@@ -17,6 +17,8 @@ extends Control
 @onready var ResetButton = $VBoxContainer/HBoxContainer11/ResetButton
 @onready var BackButton = $VBoxContainer/HBoxContainer12/BackButton
 
+signal change_vis
+
 var StanSet = { "CM" : 4,
 				"Ddos" : 2,
 				"SQL" : 2,
@@ -54,7 +56,12 @@ func _ready() -> void:
 	
 	for card_name in StanSet:
 		Fields[card_name].text = str(StanSet[card_name])
-
+	
+	if get_parent().has_method("signal_connect"):
+		get_parent().signal_connect(self)
+	
+	if get_parent().has_method("change_set"):
+		get_parent().signal_connect(self)
 
 func _on_submit():
 	var total := 0
@@ -89,6 +96,8 @@ func _on_submit():
 
 	Result.text = "Settings Accepted"
 
+	controller.custom_set = CusSet.duplicate()
+
 
 func _on_reset():
 	CusSet = StanSet.duplicate()
@@ -100,4 +109,4 @@ func _on_reset():
 
 
 func _on_back():
-	SceneLoader.load_scene("uid://bdxchheqi80lr")
+	change_vis.emit()
