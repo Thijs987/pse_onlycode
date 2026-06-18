@@ -63,7 +63,7 @@ public class MatchManager
             {"err", 0},
             {"garb", 0},
             {"goto", 0},
-            {"imp", 0},
+            {"imp", 1},
             {"inf", 0},
             {"merge", 0},
             {"miracle", 0},
@@ -71,7 +71,7 @@ public class MatchManager
             {"sql", 0},
             {"trojan", 0},
             {"vibe", 0},
-            {"os", 20},
+            {"os", 7},
             {"test", 0}
 
             // {"blue", pileCards[0]},
@@ -104,13 +104,13 @@ public class MatchManager
         int size = newState.Deck.Count;
         int impcards = newState.Deck.Count(card => card == "imp");
         int playerCount = players.Count;
-
+        /*
         if ((size-impcards) < (playerCount*initialHandSize) ||
             size < ((newState.CardLimit+1)*playerCount)) {
             Console.WriteLine($"Match {matchId} initialization failed!");
             newState.Deck = new List<string> { };
             return newState;
-        }
+        }*/
 
         // Initialize hands and deal 3 cards per player
         foreach (var player in players)

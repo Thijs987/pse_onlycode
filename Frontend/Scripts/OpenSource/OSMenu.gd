@@ -25,6 +25,9 @@ func _on_top_pressed():
 	
 	
 func toon_kaart(card_id: String):
+	for child in $CardSpawnPoint.get_children():
+		child.queue_free()
+
 	var nieuwe_kaart = CARD_SCENE.instantiate()
 	$CardSpawnPoint.add_child(nieuwe_kaart)
 	nieuwe_kaart.position = Vector2.ZERO

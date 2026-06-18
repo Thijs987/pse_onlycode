@@ -142,34 +142,28 @@ func play_card(card):
 			return true
 
 		elif current_id == "os":
-			# 0. CHECK: Is de trekstapel leeg?
-			if pile_node != null and pile_node.card_count <= 0:
-				print("De trekstapel is leeg! Je kunt Open Source nu niet spelen.")
-				card.movable = true # Zorg dat de speler de kaart weer kan oppakken
+			if pile_node != null and pile_node.card_count <= 0: # Pile empty?
+				print("Cant play card with empty drawpile")
+				card.movable = true
 				return false
 			
-			# 1. Stuur het verzoek naar de server om te kijken
 			var initial_data = {
 				cardId = current_id,
 				target = "view"
 			}
 			controller.Play_Card(controller.PId, initial_data)
-			
-			# 2. Visueel opruimen uit de hand
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
-			
-			# 3. Haal de echte kaart-ID op uit de servergegevens (Last_Data)
+
+			await controller.message_updated
+
 			var server_cards = controller.Last_Data.get("cards", [])
 			var kaart_om_te_tonen = "os"
-			
 			if server_cards.size() > 0:
-				kaart_om_te_tonen = server_cards[0]
+				kaart_om_te_tonen = server_cards[0] # Grab card
 			
-			# 4. Geef de ECHTE kaart-ID mee aan het menu!
 			var decision = await open_source_menu(kaart_om_te_tonen)
 			
-			# 5. Stuur de definitieve keuze ("take" of "top") naar de server
 			var final_data = {
 				cardId = current_id,
 				target = decision
