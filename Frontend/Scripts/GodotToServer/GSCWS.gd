@@ -71,8 +71,8 @@ func Draw_Card():
 	_Send(_Make_Message("DRAW_CARD"))
 
 # Function to start match
-func Start_Match():
-	_Send(_Make_Message("START_MATCH"))
+func Start_Match(message: Dictionary):
+	_Send(_Make_Message("START_MATCH", {"message": message}))
 
 # Function to add bot
 func Add_Bot():
