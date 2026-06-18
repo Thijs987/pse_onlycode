@@ -87,9 +87,9 @@ func Update_From_Server(msg: Dictionary):
 	if Last_Message.get("action") == "CARD_PLAYED":
 		if Last_Data.has("cardId"):
 			Player_Hand.erase(Last_Data["cardId"])
-		if Last_Data.has("cards"):
-			for card in Last_Data.get("cards"):
-				Player_Hand.append(card)
+		
+		if Last_Data.has("cards") && Last_Data.get("cards").size() == 3:
+				Player_Hand.append(Last_Data.get("cards")[2])
 				
 
 	if Last_Message.get("action") == "MATCH_STARTED":

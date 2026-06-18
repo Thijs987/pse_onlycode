@@ -58,11 +58,14 @@ func _on_message(msg):
 			
 			var blanco = ["nocom", "goto", "inf", "vibe"]
 			# For goto/blanco cards[0-1] are played cards[2] is the given card
-			if msg.get("cardId") in blanco:
+			if msg.get("data", {}).get("cardId") in blanco:
 				var target = msg.get("data", {}).get("target")
+				print("wuh")
 				if target != null and target != "":
 					var cards = msg.get("data", {}).get("cards")
-					if target == controller.PId && cards != null:
+					print("luh")
+					if target == controller.PId && cards != null && cards.size() == 3:
+						print("wuh")
 						add_new_card(cards[2])
 				
 			if msg.get("cardId") == "trojan":
