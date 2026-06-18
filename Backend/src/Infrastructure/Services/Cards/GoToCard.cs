@@ -3,75 +3,111 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
+//request =
+// {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "goto",
+//     "target": "Player_2",
+//     "cards": ["goto", "goto"] <- [always goto, other blanco card]
+//   }
+// }
+
+//response target =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "goto", <- received card from top of deck
+//     "target": "Player_2",
+//     "turns": 1,
+//     "cards": ["goto", "goto"], <- [always goto, other blanco card]
+//     "isPrivate": false
+//   }
+// }
+
+//response for others =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "target": "Player_2",
+//     "turns": 1,
+//     "cards": [ "goto", "goto"] <- [always goto, other blanco card]
+//     "isPrivate": false
+//   }
+// }
+
 public class GoToCard : ICardEffect
 {
     public string CardId => "goto";
 
-    public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
+    public DataInfo ApplyEffect(GameState match, string playerId, DataInfo cardData)
     {
         var responseData = new DataInfo{
             CardId = CardId
         };
 
-        if (!matchState.PlayerIds.Contains(cardData.Target)){
+        if (!match.PlayerIds.Contains(cardData.Target)){
             responseData.Error = $"{cardData.Target} not in game.";
             return responseData;
         }
 
         // TODO: Write the actual logic
         var target = cardData.Target;
-        var send_cards = cardData.Cards;
+        var sendCards = cardData.Cards;
         List <string> blank_cards = new List <string> {"goto", "vibe", "inf", "nocom"};
 
         //check if enough cards are send
-        if(send_cards.Count != 2) {
+        if(sendCards.Count != 2) {
             responseData.Error = $"incorrect number of cards have been used.";
             return responseData;
         }
 
         //check if both cards are valid
-        foreach (var cards in send_cards) {
-            if(!matchState.PlayerHands[playerId].Contains(cards) || !blank_cards.Contains(cards)){
+        foreach (var cards in sendCards) {
+            if(!match.PlayerHands[playerId].Contains(cards) || !blank_cards.Contains(cards)){
                 responseData.Error = $"Incorrect set of cards have been send";
                 return responseData;
             }
         }
 
         //generate and shuffle deck if empty
-        if (matchState.Deck.Count <= 0)
+        if (match.Deck.Count <= 0)
         {
             // Refill deck
             Console.WriteLine("Deck empty");
-            matchState.Deck = new List<string>(matchState.TableCards);
-            matchState.TableCards = [];
+            match.Deck = new List<string>(match.TableCards);
+            match.TableCards = [];
             var rand = new Random();
-            matchState.Deck = matchState.Deck.OrderBy(_ => rand.Next()).ToList();
+            match.Deck = match.Deck.OrderBy(_ => rand.Next()).ToList();
             responseData.Message = "deck regenarated";
         }
 
         // No top card, not possible
-        if (matchState.Deck.Count <= 0)
+        if (match.Deck.Count <= 0)
         {
             responseData.Error = "Deck could not be generated";
             return responseData;
         }
 
         //give card to player.
-        var card = matchState.Deck[0];
+        var card = match.Deck[0];
 
-        matchState.Deck.RemoveAt(0);
-        Console.WriteLine($"The first card is {card}");
+        match.Deck.RemoveAt(0);
 
-        matchState.PlayerHands[target].Add(card);
+        match.PlayerHands[target].Add(card);
 
         responseData.Target = target;
-        responseData.Cards.Add(card);
+        responseData.CardId = card;
 
         // Standard Cleanup
-        if (matchState.PlayerHands.ContainsKey(playerId))
+        if (match.PlayerHands.ContainsKey(playerId))
         {
-            foreach(var cards in send_cards) {
-                matchState.PlayerHands[playerId].Remove(cards);
+            foreach(var cards in sendCards) {
+                responseData.Cards.Add(cards);
+                match.PlayerHands[playerId].Remove(cards);
             }
         }
         return responseData;

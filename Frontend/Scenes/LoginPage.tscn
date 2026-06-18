@@ -14,53 +14,123 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_v0vm3")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1306938269]
+[node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1737097880]
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=938573725]
 layout_mode = 1
-anchors_preset = 14
+anchors_preset = 8
+anchor_left = 0.5
 anchor_top = 0.5
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 0.5
-offset_top = -23.0
-offset_bottom = 23.0
+offset_left = -202.0
+offset_top = -131.5
+offset_right = 202.0
+offset_bottom = 131.5
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HBoxContainer1" type="HBoxContainer" parent="VBoxContainer" unique_id=990090928]
+[node name="LeftRegisterPanel" type="MarginContainer" parent="HBoxContainer" unique_id=1842646288]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer1" unique_id=914890401]
+[node name="RegisterVBox" type="VBoxContainer" parent="HBoxContainer/LeftRegisterPanel" unique_id=1306938269]
 layout_mode = 2
-text = "Enter a name (should not be duplicate)"
+
+[node name="RegisterTitle" type="Label" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=914890401]
+layout_mode = 2
+text = "Create Account"
 label_settings = SubResource("LabelSettings_sq1ca")
 horizontal_alignment = 1
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer" unique_id=1116056025]
+[node name="RegEmailLabel" type="Label" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1800732917]
+modulate = Color(0, 0, 0, 1)
 layout_mode = 2
-size_flags_horizontal = 4
+text = "Email"
+horizontal_alignment = 1
 
-[node name="LineEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer2" unique_id=1431110833]
+[node name="RegEmailInput" type="LineEdit" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1431110833]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer" unique_id=1177321449]
+[node name="RegUserLabel" type="Label" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=363630638]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Username"
+horizontal_alignment = 1
+
+[node name="RegUserInput" type="LineEdit" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=27414220]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-size_flags_vertical = 4
 
-[node name="Button" type="Button" parent="VBoxContainer/HBoxContainer3" unique_id=1799038425]
-custom_minimum_size = Vector2(200, 50)
+[node name="RegPasswordLabel" type="Label" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1434411266]
+modulate = Color(0, 0, 0, 1)
 layout_mode = 2
-text = "Save Name"
+text = "Password"
+horizontal_alignment = 1
 
-[node name="HBoxContainer4" type="HBoxContainer" parent="VBoxContainer" unique_id=400859198]
+[node name="RegPasswordInput" type="LineEdit" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1626466714]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-size_flags_vertical = 4
 
-[node name="Button" type="Button" parent="VBoxContainer/HBoxContainer4" unique_id=1289735244]
+[node name="RegisterButton" type="Button" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1289735244]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-text = "Return to menu"
+text = "Register"
+
+[node name="RegisterStatusLabel" type="Label" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1944538550]
+layout_mode = 2
+
+[node name="RightLoginPanel" type="MarginContainer" parent="HBoxContainer" unique_id=287964335]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+
+[node name="LoginVBox" type="VBoxContainer" parent="HBoxContainer/RightLoginPanel" unique_id=537876617]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="LoginTitle" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=1747927484]
+layout_mode = 2
+text = "Log in"
+label_settings = SubResource("LabelSettings_sq1ca")
+horizontal_alignment = 1
+
+[node name="LoginEmailLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=1442675738]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Email"
+horizontal_alignment = 1
+
+[node name="LoginEmailInput" type="LineEdit" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=472526710]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="LoginPasswordLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=113834122]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Password"
+horizontal_alignment = 1
+
+[node name="LoginPasswordInput" type="LineEdit" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=322138422]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="LoginButton" type="Button" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=626939730]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Log in"
+
+[node name="LoginStatusLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=2001705787]
+layout_mode = 2
+
+[node name="ReturnButton" type="Button" parent="." unique_id=780424951]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
