@@ -201,6 +201,29 @@ if (forwardedHeadersEnabled)
 
 app.UseSerilogRequestLogging();
 
+// Security headers middleware: defense-in-depth for API and any served frontend
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+
+    if (!headers.ContainsKey("X-Content-Type-Options"))
+        headers["X-Content-Type-Options"] = "nosniff";
+
+    if (!headers.ContainsKey("X-Frame-Options"))
+        headers["X-Frame-Options"] = "DENY";
+
+    if (!headers.ContainsKey("Referrer-Policy"))
+        headers["Referrer-Policy"] = "no-referrer";
+
+    if (!headers.ContainsKey("Content-Security-Policy"))
+    {
+        // Conservative default CSP for API-only servers; adjust for frontend needs.
+        headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self';";
+    }
+
+    await next();
+});
+
 // Apply CORS policy if configured
 if (allowedOrigins != null && allowedOrigins.Length > 0)
 {
