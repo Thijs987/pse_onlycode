@@ -5,7 +5,7 @@ set -euo pipefail
 # The file format is KEY=VALUE and supports comments beginning with #.
 
 PROJ_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../src" && pwd)"
-CSProj="$PROJ_DIR/src.csproj"
+CSProj="$PROJ_DIR/CodeGreen.csproj"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEFAULT_ENV_FILE="$ROOT_DIR/.env"
 

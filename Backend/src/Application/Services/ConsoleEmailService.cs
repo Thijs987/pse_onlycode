@@ -10,6 +10,8 @@ public class ConsoleEmailService : IEmailService
 {
     public Task SendVerificationEmailAsync(string email, string username, string verificationToken, string verificationLink)
     {
+        var message = $"[EMAIL] Verification email to {email}. Username={username}, Token={verificationToken}, Link={verificationLink}";
+        Console.WriteLine(message);
         Log.Information("[EMAIL] Verification email to {Email}. Username={Username}, Token={Token}, Link={Link}",
             email, username, verificationToken, verificationLink);
         return Task.CompletedTask;
@@ -17,6 +19,8 @@ public class ConsoleEmailService : IEmailService
 
     public Task SendPasswordResetEmailAsync(string email, string username, string resetToken, string resetLink)
     {
+        var message = $"[EMAIL] Password reset email to {email}. Token={resetToken}, Link={resetLink}";
+        Console.WriteLine(message);
         Log.Information("[EMAIL] Password reset email to {Email}. Token={Token}, Link={Link}",
             email, resetToken, resetLink);
         return Task.CompletedTask;
