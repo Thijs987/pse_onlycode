@@ -9,6 +9,18 @@ public class AppUser
 
     public string PasswordHash { get; set; } = default!;
 
+    // account lockout & security
+    public int FailedLoginAttempts { get; set; } = 0;
+    public DateTime? LockoutEnd { get; set; }
+
+    // email verification
+    public bool IsEmailVerified { get; set; } = false;
+    public string? VerificationToken { get; set; }
+    public DateTime? VerificationTokenExpiry { get; set; }
+
+    // soft delete -> we keep them but anonymize them and prevent login (so we don't lose game history, but they can't log in anymore)
+    public Boolean IsDeleted { get; set; } = false;
+
     // stats
     public int Wins { get; set; }
     public int Losses { get; set; }
@@ -16,4 +28,7 @@ public class AppUser
     // current lobby (NULL = geen lobby)
     public Guid? CurrentLobbyId { get; set; }
     public Lobby? CurrentLobby { get; set; }
+
+    // Refresh tokens for this user (for refresh/rotation)
+    public ICollection<RefreshToken>? RefreshTokens { get; set; }
 }

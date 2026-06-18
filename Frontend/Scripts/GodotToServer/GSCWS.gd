@@ -10,12 +10,8 @@ var socket := WebSocketPeer.new()
 var joined_emitted := false
 var is_connecting := false
 
-# Local
-#const BASE_URL = "ws://localhost:6767"
-const BASE_URL = "wss://localhost:6969"
-
-# Pointing to a No-IP.com domain. Its an A record that points towards the server ip.
-#const BASE_URL = "wss://codegreen-uva.ddns.net"
+# Automatically use localhost in Godot Editor, and the actual server for exported builds
+var BASE_URL: String = "wss://localhost:6969" if OS.has_feature("editor") else "wss://codegreen-uva.ddns.net"
 
 
 func _on_lobby_joined():
@@ -48,9 +44,11 @@ func Join_Lobby(LId: String, PId: String):
 	is_connecting = true
 	# Tells Godot to trust our Nginx certificate heh
 	var tls_options = TLSOptions.client_unsafe()
+	var url = "%s/lobby?lobbyId=%s&playerId=%s" % [BASE_URL, LId, PId]
+	# Append JWT token for authentication
+	url = auth_manager.get_ws_url_with_auth(url)
 	socket.connect_to_url(
-        "%s/lobby?lobbyId=%s&playerId=%s"
-		% [BASE_URL, LId, PId],
+		url,
 		tls_options # <-- Pass the bypass here!
 	)
 
@@ -77,8 +75,8 @@ func Draw_Card():
 	_Send(_Make_Message("DRAW_CARD"))
 
 # Function to start match
-func Start_Match():
-	_Send(_Make_Message("START_MATCH"))
+func Start_Match(message: Dictionary):
+	_Send(_Make_Message("START_MATCH", message))
 
 # Function to add bot
 func Add_Bot():
