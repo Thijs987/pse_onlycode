@@ -1,0 +1,182 @@
+[gd_scene format=3 uid="uid://by3u2iwo87g6x"]
+
+[ext_resource type="Script" uid="uid://clxuxqte1tawe" path="res://Scripts/Menus/LobbySettings.gd" id="1_x3fgx"]
+
+[node name="LobbySettings" type="Control" unique_id=1787609362]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_x3fgx")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1136707739]
+layout_mode = 0
+offset_left = -24.0
+offset_top = -14.0
+offset_right = 1184.0
+offset_bottom = 681.0
+color = Color(0.9217038, 0.9217038, 0.9217038, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=706943334]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -161.0
+offset_top = 3.0
+offset_right = 71.0
+offset_bottom = 361.0
+grow_horizontal = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1706499621]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="ClenMerge" type="Label" parent="VBoxContainer/HBoxContainer" unique_id=866766237]
+modulate = Color(0.105882354, 0.17254902, 0.8156863, 1)
+layout_mode = 2
+text = "Clean Merge:"
+
+[node name="NoCleanMerge" type="LineEdit" parent="VBoxContainer/HBoxContainer" unique_id=1219871496]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer" unique_id=216536139]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="Ddos" type="Label" parent="VBoxContainer/HBoxContainer2" unique_id=1458654599]
+modulate = Color(0.7058824, 0.31764707, 0, 1)
+layout_mode = 2
+text = "Ddos Attack:"
+
+[node name="NoDdos" type="LineEdit" parent="VBoxContainer/HBoxContainer2" unique_id=842320415]
+layout_mode = 2
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer" unique_id=635341371]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="SQL" type="Label" parent="VBoxContainer/HBoxContainer3" unique_id=84563493]
+modulate = Color(0.7058824, 0.31764707, 0, 1)
+layout_mode = 2
+text = "SQL Injection:"
+
+[node name="NoSQL" type="LineEdit" parent="VBoxContainer/HBoxContainer3" unique_id=1841877653]
+layout_mode = 2
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="VBoxContainer" unique_id=249324033]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="Sort" type="Label" parent="VBoxContainer/HBoxContainer4" unique_id=1390265553]
+modulate = Color(2.2481499, 2.0345097, 0, 1)
+layout_mode = 2
+text = "Miracle Sort:"
+
+[node name="NoSort" type="LineEdit" parent="VBoxContainer/HBoxContainer4" unique_id=847647951]
+layout_mode = 2
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="VBoxContainer" unique_id=55506419]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+
+[node name="Err" type="Label" parent="VBoxContainer/HBoxContainer5" unique_id=703735325]
+modulate = Color(0.5246153, 0.48773906, 0.45086282, 1)
+layout_mode = 2
+text = "Bad Coding Habbits:"
+
+[node name="NoErr" type="LineEdit" parent="VBoxContainer/HBoxContainer5" unique_id=794023555]
+layout_mode = 2
+
+[node name="HBoxContainer6" type="HBoxContainer" parent="VBoxContainer" unique_id=1708951221]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="Goto" type="Label" parent="VBoxContainer/HBoxContainer6" unique_id=1592571919]
+modulate = Color(0.5254902, 0.4862745, 0.4509804, 1)
+layout_mode = 2
+text = "Goto:"
+
+[node name="NoGoto" type="LineEdit" parent="VBoxContainer/HBoxContainer6" unique_id=922428253]
+layout_mode = 2
+
+[node name="HBoxContainer7" type="HBoxContainer" parent="VBoxContainer" unique_id=1496493381]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="Hardware" type="Label" parent="VBoxContainer/HBoxContainer7" unique_id=1285796560]
+modulate = Color(0.26577386, 0.25445575, 0.23936495, 1)
+layout_mode = 2
+text = "Improved Hardware:"
+
+[node name="NoHardware" type="LineEdit" parent="VBoxContainer/HBoxContainer7" unique_id=2088099031]
+layout_mode = 2
+
+[node name="HBoxContainer8" type="HBoxContainer" parent="VBoxContainer" unique_id=218658209]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="Unplayable" type="Label" parent="VBoxContainer/HBoxContainer8" unique_id=1386180003]
+modulate = Color(0.41960785, 0.627451, 0.33333334, 1)
+layout_mode = 2
+text = "Errors:"
+
+[node name="NoUnplayable" type="LineEdit" parent="VBoxContainer/HBoxContainer8" unique_id=1384043325]
+layout_mode = 2
+
+[node name="HBoxContainer9" type="HBoxContainer" parent="VBoxContainer" unique_id=1346331501]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="Trojan" type="Label" parent="VBoxContainer/HBoxContainer9" unique_id=1309213978]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Trojan Horse:"
+
+[node name="NoTrojan" type="LineEdit" parent="VBoxContainer/HBoxContainer9" unique_id=70923554]
+layout_mode = 2
+
+[node name="HBoxContainer10" type="HBoxContainer" parent="VBoxContainer" unique_id=1244606008]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="OpenSource" type="Label" parent="VBoxContainer/HBoxContainer10" unique_id=1671693536]
+modulate = Color(0.103128485, 0.06153397, 0.47747913, 1)
+layout_mode = 2
+text = "Open Source:"
+
+[node name="NoOpenSource" type="LineEdit" parent="VBoxContainer/HBoxContainer10" unique_id=1475457404]
+layout_mode = 2
+
+[node name="HBoxContainer11" type="HBoxContainer" parent="VBoxContainer" unique_id=1058243639]
+layout_mode = 2
+
+[node name="SubmitButton" type="Button" parent="VBoxContainer/HBoxContainer11" unique_id=20016244]
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Submit Game Settings"
+
+[node name="ResetButton" type="Button" parent="VBoxContainer/HBoxContainer11" unique_id=1128986941]
+layout_mode = 2
+text = "Reset"
+
+[node name="HBoxContainer12" type="HBoxContainer" parent="VBoxContainer" unique_id=1152611294]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="BackButton" type="Button" parent="VBoxContainer/HBoxContainer12" unique_id=1198213998]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Return to Lobby"
+
+[node name="HBoxContainer13" type="HBoxContainer" parent="VBoxContainer" unique_id=1743366819]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Result" type="Label" parent="VBoxContainer/HBoxContainer13" unique_id=798784450]
+modulate = Color(0.91764706, 0, 0.12156863, 1)
+layout_mode = 2

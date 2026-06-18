@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 using Application.Services;
+using Serilog;
 using Microsoft.Extensions.Configuration;
 using Application.Results;
 using Domain;
@@ -29,6 +30,7 @@ public class AuthService
     private const int EmailVerificationTokenExpiryHours = 24;
 
     private readonly string _baseUrl;
+    private const int RefreshTokenDaysDefault = 30; // default refresh token validity period in days
 
     public AuthService(AppDbContext db, IAuditService auditService, IRateLimitService rateLimitService, IEmailService emailService, IConfiguration? config = null)
     {
@@ -46,6 +48,111 @@ public class AuthService
 
         // ensure no trailing slash
         _baseUrl = baseUrl.TrimEnd('/');
+    }
+
+    // Create and persist a refresh token for a user, returning the plaintext token
+    public async Task<string> CreateRefreshTokenForUserAsync(Guid userId, string? createdByIp = null, int? days = null)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) throw new ArgumentException("User not found", nameof(userId));
+
+        // generate secure random token
+        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        var tokenData = new byte[64];
+        rng.GetBytes(tokenData);
+        var token = Convert.ToBase64String(tokenData).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+
+        var tokenHash = PasswordHasher.Hash(token);
+        var expires = DateTime.UtcNow.AddDays(days ?? RefreshTokenDaysDefault);
+
+        var rt = new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = tokenHash,
+            Created = DateTime.UtcNow,
+            Expires = expires,
+            CreatedByIp = createdByIp,
+            UserId = user.Id
+        };
+
+        _db.RefreshTokens.Add(rt);
+        await _db.SaveChangesAsync();
+
+        return token;
+    }
+
+    // Validate a refresh token and rotate it (create a new one), returning the associated user and the new refresh token plaintext
+    public async Task<Result<(UserDto User, string NewRefreshToken)>> ValidateAndRotateRefreshTokenAsync(string refreshToken, string? ipAddress = null)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken)) return Result<(UserDto, string)>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Refresh token is required."));
+
+        // find candidate tokens that are active
+        var now = DateTime.UtcNow;
+        var candidates = await _db.RefreshTokens.Include(rt => rt.User).Where(rt => rt.Revoked == null && rt.Expires > now).ToListAsync();
+
+        RefreshToken? found = null;
+        foreach (var cand in candidates)
+        {
+            if (PasswordHasher.Verify(refreshToken, cand.TokenHash))
+            {
+                found = cand;
+                break;
+            }
+        }
+
+        if (found == null)
+        {
+            return Result<(UserDto, string)>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid refresh token."));
+        }
+
+        var user = found.User;
+        if (user == null)
+        {
+            return Result<(UserDto, string)>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid refresh token."));
+        }
+
+        if (found.Expires <= now)
+        {
+            return Result<(UserDto, string)>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Refresh token expired."));
+        }
+
+        // rotate: revoke current and create new
+        found.Revoked = DateTime.UtcNow;
+
+        var newToken = await CreateRefreshTokenForUserAsync(user.Id, ipAddress, RefreshTokenDaysDefault);
+        found.ReplacedByToken = "(rotated)";
+
+        await _db.SaveChangesAsync();
+
+        var userDto = new UserDto { Id = user.Id, Email = user.Email, Username = user.Username };
+        return Result<(UserDto, string)>.Success((userDto, newToken));
+    }
+
+    public async Task<Result> RevokeRefreshTokenAsync(string refreshToken)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken)) return Result.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Refresh token is required."));
+
+        var now = DateTime.UtcNow;
+        var candidates = await _db.RefreshTokens.Include(rt => rt.User).Where(rt => rt.Revoked == null && rt.Expires > now).ToListAsync();
+
+        RefreshToken? found = null;
+        foreach (var cand in candidates)
+        {
+            if (PasswordHasher.Verify(refreshToken, cand.TokenHash))
+            {
+                found = cand;
+                break;
+            }
+        }
+
+        if (found == null)
+        {
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid refresh token."));
+        }
+
+        found.Revoked = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return Result.Success();
     }
 
 
@@ -198,8 +305,8 @@ public class AuthService
             Email = email,
             Username = username,
             PasswordHash = PasswordHasher.Hash(password),
-            IsEmailVerified = false, // set to false if you want to require email verification before login
-            VerificationToken = verificationToken,
+            IsEmailVerified = false, // set to true to skip the email verification (if it doesnt work)
+            VerificationToken = HashVerificationToken(verificationToken),
             VerificationTokenExpiry = verificationExpiry
         };
 
@@ -233,7 +340,7 @@ public class AuthService
             $"&email={Uri.EscapeDataString(email)}";
         try
         {
-            Console.WriteLine($"[VERIFICATION] Link for {email}: {verificationLink}");
+            Log.Debug("Prepared verification email for {Email} (link omitted from logs).", email);
             await _emailService.SendVerificationEmailAsync(email, username, verificationToken, verificationLink);
         }
         catch (Exception ex)
@@ -324,9 +431,14 @@ public class AuthService
             return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Email already verified."));
         }
 
-        // check token and expiry
-        if (user.VerificationToken != token || !user.VerificationTokenExpiry.HasValue ||
-                                                user.VerificationTokenExpiry < DateTime.UtcNow)
+        // validate token and expiry
+        if (string.IsNullOrWhiteSpace(user.VerificationToken) || !user.VerificationTokenExpiry.HasValue || user.VerificationTokenExpiry < DateTime.UtcNow)
+        {
+            await _auditService.LogAuthEventAsync("email_verify_attempt", email, false, "Invalid or expired token", null);
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid or expired verification token."));
+        }
+
+        if (!VerifyVerificationToken(token, user.VerificationToken))
         {
             await _auditService.LogAuthEventAsync("email_verify_attempt", email, false, "Invalid or expired token", null);
             return Result.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid or expired verification token."));
@@ -364,7 +476,8 @@ public class AuthService
             return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Invalid request."));
 
         // generate new token and expiry
-        user.VerificationToken = GenerateVerificationToken();
+        var newToken = GenerateVerificationToken();
+        user.VerificationToken = HashVerificationToken(newToken);
         user.VerificationTokenExpiry = DateTime.UtcNow.AddHours(EmailVerificationTokenExpiryHours);
         await _db.SaveChangesAsync();
 
@@ -372,11 +485,11 @@ public class AuthService
         var effectiveBase = string.IsNullOrWhiteSpace(baseUrl) ? _baseUrl : baseUrl.TrimEnd('/');
         var verificationLink =
             $"{effectiveBase}/api/auth/verify-email" +
-            $"?token={Uri.EscapeDataString(user.VerificationToken)}" +
+            $"?token={Uri.EscapeDataString(newToken)}" +
             $"&email={Uri.EscapeDataString(email)}";
 
-        Console.WriteLine($"[VERIFICATION] Resend link for {email}: {verificationLink}");
-        await _emailService.SendVerificationEmailAsync(email, user.Username, user.VerificationToken, verificationLink);
+            Log.Debug("Prepared resend verification email for {Email} (link omitted from logs).", email);
+        await _emailService.SendVerificationEmailAsync(email, user.Username, newToken, verificationLink);
         await _auditService.LogAuthEventAsync("resend_verification", email, true, null, null);
 
         return Result.Success();
@@ -389,5 +502,19 @@ public class AuthService
         var tokenData = new byte[32];
         rng.GetBytes(tokenData);
         return Convert.ToBase64String(tokenData).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+    }
+
+    private static string HashVerificationToken(string token)
+    {
+        if (string.IsNullOrEmpty(token)) throw new ArgumentException("Token must not be empty.", nameof(token));
+        return PasswordHasher.Hash(token);
+    }
+
+    private static bool VerifyVerificationToken(string providedToken, string storedTokenHash)
+    {
+        if (string.IsNullOrWhiteSpace(providedToken) || string.IsNullOrWhiteSpace(storedTokenHash))
+            return false;
+
+        return PasswordHasher.Verify(providedToken, storedTokenHash);
     }
 }

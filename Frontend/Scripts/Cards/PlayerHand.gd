@@ -76,6 +76,18 @@ func _on_message(msg):
 						card.set_meta("pending", false)
 						card.modulate.a = 1.0
 						card.movable = true
+						
+		if msg["action"] == "CARD_PLAYED":
+			var next_player = msg.get("data", {}).get("nextPlayer")
+			if next_player != "" and next_player != null:
+				next_turn.emit(next_player)
+				if turn_label != null:
+					turn_label.text = str(next_player)
+				if next_player == controller.PId:
+					turn_timer.start()
+				else:
+					turn_timer.stop()
+				
 
 func _on_timeout():
 	controller.Draw_Card(controller.PId)

@@ -46,10 +46,10 @@ namespace Backend.Tests
 
             await using var db = CreateContext();
 
-            var existing = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var existing = await db.Users.FirstOrDefaultAsync(u => u.Email == email || u.Username == "semvdberge");
             if (existing != null)
             {
-                // Already present — nothing to do. Keep the account.
+                // Already present or username already in use — nothing to do. Keep the account.
                 Assert.True(true);
                 return;
             }
