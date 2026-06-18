@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Domain;
+using Serilog;
 
 namespace Infrastructure.Services.Cards;
 
@@ -77,7 +78,7 @@ public class GoToCard : ICardEffect
         if (match.Deck.Count <= 0)
         {
             // Refill deck
-            Console.WriteLine("Deck empty");
+            Log.Information("Deck empty for match {MatchId} while processing {CardId}", match.MatchId, CardId);
             match.Deck = new List<string>(match.TableCards);
             match.TableCards = [];
             var rand = new Random();

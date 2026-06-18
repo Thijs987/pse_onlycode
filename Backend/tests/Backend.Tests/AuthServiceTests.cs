@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Application.Services;
 using Application;
@@ -198,10 +200,45 @@ public class AuthServiceTests
     }
 
     [Fact]
+    // Verify that the generated verification link can be clicked to verify the user.
+    public async Task Register_GeneratedVerificationLink_CanBeClickedToVerify()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var recordingEmail = new RecordingEmailService();
+        var service = CreateAuthService(context, recordingEmail);
+        var email = "linkclick@example.com";
+        var username = "linkclickuser";
+
+        var registerResult = await service.Register(email, username, "Password1!", "127.0.0.1", baseUrl: "http://localhost");
+
+        Assert.True(registerResult.IsSuccess);
+        Assert.False(string.IsNullOrWhiteSpace(recordingEmail.LastLink));
+
+        var uri = new Uri(recordingEmail.LastLink!);
+        var queryParts = uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries);
+        var query = queryParts
+            .Select(part => part.Split('=', 2))
+            .ToDictionary(pair => pair[0], pair => WebUtility.UrlDecode(pair[1]));
+
+        Assert.Equal(email, query["email"]);
+        Assert.True(query.ContainsKey("token"));
+        Assert.False(string.IsNullOrWhiteSpace(query["token"]));
+
+        var verificationResult = await service.VerifyEmailAsync(query["email"], query["token"]!);
+        Assert.True(verificationResult.IsSuccess);
+
+        var user = await context.Users.FirstAsync(u => u.Email == email);
+        Assert.True(user.IsEmailVerified);
+        Assert.Null(user.VerificationToken);
+        Assert.Null(user.VerificationTokenExpiry);
+    }
+
+    [Fact]
     // Verify email with a valid token succeeds and clears the token state.
     public async Task VerifyEmailAsync_Succeeds_WithValidToken()
     {
         using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var token = "valid-token";
         var user = new Domain.AppUser
         {
             Id = Guid.NewGuid(),
@@ -209,7 +246,7 @@ public class AuthServiceTests
             Username = "verifyuser",
             PasswordHash = Application.PasswordHasher.Hash("Password1!"),
             IsEmailVerified = false,
-            VerificationToken = "valid-token",
+            VerificationToken = Application.PasswordHasher.Hash(token),
             VerificationTokenExpiry = DateTime.UtcNow.AddHours(1)
         };
         context.Users.Add(user);

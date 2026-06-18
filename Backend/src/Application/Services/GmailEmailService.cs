@@ -6,6 +6,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
+using Serilog;
 
 namespace Application.Services;
 
@@ -147,7 +148,7 @@ public class GmailEmailService : IEmailService
         {
             var messageId = $"<{Guid.NewGuid():N}@codegreen.local>";
             message.Headers.Add("Message-ID", messageId);
-            Console.WriteLine($"Message-ID: {messageId}");
+            Log.Debug("Generated email Message-ID {MessageId}.", messageId);
         }
         catch
         {
@@ -232,13 +233,12 @@ public class GmailEmailService : IEmailService
 
         try
         {
-            Console.WriteLine("Sending email to: " + email);
+            Log.Information("Sending verification email to {Email}.", email);
             await client.SendMailAsync(message);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Email sending failed (verification):");
-            Console.WriteLine(ex.ToString());
+            Log.Error(ex, "Email sending failed (verification) to {Email}.", email);
             throw;
         }
     }
@@ -301,8 +301,7 @@ public class GmailEmailService : IEmailService
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Email sending failed (reset):");
-            Console.WriteLine(ex.ToString());
+            Log.Error(ex, "Email sending failed (reset) to {Email}.", email);
             throw;
         }
     }
@@ -328,13 +327,12 @@ public class GmailEmailService : IEmailService
 
         try
         {
-            Console.WriteLine("Sending email to: " + email);
+            Log.Information("Sending notification email to {Email}.", email);
             await client.SendMailAsync(message);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Email sending failed (notification):");
-            Console.WriteLine(ex.ToString());
+            Log.Error(ex, "Email sending failed (notification) to {Email}.", email);
             throw;
         }
     }
