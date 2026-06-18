@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
 using Domain;
+using Serilog;
 
 public class ConnectionManager
 {
@@ -59,7 +60,7 @@ public class ConnectionManager
             };
             var response = router.MakeMessage("HAND", playerId, responseData);
             await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(response));
-            Console.WriteLine($"Socket Connected: {playerId} rejoined Lobby {lobbyId}");
+            Log.Information("Socket connected: {PlayerId} rejoined lobby {LobbyId}", playerId, lobbyId);
             action = "PLAYER_REJOINED";
             message = $"{playerId} has rejoined the game!";
             router.botService.RemoveBot(lobbyId, playerId);
@@ -67,7 +68,7 @@ public class ConnectionManager
         else
         {
             AddToLobby(playerId, lobbyId);
-            Console.WriteLine($"Socket Connected: {playerId} joined Lobby {lobbyId}");
+            Log.Information("Socket connected: {PlayerId} joined lobby {LobbyId}", playerId, lobbyId);
             action = "PLAYER_JOINED";
             message = $"{playerId} has joined the game!";
         }
@@ -124,7 +125,7 @@ public class ConnectionManager
         catch (OperationCanceledException)
         {
             // For when we shut the server down manually with ctrl+c
-            Console.WriteLine($"Server shutting down, forcing disconnect for {playerId}...");
+            Log.Information("Server shutting down, forcing disconnect for {PlayerId}...", playerId);
 
             if (socket.State == WebSocketState.Open || socket.State == WebSocketState.CloseReceived)
             {
@@ -133,7 +134,7 @@ public class ConnectionManager
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error on connection {playerId}: {ex.Message}");
+            Log.Error(ex, "Error on connection {PlayerId}", playerId);
         }
         finally
         {
@@ -158,12 +159,12 @@ public class ConnectionManager
             };
 
             await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
-            Console.WriteLine($"Socket Disconnected: {playerId}");
+            Log.Information("Socket disconnected: {PlayerId}", playerId);
 
             if (matchManager.IsMatchActive(lobbyId) && matchManager.GetActives(lobbyId).Count > 0)
             {
                 // Replace with bot
-                Console.WriteLine("Adding bot");
+                Log.Information("Adding bot for disconnected player {PlayerId} in lobby {LobbyId}", playerId, lobbyId);
                 await router.botService.AddBotAsync(lobbyId, playerId);
                 if (matchManager.GetCurrentTurnPlayer(lobbyId) == playerId)
                     await router.botService.DrawCard(lobbyId, playerId);
@@ -198,12 +199,34 @@ public class ConnectionManager
             if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
             {
                 lobbyConnections.TryRemove(connectionId, out _);
-                if (lobbyConnections.IsEmpty)
+                // If empty OR only contains bots (no active sockets), destroy the lobby
+                if (lobbyConnections.IsEmpty || !lobbyConnections.Keys.Any(k => _sockets.ContainsKey(k)))
                 {
                     _lobbies.TryRemove(lobbyId, out _);
                     _lobbyHosts.TryRemove(lobbyId, out _);
-                    matchManager.EndMatch(lobbyId);
-                    Console.WriteLine($"Lobby {lobbyId} is empty and was destroyed.");
+                    Log.Information("Lobby {LobbyId} is empty (or only contains bots) and was destroyed.", lobbyId);
+                }
+                else
+                {
+                    // If the leaving player was the host, transfer host to the next active socket (human player)
+                    if (IsHost(lobbyId, connectionId))
+                    {
+                        var nextHost = lobbyConnections.Keys.FirstOrDefault(k => _sockets.ContainsKey(k));
+                        if (nextHost != null)
+                        {
+                            _lobbyHosts[lobbyId] = nextHost;
+                            Log.Information("Host left. Lobby {LobbyId} host transferred to {NewHost}", lobbyId, nextHost);
+                            
+                            // Broadcast host transfer
+                            var transferMsg = new NetworkMessage
+                            {
+                                Action = "HOST_TRANSFERRED",
+                                PlayerId = nextHost,
+                                Data = new DataInfo { Message = "You are now the host of the lobby!" }
+                            };
+                            _ = BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(transferMsg));
+                        }
+                    }
                 }
             }
         }
@@ -250,9 +273,8 @@ public class ConnectionManager
             {
                 _connectionToLobby.TryRemove(player, out _);
             }
-            _lobbyHosts.TryRemove(lobbyId, out _);
+            Log.Information("Lobby {LobbyId} is empty and was destroyed.", lobbyId);
             matchManager.EndMatch(lobbyId);
-            Console.WriteLine($"Lobby {lobbyId} is empty and was destroyed.");
         }
     }
 
@@ -290,9 +312,10 @@ public class ConnectionManager
 
         _lobbies.TryAdd(newLobbyId, new ConcurrentDictionary<string, bool>());
         if (!string.IsNullOrEmpty(hostId))
+        {
             _lobbyHosts.TryAdd(newLobbyId, hostId);
-
-        Console.WriteLine($"Lobby {newLobbyId} created by {hostId} via HTTP.");
+            Log.Information("Lobby {LobbyId} created by {HostId} via HTTP.", newLobbyId, hostId);
+        }
 
         return newLobbyId;
     }
@@ -307,6 +330,11 @@ public class ConnectionManager
             }
         }
         return false;
+    }
+
+    public bool IsHost(string lobbyId, string playerId)
+    {
+        return _lobbyHosts.TryGetValue(lobbyId, out var host) && host == playerId;
     }
 
     public IEnumerable<object> GetActiveLobbies(MatchManager matchManager)
