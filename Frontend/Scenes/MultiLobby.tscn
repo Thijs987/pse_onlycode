@@ -5,7 +5,7 @@
 [sub_resource type="LabelSettings" id="LabelSettings_q72hu"]
 font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
 
-[node name="MultiLobby" type="Control" unique_id=1520286451 node_paths=PackedStringArray("create_lobby_button", "join_lobby_button", "start_lobby_button", "card_setting_button")]
+[node name="MultiLobby" type="Control" unique_id=1520286451 node_paths=PackedStringArray("create_lobby_button", "join_lobby_button", "start_lobby_button")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,10 +14,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_tj0e8")
 game_scene = &"uid://qekpyka670e2"
-create_lobby_button = NodePath("VBoxContainer/HBoxContainer/CreateLobby")
-join_lobby_button = NodePath("VBoxContainer/HBoxContainer4/JoinLobby")
-start_lobby_button = NodePath("VBoxContainer/HBoxContainer5/StartLobby")
-card_setting_button = NodePath("VBoxContainer/HBoxContainer6/CardSettings")
+create_lobby_button = NodePath("BrowserView/VBoxContainer/HBoxContainer/CreateLobby")
+join_lobby_button = NodePath("BrowserView/VBoxContainer/HBoxContainer4/JoinLobby")
+start_lobby_button = NodePath("InLobbyView/HBoxContainer5/StartLobby")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=107720524]
 layout_mode = 1
