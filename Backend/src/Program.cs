@@ -4,6 +4,7 @@ using Application.Results;
 using Application.Interfaces;
 using Infrastructure.Persistence;
 using Application.Services;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Text.Json;
@@ -83,9 +84,9 @@ else
 }
 //builder.Services.AddScoped<LobbyService>(); -> Still has to be made
 
-// Audit and rate limit services (in-memory implementations; replace with distributed versions in production)
-builder.Services.AddSingleton<Application.Services.IAuditService, Application.Services.InMemoryAuditService>();
-builder.Services.AddSingleton<Application.Services.IRateLimitService, Application.Services.InMemoryRateLimitService>();
+// Audit and rate limit services: use persistent database-backed implementations in production
+builder.Services.AddScoped<IAuditService, DbAuditService>();
+builder.Services.AddScoped<IRateLimitService, DbRateLimitService>();
 var cardTypes = typeof(ICardEffect).Assembly.GetTypes()
     .Where(t => t.IsClass && !t.IsAbstract && typeof(ICardEffect).IsAssignableFrom(t));
 

@@ -1,0 +1,3 @@
+[2026-06-18 14:29:22 INF] IEmailService: GmailEmailService registered (SMTP will be used).
+[2026-06-18 14:30:14 INF] IEmailService: GmailEmailService registered (SMTP will be used).
+[2026-06-18 14:30:14 INF] Authentication: JWT bearer registered.
