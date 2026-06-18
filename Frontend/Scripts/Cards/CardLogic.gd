@@ -201,6 +201,9 @@ func open_source_menu(card_id_to_show: String):
 	get_tree().paused = true 
 	var gekozen_keuze = await os_screen.choice_selected
 	get_tree().paused = false
+	# Voeg kaart toe aan hand
+	if gekozen_keuze == "take":
+		hand_reference.add_new_card(card_id_to_show)
 	
 	os_active = false
 	return gekozen_keuze

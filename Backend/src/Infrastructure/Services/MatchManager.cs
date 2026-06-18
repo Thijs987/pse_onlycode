@@ -74,8 +74,8 @@ public class MatchManager
             {"sql", 0},
             {"trojan", 0},
             {"vibe", 0},
-            {"os", 0},
-            {"test", 20}
+            {"os", 10},
+            {"test", 10}
 
             // {"blue", pileCards[0]},
             // {"cm", pileCards[1]},
