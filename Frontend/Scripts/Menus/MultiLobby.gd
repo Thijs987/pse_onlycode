@@ -15,7 +15,6 @@ extends Control
 @export var create_lobby_button: Button
 @export var join_lobby_button: Button
 @export var start_lobby_button: Button
-@export var card_setting_button: Button
 
 var player_list = ["", "", "", ""]
 var player_count = 0
@@ -46,7 +45,7 @@ func _ready() -> void:
 	leave_lobby_button.pressed.connect(_on_leave_lobby)
 	main_menu_button.pressed.connect(_on_main_menu_pressed)
 	lobby_item_list.item_selected.connect(_on_lobby_selected)
-	card_setting_button.pressed.connect(_on_card_settings)
+
 	controller.message_updated.connect(_on_message)
 	controller.lobbies_updated.connect(_on_lobbies_updated)
 	controller.lobby_join_failed.connect(_on_lobby_join_failed)
