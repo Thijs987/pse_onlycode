@@ -104,13 +104,13 @@ public class MatchManager
         int size = newState.Deck.Count;
         int impcards = newState.Deck.Count(card => card == "imp");
         int playerCount = players.Count;
-        /*
+
         if ((size-impcards) < (playerCount*initialHandSize) ||
             size < ((newState.CardLimit+1)*playerCount)) {
             Console.WriteLine($"Match {matchId} initialization failed!");
             newState.Deck = new List<string> { };
             return newState;
-        }*/
+        }
 
         // Initialize hands and deal 3 cards per player
         foreach (var player in players)
