@@ -54,17 +54,10 @@ func _on_message(msg):
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
-		if player == controller.PId:
+				if player == controller.PId:
 					turn_timer.start()
 				else:
 					turn_timer.stop()
-
-		if msg["action"] == "CARD_PLAYED":
-			var player = msg.get("data", {}).get("nextPlayer")
-			if player != null and player != "":
-				next_turn.emit(player)
-				if turn_label != null:
-					turn_label.text = str(player)
 			
 			if msg.get("playerId") == controller.PId:
 				var played_id = msg.get("data", {}).get("cardId")
@@ -83,12 +76,6 @@ func _on_message(msg):
 						card.set_meta("pending", false)
 						card.modulate.a = 1.0
 						card.movable = true
-
-		if msg["action"] == "CARD_DRAWN":
-			var player = msg.get("playerId")
-			if player == controller.PId:
-				var drawn_card = msg.get("data", {}).get("cardId")
-				add_new_card(drawn_card)
 
 func _on_timeout():
 	controller.Draw_Card(controller.PId)
