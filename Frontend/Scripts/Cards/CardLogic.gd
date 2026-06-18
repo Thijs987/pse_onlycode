@@ -2,7 +2,9 @@ extends Node2D
 
 @onready var discard_pile = $"../DiscardPile"
 @onready var hand_reference = $"../PlayerHand"
+@onready var pile_node = $"../Pile"
 const ATTACK_SCENE = preload("res://Scenes/Attack.tscn")
+const OS_MENU_SCENE = preload("res://Scenes/OSMenu.tscn")
 
 const CARD_COLLISION_MASK = 1
 
@@ -17,6 +19,7 @@ var trojan_selecting_gift = false # Played trojan horse
 var imp_hardware_active = false #  Played improved hardware
 var tooltip_scene = preload("uid://b0ems5mni4412")
 var card_tooltip
+var os_active = false
 
 
 # Called when the node enters the scene tree for the first time.
@@ -145,6 +148,38 @@ func play_card(card):
 				imp_hardware_active = true
 
 			return true
+
+		elif current_id == "os":
+			if pile_node != null and pile_node.card_count <= 0: # Pile empty?
+				print("Cant play card with empty drawpile")
+				card.movable = true
+				return false
+			
+			var initial_data = {
+				cardId = current_id,
+				target = "view"
+			}
+			controller.Play_Card(controller.PId, initial_data)
+			hand_reference.remove_card_from_hand(card)
+			card.queue_free()
+
+			await controller.message_updated
+
+			var server_cards = controller.Last_Data.get("cards", [])
+			var kaart_om_te_tonen = "os"
+			if server_cards.size() > 0:
+				kaart_om_te_tonen = server_cards[0] # Grab card
+			
+			var decision = await open_source_menu(kaart_om_te_tonen)
+			
+			var final_data = {
+				cardId = current_id,
+				target = decision
+			}
+			controller.Play_Card(controller.PId, final_data)
+			
+			return true
+
 		else:
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
@@ -153,6 +188,23 @@ func play_card(card):
 		controller.Play_Card(controller.PId, data)
 		return true
 	return false
+
+func open_source_menu(card_id_to_show: String):
+	os_active = true
+	var os_screen = OS_MENU_SCENE.instantiate()
+	get_tree().root.add_child(os_screen)
+	
+	# Vertel het menu welke kaart het moet tonen
+	if os_screen.has_method("toon_kaart"):
+		os_screen.toon_kaart(card_id_to_show)
+	
+	get_tree().paused = true 
+	var gekozen_keuze = await os_screen.choice_selected
+	get_tree().paused = false
+	
+	os_active = false
+	return gekozen_keuze
+
 
 # Code for sql attack card
 func sql_attack() -> String:

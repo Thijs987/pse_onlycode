@@ -1,0 +1,87 @@
+[gd_scene format=3 uid="uid://b0mflnw4l6q3l"]
+
+[ext_resource type="Script" uid="uid://dxsw7q44de3sl" path="res://Scripts/OpenSource/OSMenu.gd" id="1_t0qmp"]
+[ext_resource type="Texture2D" uid="uid://dsraw4aeh8oml" path="res://Sprites/image(1).jpeg" id="2_g71pt"]
+
+[node name="OsMenu" type="CanvasLayer" unique_id=221909982]
+process_mode = 3
+layer = 100
+script = ExtResource("1_t0qmp")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=587727158]
+offset_right = 40.0
+offset_bottom = 40.0
+color = Color(0.29586652, 0.2958665, 0.2958665, 0.24313726)
+
+[node name="Label" type="Label" parent="." unique_id=663957592]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_right = 20.0
+offset_bottom = 23.0
+grow_horizontal = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1760951451]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -301.5
+offset_top = -140.0
+offset_right = 301.5
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 100
+metadata/_edit_use_anchors_ = true
+
+[node name="GrabCard" type="TextureButton" parent="VBoxContainer" unique_id=388081030]
+custom_minimum_size = Vector2(603, 138)
+layout_mode = 2
+texture_normal = ExtResource("2_g71pt")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Grab" type="Label" parent="VBoxContainer/GrabCard" unique_id=2089502025]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -11.5
+offset_right = 20.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+text = "Grab the card"
+
+[node name="PlaceOnTop" type="TextureButton" parent="VBoxContainer" unique_id=364182259]
+custom_minimum_size = Vector2(603, 138)
+layout_mode = 2
+texture_normal = ExtResource("2_g71pt")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Place" type="Label" parent="VBoxContainer/PlaceOnTop" unique_id=938781805]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.5
+offset_top = -11.5
+offset_right = 100.5
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+text = "Put card on top of the pile"
+
+[node name="CardSpawnPoint" type="Node2D" parent="." unique_id=722103919]
+position = Vector2(941, 310)
