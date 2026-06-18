@@ -3,6 +3,42 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
+//request =
+// {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "vibe",
+//     "target": "Player_2",
+//     "cards": ["vibe", "vibe"] <- [always vibe, other blanco card]
+//   }
+// }
+
+//response target =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "vibe", <- received card from top of deck
+//     "target": "Player_2",
+//     "turns": 1,
+//     "cards": ["vibe", "vibe"], <- [always vibe, other blanco card]
+//     "isPrivate": false
+//   }
+// }
+
+//response for others =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "target": "Player_2",
+//     "turns": 1,
+//     "cards": [ "vibe", "vibe"] <- [always vibe, other blanco card]
+//     "isPrivate": false
+//   }
+// }
+
 public class VibeCodingCard : ICardEffect
 {
     public string CardId => "vibe";
@@ -60,7 +96,6 @@ public class VibeCodingCard : ICardEffect
         var card = match.Deck[0];
 
         match.Deck.RemoveAt(0);
-        Console.WriteLine($"The first card is {card}");
 
         match.PlayerHands[target].Add(card);
 

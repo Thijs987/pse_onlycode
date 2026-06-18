@@ -10,7 +10,7 @@
 [ext_resource type="Script" uid="uid://br3mo8m8v4kiw" path="res://Scripts/GodotToServer/GSHTTP.gd" id="8_4q8tf"]
 [ext_resource type="Script" uid="uid://dg8okmsqxxyxb" path="res://Scripts/GodotToServer/GSCWS.gd" id="9_x3xnh"]
 [ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://Scripts/GodotToServer/Controller.gd" id="10_8r6kd"]
-[ext_resource type="Script" path="res://Scripts/Menus/GameUI.gd" id="11_gameui"]
+[ext_resource type="Script" uid="uid://ltey2a6xnpbk" path="res://Scripts/Menus/GameUI.gd" id="11_gameui"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
@@ -89,5 +89,5 @@ script = ExtResource("9_x3xnh")
 [node name="Controller" type="Node2D" parent="." unique_id=989713340]
 script = ExtResource("10_8r6kd")
 
-[node name="GameUI" type="Node2D" parent="." unique_id=9999999999]
+[node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
 script = ExtResource("11_gameui")

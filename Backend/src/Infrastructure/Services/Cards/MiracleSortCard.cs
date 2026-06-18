@@ -3,6 +3,29 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
+//request =
+//    {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//    "data":
+//    {
+//     "cardId": "miracle"
+//    }
+//   }
+
+//response =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "miracle",
+//     "message": "Player_1 played Miracle Sort! The deck has been shuffled.",
+//     "turns": 1,
+//     "cards": [],
+//     "isPrivate": false
+//   }
+// }
+
 // MVP ahh card
 public class MiracleSortCard : ICardEffect
 {
@@ -17,7 +40,7 @@ public class MiracleSortCard : ICardEffect
         }
 
         var rand = new Random();
-        
+
         // Shuffle deck
         match.Deck = match.Deck.OrderBy(_ => rand.Next()).ToList();
         string resultMessage = $"{playerId} played Miracle Sort! The deck has been shuffled.";

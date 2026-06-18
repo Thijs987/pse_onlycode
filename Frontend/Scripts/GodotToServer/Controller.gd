@@ -6,7 +6,9 @@ extends Node2D
 # Matches what is inbetween the brackets.
 # This function will get access to the message sent by the server
 signal message_updated(msg)
-
+signal lobbies_updated(lobbies)
+signal lobby_join_failed()
+signal lobby_left()
 var PId := "" # SHOULD CHANGE THIS BACK TO ""
 
 var Last_Message := {}
@@ -30,6 +32,10 @@ func Join_Lobby(Lobby_Id: String, Player_Id: String):
 	PId = Player_Id
 	gscws.Join_Lobby(Lobby_Id, PId)
 
+func Leave_Lobby():
+	interaction_disabled = true
+	gscws.Leave_Lobby()
+
 func Play_Card(Player_Id: String, card_id: String):
 	PId = Player_Id
 	gscws.Play_Card(card_id)
@@ -42,6 +48,12 @@ func Start_Match(Player_Id: String):
 	interaction_disabled = false
 	PId = Player_Id
 	gscws.Start_Match()
+
+func Add_Bot():
+	gscws.Add_Bot()
+
+func Kick_Player(target_id: String):
+	gscws.Kick_Player(target_id)
 
 # From_Hand is a bool that describes whether the given card comes from a player hand
 func Gift_Card(Opponent_Id: String, CardId: String, From_Hand: bool):
@@ -81,6 +93,7 @@ func Update_From_Server(msg: Dictionary):
 
 func Update_Lobbies(lobbies: Array):
 	Active_Lobbies = lobbies
+	lobbies_updated.emit(lobbies)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

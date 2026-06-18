@@ -3,6 +3,30 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
+//request =
+//    {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//    "data":
+//    {
+//     "cardId": "trojan",
+//      "target":"Player_2",
+//      "cards": ["trojan"]
+//    }
+//   }
+
+//response =
+//    {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//    "data":
+//    {
+//     "cardId": "trojan",
+//      "target":"Player_2",
+//      "cards": ["trojan"]
+//    }
+//   }
+
 public class TrojanCard : ICardEffect
 {
     public string CardId => "trojan";

@@ -3,6 +3,31 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
+
+//request =
+//    {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//    "data":
+//    {
+//     "cardId": "cm"
+//    }
+//   }
+
+//response =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "cm",
+//     "message": "Player_1 played Clean Merge! Turn skipped.",
+//     "nextPlayer": "Player_3",
+//     "turns": 1,
+//     "cards": [],
+//     "isPrivate": false
+//   }
+// }
+
 public class CleanMergeCard : ICardEffect
 {
     // The ID might be placeholder, im not sure tbh
@@ -26,6 +51,7 @@ public class CleanMergeCard : ICardEffect
             match.CurrentTurnPlayerId = currentCycle[nextIndex];
             // Set NTrns to 1
             match.NTurns = 1;
+            nextPlayer = match.CurrentTurnPlayerId;
         }
 
         match.PlayerHands[playerId].Remove(CardId);
