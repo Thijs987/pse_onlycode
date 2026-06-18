@@ -1,5 +1,7 @@
 extends Node2D
 
+@onready var LobbySettings = $"../LobbySettings"
+
 # In order to make use of this signal put
 # "Controller.message_updated.connect(_on_message)" in _ready()
 # Then create the function "_on_message" or any other name as long as it
@@ -9,7 +11,9 @@ signal message_updated(msg)
 signal lobbies_updated(lobbies)
 signal lobby_join_failed()
 signal lobby_left()
-var PId := "Bart" # SHOULD CHANGE THIS BACK TO ""
+
+var PId := ""
+var player_list = ["", "", "", ""]
 
 var Last_Message := {}
 var Last_Data := {}
@@ -58,7 +62,10 @@ func Draw_Card(Player_Id: String):
 func Start_Match(Player_Id: String):
 	interaction_disabled = false
 	PId = Player_Id
-	gscws.Start_Match(custom_set)
+	var cus_set = {}
+	if LobbySettings != null and "CusSet" in LobbySettings:
+		cus_set = LobbySettings.CusSet
+	gscws.Start_Match(cus_set)
 
 func Add_Bot():
 	gscws.Add_Bot()

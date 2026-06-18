@@ -11,6 +11,8 @@ var is_hovering
 var card_offsetx
 var card_offsety
 var turns
+var tooltip_scene = preload("uid://b0ems5mni4412")
+var card_tooltip
 
 
 # Called when the node enters the scene tree for the first time.
@@ -18,6 +20,8 @@ func _ready() -> void:
 	hand_reference.next_turn.connect(_newturn)
 	screen_size = get_viewport_rect().size
 	$"../InputManager".connect("left_mouse_release", on_left_mouse_release)
+	card_tooltip = tooltip_scene.instantiate()
+	add_child(card_tooltip)
 
 
 # Runs every frame, card is set to current mouse position with offset
@@ -51,6 +55,8 @@ func play_card(card):
 
 		highlight_card(card, false)
 
+		hand_reference.add_card_to_hand(card,0)
+
 		controller.Play_Card(controller.PId, card.own_card_id)
 
 # Starts dragging of current card under mouse.
@@ -65,6 +71,7 @@ func start_dragging(card):
 	var mouse_pos = get_global_mouse_position()
 	card_offsetx = card_pos.x - mouse_pos.x
 	card_offsety = card_pos.y - mouse_pos.y
+	card_tooltip.hide_tooltip()
 
 # Calls logic for case of stopping dragging when left mouse button is released
 func stop_dragging():
@@ -74,7 +81,11 @@ func stop_dragging():
 	if released_card and (released_card.movable == true or released_card.has_meta("pending")):
 		released_card.scale = Vector2(1.1, 1.1)
 		dragging_card = null
-		hand_reference.add_card_to_hand(released_card)
+
+		hand_reference.add_card_to_hand(released_card, 0)
+		if released_card.global_position == released_card.hand_position:
+			highlight_card(released_card, true)
+
 	dragging_card = null
 
 # Connects the signals for various player actions
@@ -106,9 +117,19 @@ func hovered_away_card(card):
 # Will highlight the card if mouse is hovering over it
 func highlight_card(card, hovered):
 	if hovered:
-		card.scale = Vector2(1.1, 1.1)
+		if "is_others" in card:
+			if card.is_others == false:
+				card.scale = Vector2(1.1, 1.1)
+				#if the mouse is below show_tooltip_y, show the tooltip
+				var show_tooltip_y = hand_reference.center_screen_y * 2
+				show_tooltip_y -= hand_reference.CARD_HEIGHT * 0.2
+				if not dragging_card and card.global_position.y > show_tooltip_y:
+					card_tooltip.show_tooltip(card.own_card_id)
+					card_tooltip.global_position.x = card.global_position.x
+					card_tooltip.global_position.y = show_tooltip_y
 	else:
 		card.scale = Vector2(1.0, 1.0)
+		card_tooltip.hide_tooltip()
 
 # Checks wether under the current mouse position is a card and returns
 # the collider of the card

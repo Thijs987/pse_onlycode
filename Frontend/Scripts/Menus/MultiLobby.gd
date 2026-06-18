@@ -20,7 +20,6 @@ extends Control
 @export var multi_lobby_container: Control
 @export var lobby_settings: Control
 
-var player_list = ["", "", "", ""]
 var player_count = 0
 var match_started = false
 var lobby_id
@@ -50,7 +49,6 @@ func _ready() -> void:
 	main_menu_button.pressed.connect(_on_main_menu_pressed)
 	card_setting_button.pressed.connect(_on_card_settings)
 	lobby_item_list.item_selected.connect(_on_lobby_selected)
-	
 	controller.message_updated.connect(_on_message)
 	controller.lobbies_updated.connect(_on_lobbies_updated)
 	controller.lobby_join_failed.connect(_on_lobby_join_failed)
@@ -74,7 +72,7 @@ func _on_lobby_left() -> void:
 	in_lobby_state = false
 	created_lobby = false
 	player_count = 0
-	player_list = ["", "", "", ""]
+	controller.player_list = ["", "", "", ""]
 	update_lobby_list()
 	update_views()
 	controller.Get_Lobbies()
@@ -86,26 +84,31 @@ func _on_message(msg):
 	elif msg["action"] == "PLAYER_JOINED":
 		var p_id = msg.get("playerId", msg.get("PlayerId", ""))
 		if p_id == controller.PId:
-			player_list[player_count] = controller.PId + "\n"
+			controller.player_list[player_count] = controller.PId
 			player_count += 1
 			update_lobby_list()
 		else:
 			print("Another player joined")
-			player_list[player_count] = p_id + "\n"
+			controller.player_list[player_count] = p_id
 			player_count += 1
 			update_lobby_list()
 	elif msg["action"] == "PLAYER_LEFT" or msg["action"] == "PLAYER_DISCONNECTED":
 		var p_id = msg.get("playerId", msg.get("PlayerId", ""))
 		for i in range(player_count):
-			if player_list[i].strip_edges() == p_id:
-				player_list.remove_at(i)
-				player_list.append("")
+			if controller.player_list[i].strip_edges() == p_id:
+				controller.player_list.remove_at(i)
+				controller.player_list.append("")
 				player_count -= 1
 				update_lobby_list()
 				break
+	elif msg["action"] == "HOST_TRANSFERRED":
+		var new_host = msg.get("playerId", msg.get("PlayerId", ""))
+		if new_host == controller.PId:
+			created_lobby = true
+			update_lobby_list()
 	elif msg["action"] == "ERROR":
-		if msg["playerId"] == controller.PId:
-			print("ERROR type stuff")
+		if msg.get("playerId", msg.get("PlayerId", "")) == controller.PId:
+			print("ERROR: ", msg.get("data", {}).get("error", "Unknown error"))
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _on_create_lobby() -> void:
@@ -135,7 +138,7 @@ func update_lobby_list() -> void:
 	add_bot_btn.visible = in_lobby_state and created_lobby
 
 	for i in range(player_count):
-		var pid = player_list[i].strip_edges()
+		var pid = controller.player_list[i].strip_edges()
 		if pid == "":
 			continue
 

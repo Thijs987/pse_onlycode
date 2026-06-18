@@ -7,44 +7,66 @@ using System.Text.Json.Nodes;
 
 Console.WriteLine("SMTP test tool — reading Backend/src/appsettings.json and sending one email to semvdberge@gmail.com");
 
-var repoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory!, "..", "..", "..", "..", ".."));
-var candidate = Path.Combine(repoRoot, "Backend", "src", "appsettings.json");
-if (!File.Exists(candidate))
+var envUsername = Environment.GetEnvironmentVariable("EMAIL_SMTP_USERNAME");
+var envPassword = Environment.GetEnvironmentVariable("EMAIL_SMTP_PASSWORD");
+string host;
+int port;
+string username;
+string password;
+string fromEmail;
+bool enableSsl;
+
+if (!string.IsNullOrWhiteSpace(envUsername) && !string.IsNullOrWhiteSpace(envPassword))
 {
-    candidate = Path.Combine(Directory.GetCurrentDirectory(), "Backend", "src", "appsettings.json");
+    host = Environment.GetEnvironmentVariable("EMAIL_SMTP_HOST") ?? "smtp.gmail.com";
+    port = int.TryParse(Environment.GetEnvironmentVariable("EMAIL_SMTP_PORT"), out var envPort) ? envPort : 587;
+    username = envUsername;
+    password = envPassword;
+    fromEmail = Environment.GetEnvironmentVariable("EMAIL_SMTP_FROM") ?? envUsername;
+    enableSsl = bool.TryParse(Environment.GetEnvironmentVariable("EMAIL_SMTP_ENABLESSL"), out var envSsl) ? envSsl : true;
+    Console.WriteLine("Loaded SMTP settings from environment variables.");
 }
-
-if (!File.Exists(candidate))
+else
 {
-    Console.WriteLine("Could not find appsettings.json at expected locations.");
-    Console.WriteLine("Checked: ");
-    Console.WriteLine(Path.Combine(repoRoot, "Backend", "src", "appsettings.json"));
-    Console.WriteLine(Path.Combine(Directory.GetCurrentDirectory(), "Backend", "src", "appsettings.json"));
-    return 1;
+    var repoRoot = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", ".."));
+    var candidate = Path.Combine(repoRoot, "Backend", "src", "appsettings.json");
+    if (!File.Exists(candidate))
+    {
+        candidate = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "src", "appsettings.json");
+    }
+
+    if (!File.Exists(candidate))
+    {
+        Console.WriteLine("Could not find appsettings.json at expected locations.");
+        Console.WriteLine("Checked:");
+        Console.WriteLine(Path.Combine(repoRoot, "Backend", "src", "appsettings.json"));
+        Console.WriteLine(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "src", "appsettings.json"));
+        return 1;
+    }
+
+    Console.WriteLine($"Found appsettings.json: {candidate}");
+
+    var json = JsonNode.Parse(File.ReadAllText(candidate));
+    var emailSection = json?["EmailSettings"] as JsonObject;
+    if (emailSection == null)
+    {
+        Console.WriteLine("EmailSettings section not found in appsettings.json");
+        return 1;
+    }
+
+    host = emailSection["Host"]?.GetValue<string>() ?? "smtp.gmail.com";
+    port = emailSection["Port"]?.GetValue<int?>() ?? 587;
+    username = emailSection["Username"]?.GetValue<string>() ?? string.Empty;
+    password = emailSection["Password"]?.GetValue<string>() ?? string.Empty;
+    fromEmail = emailSection["FromEmail"]?.GetValue<string>() ?? username;
+    enableSsl = emailSection["EnableSsl"]?.GetValue<bool?>() ?? true;
 }
-
-Console.WriteLine($"Found appsettings.json: {candidate}");
-
-var json = JsonNode.Parse(File.ReadAllText(candidate));
-var emailSection = json?["EmailSettings"] as JsonObject;
-if (emailSection == null)
-{
-    Console.WriteLine("EmailSettings section not found in appsettings.json");
-    return 1;
-}
-
-string host = emailSection["Host"]?.GetValue<string>() ?? "smtp.gmail.com";
-int port = emailSection["Port"]?.GetValue<int?>() ?? 587;
-string username = emailSection["Username"]?.GetValue<string>() ?? string.Empty;
-string password = emailSection["Password"]?.GetValue<string>() ?? string.Empty;
-string fromEmail = emailSection["FromEmail"]?.GetValue<string>() ?? username;
-bool enableSsl = emailSection["EnableSsl"]?.GetValue<bool?>() ?? true;
 
 Console.WriteLine($"SMTP host={host} port={port} user={username} from={fromEmail} ssl={enableSsl}");
 
 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
 {
-    Console.WriteLine("Username or Password missing in EmailSettings — aborting.");
+    Console.WriteLine("Username or Password missing in SMTP settings — aborting.");
     return 1;
 }
 

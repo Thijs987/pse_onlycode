@@ -24,58 +24,56 @@ size = Vector2(421.5, 218)
 [node name="Background" type="Node2D" parent="." unique_id=234779892]
 
 [node name="Table" type="Sprite2D" parent="Background" unique_id=950271474]
-position = Vector2(575.99994, 270)
+position = Vector2(576, 324)
 scale = Vector2(2.1893203, 2.1893206)
 texture = ExtResource("1_71axn")
 
 [node name="TurnLabel" type="Label" parent="Background" unique_id=110888612]
-offset_left = 684.0
-offset_top = 184.0
-offset_right = 766.0
-offset_bottom = 207.0
+offset_left = 576.0
+offset_top = 324.0
+offset_right = 658.0
+offset_bottom = 347.0
 
-[node name="TimeLabel" type="Label" parent="Background" unique_id=571864682]
-offset_left = 693.0
-offset_top = 149.0
-offset_right = 763.0
-offset_bottom = 172.0
+[node name="TimeLabel" type="Label" parent="Background" unique_id=430175237]
+offset_left = 676.0
+offset_top = 324.0
+offset_right = 758.0
+offset_bottom = 347.0
+justification_flags = 131
 
 [node name="Pile" type="Node2D" parent="." unique_id=738463849]
 script = ExtResource("2_dahhg")
 
 [node name="PileArea" type="Area2D" parent="Pile" unique_id=1734952556]
-position = Vector2(579, 275)
+position = Vector2(576, 324)
 collision_mask = 2
 
 [node name="Pile" type="Sprite2D" parent="Pile/PileArea" unique_id=337770192]
-position = Vector2(-2.0000002, -150.00002)
 scale = Vector2(0.08100327, 0.08100327)
 texture = ExtResource("3_3so38")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Pile/PileArea" unique_id=875606098]
-position = Vector2(-4, -150)
 shape = SubResource("RectangleShape2D_1bvp3")
 
 [node name="CounterLabel" type="Label" parent="Pile/PileArea" unique_id=293749745]
-offset_left = 34.0
-offset_top = -131.0
-offset_right = 74.0
-offset_bottom = -108.0
+offset_right = 40.0
+offset_bottom = 23.0
 metadata/_edit_use_anchors_ = true
 
 [node name="DiscardPile" type="Node2D" parent="." unique_id=231680211]
 script = ExtResource("4_3cx6b")
 
 [node name="DiscardPileArea" type="Area2D" parent="DiscardPile" unique_id=1594361609]
+position = Vector2(576, 324)
 collision_layer = 4
 collision_mask = 3
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DiscardPile/DiscardPileArea" unique_id=403654840]
-position = Vector2(575.75, 128)
+scale = Vector2(0.8, 0.8)
 shape = SubResource("RectangleShape2D_efxa6")
 
 [node name="DiscardPileLocation" type="Area2D" parent="DiscardPile" unique_id=2028668179]
-position = Vector2(436, 179)
+position = Vector2(426, 324)
 collision_layer = 8
 
 [node name="CardLogic" type="Node2D" parent="." unique_id=1659768658]
@@ -99,7 +97,7 @@ script = ExtResource("10_8r6kd")
 [node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
 script = ExtResource("11_gameui")
 
-[node name="TurnTimer" type="Timer" parent="." unique_id=1071734473]
+[node name="TurnTimer" type="Timer" parent="." unique_id=2082152117]
 wait_time = 30.0
 ignore_time_scale = true
 script = ExtResource("12_3so38")

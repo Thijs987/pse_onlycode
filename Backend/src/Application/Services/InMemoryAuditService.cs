@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace Application.Services;
 
@@ -39,7 +40,8 @@ public class InMemoryAuditService : IAuditService
         }
 
         // TODO: In production, write to database or logging service instead
-        Console.WriteLine($"[AUDIT] {log.Timestamp:O} | {log.Action} | {log.Email} | Success: {log.Success} | Reason: {log.Reason} | IP: {log.IpAddress}");
+        Log.Information("[AUDIT] Action={Action}, Email={Email}, Success={Success}, Reason={Reason}, IP={IpAddress}",
+            log.Action, log.Email, log.Success, log.Reason, log.IpAddress);
 
         return Task.CompletedTask;
     }
