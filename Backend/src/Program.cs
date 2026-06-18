@@ -97,13 +97,22 @@ builder.Services.AddSingleton<MessageRouter>();
 builder.Services.AddSingleton<MatchManager>();
 builder.Services.AddSingleton<BotService>();
 
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
+// trust X-Forwarded-* headers when behind a reverse proxy (controlled by config)
+// This is important for correct client IP logging and HTTPS detection when behind a proxy 
+// like Nginx or Traefik.
+var forwardedHeadersEnabled = builder.Configuration.GetValue("AppSettings:TrustForwardedHeaders", false);
+if (forwardedHeadersEnabled)
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownIPNetworks.Clear();
-    options.KnownProxies.Clear();
-});
-
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownProxies.Clear();
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Add(System.Net.IPAddress.Loopback);
+        options.KnownProxies.Add(System.Net.IPAddress.IPv6Loopback);
+        options.ForwardLimit = 1;
+    });
+}
 
 // Authentication with JWT bearer tokens (if configured)
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -117,51 +126,61 @@ if (authEnabled)
 {
     // Configure JWT bearer authentication
     var keyBytes = Encoding.UTF8.GetBytes(jwtKey!);
-    builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        // Configure JWT validation parameters
-        // In production, require HTTPS for JWT tokens (enforced via environment)
-        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
-        options.SaveToken = true;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            // Validate the JWT token parameters
-            ValidateIssuer = true,
-            ValidIssuer = jwtIssuer,
-            ValidateAudience = true,
-            ValidAudience = jwtAudience,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-            ValidateLifetime = true,
-            // Small clock skew to allow for minor clock differences between clients and server
-            ClockSkew = TimeSpan.FromSeconds(30)
-        };
 
-        // Allow JWT in query string for WebSocket connections (only if present)
-        options.Events = new JwtBearerEvents
+        if (keyBytes.Length < 32)
         {
-            OnMessageReceived = context =>
+            throw new InvalidOperationException("Jwt:Key must be at least 32 bytes long for secure HMAC-SHA256 signing.");
+        }
+
+        // In production, require JWT authentication if a key is provided or if EnforceAuth is true.
+        // In development, allow unauthenticated access if no key is configured for ease of testing.
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            // Configure JWT validation parameters
+            // In production, require HTTPS for JWT tokens (enforced via environment)
+            options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+            options.SaveToken = true;
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                // Prefer token from query string (WebSocket fallback), otherwise read from cookie named 'access_token'
-                var accessToken = context.Request.Query["access_token"].FirstOrDefault();
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    accessToken = context.Request.Cookies["access_token"];
-                }
+                // Validate the JWT token parameters
+                ValidateIssuer = true,
+                ValidIssuer = jwtIssuer,
+                ValidateAudience = true,
+                ValidAudience = jwtAudience,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+                ValidateLifetime = true,
+                // Small clock skew to allow for minor clock differences between clients and server
+                ClockSkew = TimeSpan.FromSeconds(30)
+            };
 
-                if (!string.IsNullOrEmpty(accessToken))
+            // Prefer Authorization header and cookie; do not accept access_token values from query string.
+            options.Events = new JwtBearerEvents
+            {
+                // This allows JWT tokens to be sent in the Authorization header
+                OnMessageReceived = context =>
                 {
-                    context.Token = accessToken;
-                }
+                    var authorizationHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                    if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        context.Token = authorizationHeader[7..].Trim();
+                        return Task.CompletedTask;
+                    }
 
-                return Task.CompletedTask;
-            }
-        };
+                    var accessToken = context.Request.Cookies["access_token"];
+                    if (!string.IsNullOrEmpty(accessToken))
+                    {
+                        context.Token = accessToken;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
     });
 
     Console.WriteLine("Authentication: JWT bearer registered.");
@@ -169,7 +188,10 @@ if (authEnabled)
 
 var app = builder.Build();
 
-app.UseForwardedHeaders();
+if (forwardedHeadersEnabled)
+{
+    app.UseForwardedHeaders();
+}
 app.MapControllers();
 
 // Apply CORS policy if configured
