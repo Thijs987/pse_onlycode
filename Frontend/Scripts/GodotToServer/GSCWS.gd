@@ -88,24 +88,25 @@ func Start_Match(custom_set: Dictionary):
 			no_err += 1
 			no_un -= 1
 	
-	var new_set := {
-		"cm": int(custom_set.get("CM", 0)),
-		"ddos": int(custom_set.get("Ddos", 0)),
-		"sql": int(custom_set.get("SQL", 0)),
-		"goto": int(custom_set.get("Goto", 0)),
-		"imp": int(custom_set.get("IH", 0)),
-		"inf": int(custom_set.get("Err", 0)),
-		"nocom": int(custom_set.get("Err", 0)),
-		"vibe": int(custom_set.get("Err", 0)),
-		"merge": no_merge,
-		"blue": no_blue,
-		"err": no_err,
-		"miracle": int(custom_set.get("MS", 0)),
-		"os": int(custom_set.get("OpS", 0)),
-		"trojan": int(custom_set.get("TH", 0))
-	}
+	var new_set := [
+		no_blue,
+		int(custom_set.get("CM", 0)),
+		int(custom_set.get("Ddos", 0)),
+		no_err,
+		0,#is garbage collector
+		int(custom_set.get("Goto", 0)),
+		int(custom_set.get("IH", 0)),
+		int(custom_set.get("Err", 0)),
+		no_merge,
+		int(custom_set.get("MS", 0)),
+		int(custom_set.get("Err", 0)),
+		int(custom_set.get("SQL", 0)),
+		int(custom_set.get("TH", 0)),
+		int(custom_set.get("Err", 0)),
+		int(custom_set.get("OpS", 0)),
+	]
 
-	_Send(_Make_Message("START_MATCH", {"message": new_set}))
+	_Send(_Make_Message("START_MATCH", {"data": new_set}))
 
 # Function to add bot
 func Add_Bot():

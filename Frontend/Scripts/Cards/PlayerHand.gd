@@ -217,11 +217,11 @@ func calculate_card_y_position(position, player_number):
 func rotate_card(card, player_number):
 	match player_number:
 		1:
-			card.rotation = PI * 1.5
+			card.rotation = PI * 0.5
 		2:
 			card.rotation = PI
 		3:
-			card.rotation = PI * 0.5
+			card.rotation = PI * 1.5
 
 func move_to_position(card, position):
 	var tween = get_tree().create_tween()
