@@ -7,6 +7,8 @@ obj/
 /Backend/src/node_modules
 /Backend/src/wwwroot/node_modules
 
+# local development environment variables
+.env
 # Godot 4+ specific ignores
 .godot/
 /android/

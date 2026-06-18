@@ -3,23 +3,46 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
+//request =
+//    {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//    "data":
+//    {
+//     "cardId": "miracle"
+//    }
+//   }
+
+//response =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "miracle",
+//     "message": "Player_1 played Miracle Sort! The deck has been shuffled.",
+//     "turns": 1,
+//     "cards": [],
+//     "isPrivate": false
+//   }
+// }
+
 // MVP ahh card
 public class MiracleSortCard : ICardEffect
 {
     public string CardId => "miracle";
 
-    public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
+    public DataInfo ApplyEffect(GameState match, string playerId, DataInfo cardData)
     {
         // Standard Cleanup
-        if (matchState.PlayerHands.ContainsKey(playerId))
+        if (match.PlayerHands.ContainsKey(playerId))
         {
-            matchState.PlayerHands[playerId].Remove(CardId);
+            match.PlayerHands[playerId].Remove(CardId);
         }
 
         var rand = new Random();
-        
+
         // Shuffle deck
-        matchState.Deck = matchState.Deck.OrderBy(_ => rand.Next()).ToList();
+        match.Deck = match.Deck.OrderBy(_ => rand.Next()).ToList();
         string resultMessage = $"{playerId} played Miracle Sort! The deck has been shuffled.";
 
         return new DataInfo
