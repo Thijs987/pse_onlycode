@@ -73,6 +73,10 @@ script = ExtResource("5_wxwew")
 
 [node name="PlayerHand" type="Node2D" parent="." unique_id=1343786011]
 script = ExtResource("6_acvyw")
+max_rotation = null
+separation = null
+y_min = null
+y_max = null
 
 [node name="InputManager" type="Node2D" parent="." unique_id=174033307]
 script = ExtResource("7_alh3a")

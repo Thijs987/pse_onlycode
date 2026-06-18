@@ -18,7 +18,7 @@ create_lobby_button = NodePath("BrowserView/VBoxContainer/HBoxContainer/CreateLo
 join_lobby_button = NodePath("BrowserView/VBoxContainer/HBoxContainer4/JoinLobby")
 start_lobby_button = NodePath("InLobbyView/HBoxContainer5/StartLobby")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1314010151]
+[node name="ColorRect" type="ColorRect" parent="." unique_id=107720524]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -27,7 +27,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.9217038, 0.9217038, 0.9217038, 1)
 
-[node name="BrowserView" type="Control" parent="." unique_id=374893189]
+[node name="BrowserView" type="Control" parent="." unique_id=138882944]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -77,17 +77,17 @@ custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Create lobby"
 
-[node name="MainMenuHBox" type="HBoxContainer" parent="BrowserView/VBoxContainer" unique_id=1267761984]
+[node name="MainMenuHBox" type="HBoxContainer" parent="BrowserView/VBoxContainer" unique_id=2043749616]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="MainMenuButton" type="Button" parent="BrowserView/VBoxContainer/MainMenuHBox" unique_id=714527605]
+[node name="MainMenuButton" type="Button" parent="BrowserView/VBoxContainer/MainMenuHBox" unique_id=360365469]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Back"
 
-[node name="LobbyItemList" type="ItemList" parent="BrowserView" unique_id=1353418856]
+[node name="LobbyItemList" type="ItemList" parent="BrowserView" unique_id=1164717918]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -97,7 +97,7 @@ offset_right = 350.0
 offset_bottom = -150.0
 grow_vertical = 2
 
-[node name="RefreshButton" type="Button" parent="BrowserView" unique_id=2118363517]
+[node name="RefreshButton" type="Button" parent="BrowserView" unique_id=517875870]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -109,10 +109,10 @@ offset_bottom = -50.0
 grow_vertical = 0
 text = "Refresh Lobbies"
 
-[node name="ErrorDialog" type="AcceptDialog" parent="BrowserView" unique_id=1367431777]
+[node name="ErrorDialog" type="AcceptDialog" parent="BrowserView" unique_id=1524379874]
 title = "Error"
 
-[node name="InLobbyView" type="Control" parent="." unique_id=87067334]
+[node name="InLobbyView" type="Control" parent="." unique_id=2000424944]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -121,7 +121,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="InLobbyView" unique_id=1072605574]
+[node name="HBoxContainer2" type="HBoxContainer" parent="InLobbyView" unique_id=445475636]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -140,7 +140,7 @@ text = "Not in lobby"
 label_settings = SubResource("LabelSettings_q72hu")
 horizontal_alignment = 1
 
-[node name="HBoxContainer5" type="HBoxContainer" parent="InLobbyView" unique_id=1823644015]
+[node name="HBoxContainer5" type="HBoxContainer" parent="InLobbyView" unique_id=1721904728]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -161,7 +161,7 @@ custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Start"
 
-[node name="PlayerList" type="Label" parent="InLobbyView" unique_id=1378815204]
+[node name="PlayerList" type="Label" parent="InLobbyView" unique_id=1657817890]
 layout_mode = 0
 offset_left = 842.0
 offset_top = 164.0
@@ -171,7 +171,7 @@ text = "current players"
 label_settings = SubResource("LabelSettings_q72hu")
 horizontal_alignment = 1
 
-[node name="HBoxContainer6" type="HBoxContainer" parent="InLobbyView" unique_id=1463330258]
+[node name="HBoxContainer6" type="HBoxContainer" parent="InLobbyView" unique_id=474319475]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -187,7 +187,7 @@ grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="LeaveLobby" type="Button" parent="InLobbyView/HBoxContainer6" unique_id=800777529]
+[node name="LeaveLobby" type="Button" parent="InLobbyView/HBoxContainer6" unique_id=613134272]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Back"

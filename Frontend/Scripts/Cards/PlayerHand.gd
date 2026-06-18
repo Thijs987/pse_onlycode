@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var card_logic = $"../CardLogic"
 @onready var turn_label: Label = $"../Background/TurnLabel"
+@onready var turn_timer: Timer = $"../TurnTimer"
 
 @export var hand_curve = Curve
 @export var rotation_curve = Curve
@@ -31,8 +32,13 @@ func _ready() -> void:
 			next_turn.emit(player)
 			if turn_label != null:
 				turn_label.text = str(player)
+			if player == controller.PId:
+				turn_timer.start()
+			else:
+				turn_timer.stop()
 
 	change_player_list()
+	turn_timer.timeout.connect(_on_timeout)
 	controller.message_updated.connect(_on_message)
 	center_screen_x = get_viewport().size.x / 2
 	center_screen_y = get_viewport().size.y / 2
@@ -48,12 +54,17 @@ func _process(_delta: float) -> void:
 
 func _on_message(msg):
 	if msg != null:
+
 		if msg["action"] == "NEXT_TURN":
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
+				if player == controller.PId:
+					turn_timer.start()
+				else:
+					turn_timer.stop()
 
 		if msg["action"] == "CARD_PLAYED":
 			var player = msg.get("data", {}).get("nextPlayer")
@@ -61,7 +72,7 @@ func _on_message(msg):
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
-			
+
 			if msg.get("playerId") == controller.PId:
 				var played_id = msg.get("data", {}).get("cardId")
 				for i in range(player_hands[0].size()):
@@ -87,6 +98,21 @@ func _on_message(msg):
 						card.set_meta("pending", false)
 						card.modulate.a = 1.0
 						card.movable = true
+
+		if msg["action"] == "CARD_PLAYED":
+			var next_player = msg.get("data", {}).get("nextPlayer")
+			if next_player != "" and next_player != null:
+				next_turn.emit(next_player)
+				if turn_label != null:
+					turn_label.text = str(next_player)
+				if next_player == controller.PId:
+					turn_timer.start()
+				else:
+					turn_timer.stop()
+
+
+func _on_timeout():
+	controller.Draw_Card(controller.PId)
 
 		if msg["action"] == "CARD_DRAWN":
 			if msg.get("playerId") != controller.PId:
