@@ -141,22 +141,23 @@ func play_card(card):
 			return true
 
 		elif current_id == "os":
-			# 1. Schakel interactie direct uit zodat de speler niks geks doet
-			os_active = true
-			
-			# 2. Stuur ALLEEN de "view" actie naar de server
+			# kijg view, stuur take or top, eindig je turn erna
+			# Path backend/infrastructure/services/cards
 			var initial_data = {
 				cardId = current_id,
 				target = "view"
 			}
 			controller.Play_Card(controller.PId, initial_data)
-			
-			# 3. Visueel opruimen
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
+			var decision = await open_source_menu()
 			
-			# We wachten HIER niet op het menu, dat menu laten we verschijnen 
-			# zodra de server reageert met de kaartgegevens!
+			var final_data = {
+				cardId = current_id,
+				target = decision
+			}
+			controller.Play_Card(controller.PId, final_data)
+			
 			return true
 
 		else:
@@ -182,7 +183,7 @@ func open_source_menu():
 	get_tree().paused = false
 	
 	os_active = false
-	return
+	return gekozen_keuze
 
 
 # Code for sql attack card
