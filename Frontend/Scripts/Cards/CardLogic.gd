@@ -50,6 +50,7 @@ func play_card(card):
 		print("Error: DiscardPileArea node not found!")
 		return
 		
+		
 	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
 		card.movable = false
 		highlight_card(card, false)
@@ -62,11 +63,12 @@ func play_card(card):
 		var blanco = ["nocom", "goto", "inf", "vibe"]
 		
 		for card1 in hand_reference.player_hand:
-			if "imp" == card1.own_card_id and current_id != "imp":
-				print("Bad combo, cards need to be of same type or 1 has to be nocom")
+			if "imp" == card1.own_card_id && current_id != "imp":
+				print("Hand contains imp, play it")
 				card.movable = true
 				return false
 
+		print("Card: " + current_id)
 		if current_id in blanco:
 			if first_combo_card == null: # First blanco card played
 				if has_another_blanco(current_id):
@@ -130,6 +132,7 @@ func play_card(card):
 			return true
 
 		elif current_id == "imp":
+			print("Playcard")
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
 

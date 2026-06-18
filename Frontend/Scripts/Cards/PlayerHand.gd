@@ -130,6 +130,12 @@ func add_new_card(card_id):
 	new_card.global_position = pile_pos
 	player_hand.insert(0, new_card)
 	update_card_hand_position()
+	print("Add card: " + new_card.own_card_id)
+	if new_card.own_card_id == "imp": # If you grab an improved hardware, you must play it
+		# For now let the card go into your hand
+		await get_tree().create_timer(0.25).timeout
+		print("Grabbed improved hardware, must play")
+		card_logic.play_card(new_card)
 
 	animate_draw_card(new_card)
 
@@ -147,9 +153,6 @@ func add_card_to_hand(card):
 	if card not in player_hand:
 		player_hand.insert(0, card)
 		update_card_hand_position()
-		if card.own_card_id == "imp": # If you grab an improved hardware, you must play it
-			print("Grabbed improved hardware, must play")
-			card_logic.play_card(card)
 	else:
 		if not card.has_meta("pending") or not card.get_meta("pending"):
 			card.movable = true
