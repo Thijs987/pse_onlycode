@@ -51,8 +51,6 @@ func play_card(card):
 
 		highlight_card(card, false)
 
-		hand_reference.add_card_to_hand(card)
-
 		controller.Play_Card(controller.PId, card.own_card_id)
 
 # Starts dragging of current card under mouse.
