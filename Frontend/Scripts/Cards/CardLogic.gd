@@ -3,6 +3,7 @@ extends Node2D
 @onready var discard_pile = $"../DiscardPile"
 @onready var hand_reference = $"../PlayerHand"
 const ATTACK_SCENE = preload("res://Scenes/Attack.tscn")
+const OS_MENU_SCENE = preload("res://Scenes/OSMenu.tscn")
 
 const CARD_COLLISION_MASK = 1
 
@@ -15,6 +16,7 @@ var turns
 var first_combo_card = null # Played blanco
 var trojan_selecting_gift = false # Played trojan horse
 var imp_hardware_active = false #  Played improved hardware
+var os_active = false
 
 
 # Called when the node enters the scene tree for the first time.
@@ -137,6 +139,26 @@ func play_card(card):
 				imp_hardware_active = true
 
 			return true
+
+		elif current_id == "os":
+			# 1. Schakel interactie direct uit zodat de speler niks geks doet
+			os_active = true
+			
+			# 2. Stuur ALLEEN de "view" actie naar de server
+			var initial_data = {
+				cardId = current_id,
+				target = "view"
+			}
+			controller.Play_Card(controller.PId, initial_data)
+			
+			# 3. Visueel opruimen
+			hand_reference.remove_card_from_hand(card)
+			card.queue_free()
+			
+			# We wachten HIER niet op het menu, dat menu laten we verschijnen 
+			# zodra de server reageert met de kaartgegevens!
+			return true
+
 		else:
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
@@ -145,6 +167,23 @@ func play_card(card):
 		controller.Play_Card(controller.PId, data)
 		return true
 	return false
+
+func open_source_menu():
+	os_active = true
+	var os_screen = OS_MENU_SCENE.instantiate()
+	get_tree().root.add_child(os_screen)
+	
+	# Pauzeer het spel (behalve het menu zelf) net als bij SQL attack
+	get_tree().paused = true 
+	
+	# Wacht tot het menu het signaal choice_selected afgeeft
+	var gekozen_keuze = await os_screen.choice_selected
+	
+	get_tree().paused = false
+	
+	os_active = false
+	return
+
 
 # Code for sql attack card
 func sql_attack() -> String:
