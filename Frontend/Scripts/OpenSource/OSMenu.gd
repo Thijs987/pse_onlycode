@@ -25,20 +25,10 @@ func _on_top_pressed():
 	
 	
 func toon_kaart(card_id: String):
-	# 1. Maak een instantie van de kaart aan
 	var nieuwe_kaart = CARD_SCENE.instantiate()
-	
-	# 2. Voeg de kaart toe als kind van je SpawnPoint
 	$CardSpawnPoint.add_child(nieuwe_kaart)
-	
-	# 3. Zet de kaart lokaal op (0, 0) zodat hij EXACT op de stip van je SpawnPoint staat
 	nieuwe_kaart.position = Vector2.ZERO
 	
-	# 4. Verander de kaart naar de juiste ID (bijv. "os") via jouw bestaande functie
 	nieuwe_kaart.set_card(card_id)
-	
-	# 5. Zorg dat de speler deze kaart in het menu niet per ongeluk kan wegslepen
 	nieuwe_kaart.movable = false
-	
-	# 6. Mocht de kaart achter je menu-achtergrond verdwijnen, zet de z_index dan hoger:
-	nieuwe_kaart.z_index = 101
+	nieuwe_kaart.z_index = 101 # Just in case

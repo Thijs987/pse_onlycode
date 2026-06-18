@@ -4,7 +4,7 @@ extends Node2D
 @onready var hand_reference = $"../PlayerHand"
 @onready var CardLogic = $"../CardLogic"
 # Deze aanpassen voor het goeie aantal kaarten
-@export var card_count: int = 40
+@export var card_count: int = 2
 
 var turns = null
 

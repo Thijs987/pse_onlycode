@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var discard_pile = $"../DiscardPile"
 @onready var hand_reference = $"../PlayerHand"
+@onready var pile_node = $"../Pile"
 const ATTACK_SCENE = preload("res://Scenes/Attack.tscn")
 const OS_MENU_SCENE = preload("res://Scenes/OSMenu.tscn")
 
@@ -141,24 +142,34 @@ func play_card(card):
 			return true
 
 		elif current_id == "os":
-			# kijg view, stuur take or top, eindig je turn erna
-			# Path backend/infrastructure/services/cards
+			# 0. CHECK: Is de trekstapel leeg?
+			if pile_node != null and pile_node.card_count <= 0:
+				print("De trekstapel is leeg! Je kunt Open Source nu niet spelen.")
+				card.movable = true # Zorg dat de speler de kaart weer kan oppakken
+				return false
+			
+			# 1. Stuur het verzoek naar de server om te kijken
 			var initial_data = {
 				cardId = current_id,
 				target = "view"
 			}
 			controller.Play_Card(controller.PId, initial_data)
+			
+			# 2. Visueel opruimen uit de hand
 			hand_reference.remove_card_from_hand(card)
 			card.queue_free()
+			
+			# 3. Haal de echte kaart-ID op uit de servergegevens (Last_Data)
 			var server_cards = controller.Last_Data.get("cards", [])
-			var kaart_om_te_tonen = "imp" # Fallback voor de zekerheid
+			var kaart_om_te_tonen = "os"
 			
 			if server_cards.size() > 0:
-				kaart_om_te_tonen = server_cards[0] # Pak de eerste kaart uit de lijst
+				kaart_om_te_tonen = server_cards[0]
 			
 			# 4. Geef de ECHTE kaart-ID mee aan het menu!
 			var decision = await open_source_menu(kaart_om_te_tonen)
 			
+			# 5. Stuur de definitieve keuze ("take" of "top") naar de server
 			var final_data = {
 				cardId = current_id,
 				target = decision
