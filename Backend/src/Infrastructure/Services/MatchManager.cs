@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using Domain;
 using Application.Interfaces;
 using System.Text.RegularExpressions;
+using Serilog;
 
 public class MatchManager
 {
@@ -48,7 +49,7 @@ public class MatchManager
 
             if (!Int32.TryParse(card, out x))
             {
-                Console.WriteLine($"Match {matchId} initialization failed!");
+                Log.Warning("Match {MatchId} initialization failed - invalid card data.", matchId);
                 newState.Deck = new List<string>{};
                 return newState;
             }
@@ -107,7 +108,7 @@ public class MatchManager
 
         if ((size-impcards) < (playerCount*initialHandSize) ||
             size < ((newState.CardLimit+1)*playerCount)) {
-            Console.WriteLine($"Match {matchId} initialization failed!");
+            Log.Warning("Match {MatchId} initialization failed - insufficient cards (size={Size}, impcards={ImpCards}, players={Players}).", matchId, size, impcards, playerCount);
             newState.Deck = new List<string> { };
             return newState;
         }
@@ -140,7 +141,7 @@ public class MatchManager
         newState.Deck = newState.Deck.OrderBy(_ => rand.Next()).ToList();
 
         _activeMatches.TryAdd(matchId, newState);
-        Console.WriteLine($"Match {matchId} started! Handed out initial hands HAHAHAHAHA.");
+        Log.Information("Match {MatchId} started and initial hands dealt.", matchId);
 
         // return new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
         return newState;
@@ -159,7 +160,7 @@ public class MatchManager
     {
         var rand = new Random();
         state.Deck = state.Deck.OrderBy(_ => rand.Next()).ToList();
-        state.Deck.ForEach(Console.WriteLine);
+        Log.Debug("Deck randomized for match {MatchId} with {Count} cards.", state.MatchId, state.Deck.Count);
     }
 
     // Returns DataInfo if there is no error responseData.Error=="".
@@ -174,7 +175,7 @@ public class MatchManager
 
         if (match.CurrentTurnPlayerId != playerId)
         {
-            Console.WriteLine($"{playerId} tried to play, but not their turn!");
+            Log.Warning("Player {PlayerId} attempted action out of turn in match {MatchId}", playerId, matchId);
             return new DataInfo { Error = "Not your turn" };
         }
 
@@ -198,7 +199,7 @@ public class MatchManager
         }
         else if (!match.PlayerHands[playerId].Contains(cardData.CardId))
         {
-            Console.WriteLine($"{playerId} tried to play a card they don't have: {cardData.CardId}");
+            Log.Warning("Player {PlayerId} tried to play a card they don't have in match {MatchId}: {CardId}", playerId, matchId, cardData.CardId);
             return new DataInfo { Error = "You do not have that card in your hand!" };
         }
 
@@ -314,7 +315,7 @@ public class MatchManager
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
-            Console.WriteLine($"Cannot find match {matchId}");
+            Log.Warning("Cannot find match {MatchId}", matchId);
             return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
 
@@ -326,13 +327,13 @@ public class MatchManager
 
         if (match.CurrentTurnPlayerId != playerId)
         {
-            Console.WriteLine($"{playerId} tried to draw, but not their turn!");
+            Log.Warning("Player {PlayerId} tried to draw out of turn in match {MatchId}", playerId, matchId);
             return new DataInfo { Error = $"Not your turn" };
         }
 
         if (!string.IsNullOrEmpty(match.PendingAction) && match.PendingActionPlayerId == playerId)
         {
-            Console.WriteLine($"{playerId} tried to draw, but has a pending action!");
+            Log.Warning("Player {PlayerId} tried to draw but has a pending action in match {MatchId}", playerId, matchId);
             return new DataInfo { Error = "You must resolve your current pending action before drawing." };
         }
 
@@ -347,7 +348,7 @@ public class MatchManager
         if (match.Deck.Count <= 0)
         {
             // Refill deck
-            Console.WriteLine("Deck empty");
+            Log.Warning("Deck empty for match {MatchId}, regenerating.", match.MatchId);
             GenerateDeck(match);
             responseData.Message = "1";
         }
@@ -381,7 +382,7 @@ public class MatchManager
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
-            Console.WriteLine($"Cannot find match {matchId}");
+            Log.Warning("Cannot find match {MatchId}", matchId);
             return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
 
@@ -450,12 +451,12 @@ public class MatchManager
         // var count = hand.Count;
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
-            Console.WriteLine($"Cannot find match {matchId}");
+            Log.Warning("Cannot find match {MatchId}", matchId);
             return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
         if (!match.PlayerHands.TryGetValue(playerId, out var hand))
         {
-            Console.WriteLine($"Cannot find player {playerId}");
+            Log.Warning("Cannot find player {PlayerId} in match {MatchId}", playerId, matchId);
             return new DataInfo { Error = $"Cannot find player {playerId}" };
         }
 
@@ -501,7 +502,7 @@ public class MatchManager
 
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
-            Console.WriteLine($"Cannot find match {matchId}");
+            Log.Warning("Cannot find match {MatchId}", matchId);
             return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
 
@@ -527,7 +528,7 @@ public class MatchManager
         }
         match.PlayerHands.Remove(playerId);
 
-        Console.WriteLine($"Removed {playerId} from {matchId}. Cycle: {currentCycle.Count}");
+        Log.Information("Removed {PlayerId} from {MatchId}. Cycle: {CycleSize}", playerId, matchId, currentCycle.Count);
 
         var responseData = new DataInfo
         {
@@ -553,7 +554,7 @@ public class MatchManager
 
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
-            Console.WriteLine($"Cannot find match {matchId}");
+            Log.Warning("Cannot find match {MatchId}", matchId);
             return new DataInfo { Error = $"Cannot find match {matchId}" };
         }
 
@@ -585,7 +586,7 @@ public class MatchManager
         }
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
-            Console.WriteLine($"Cannot find match {matchId}");
+            Log.Warning("Cannot find match {MatchId}", matchId);
             return false;
         }
         //adjust status based on if player is elimanted or not.
@@ -674,7 +675,7 @@ public class MatchManager
     {
         if (_activeMatches.TryRemove(matchId, out _))
         {
-            Console.WriteLine($"Match {matchId} successfully cleaned up and removed from active matches.");
+            Log.Information("Match {MatchId} successfully cleaned up and removed from active matches.", matchId);
         }
     }
 }
