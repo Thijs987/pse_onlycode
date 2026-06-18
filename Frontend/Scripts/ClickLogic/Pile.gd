@@ -35,7 +35,7 @@ func _on_message(msg):
 		if msg.get("playerId") == controller.PId:
 			var drawn_card = msg.get("data", {}).get("cardId")
 			if drawn_card != null and drawn_card != "":
-				hand_reference.add_new_card(drawn_card)
+				hand_reference.add_new_card(drawn_card, 0)
 
 func _newturn(player):
 	if player != null:
