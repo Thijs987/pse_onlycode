@@ -101,13 +101,12 @@ public class NoCommentsCard : ICardEffect
 
         // Return a basic response so the game doesn't crash
         responseData.Target = target;
-        responseData.Message = card;
+        responseData.Cards.Add(card);
 
         // Standard Cleanup
         if (match.PlayerHands.ContainsKey(playerId))
         {
             foreach(var cards in sendCards) {
-                responseData.Cards.Add(cards);
                 match.PlayerHands[playerId].Remove(cards);
             }
         }

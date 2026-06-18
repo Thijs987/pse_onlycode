@@ -120,7 +120,7 @@ public class MessageRouter
                         // If the move was valid, broadcast the result to EVERYONE in the game
 
 
-                        List <string> specialCards = new List <string> {"goto", "vibe", "inf", "nocom"};
+                        List <string> specialCards = new List <string> {"goto", "vibe", "inf", "nocom","trojan"};
 
                         var action = "CARD_PLAYED";
 
@@ -135,22 +135,13 @@ public class MessageRouter
 
                         if (specialCards.Contains(responseData.CardId)) {
                             var dataBroad = new DataInfo {
-                                Target = responseData.Target,
-                                Cards = responseData.Cards
-                            };
-                            var broadMessage = MakeMessage(action,playerId, dataBroad);
-                            await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
-                            await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
-                        } else if (responseData.CardId == "trojan") {
-                            var dataBroad = new DataInfo {
                                 CardId = responseData.CardId,
                                 Target = responseData.Target
                             };
                             var broadMessage = MakeMessage(action,playerId, dataBroad);
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
                             await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
-                        }
-                        else if (responseData.IsPrivate == false) {
+                        } else if (responseData.IsPrivate == false) {
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
 

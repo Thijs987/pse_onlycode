@@ -100,13 +100,12 @@ public class VibeCodingCard : ICardEffect
         match.PlayerHands[target].Add(card);
 
         responseData.Target = target;
-        responseData.Message = card;
+        responseData.Cards.Add(card);
 
         // Standard Cleanup
         if (match.PlayerHands.ContainsKey(playerId))
         {
             foreach(var cards in sendCards) {
-                responseData.Cards.Add(cards);
                 match.PlayerHands[playerId].Remove(cards);
             }
         }
