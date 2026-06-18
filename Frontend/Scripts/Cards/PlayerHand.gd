@@ -47,12 +47,22 @@ func _on_message(msg):
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
+
 		if msg["action"] == "CARD_PLAYED":
+			# Set turn to the next player
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null and player != "":
 				next_turn.emit(player)
 				if turn_label != null:
 					turn_label.text = str(player)
+			
+			var target = msg.get("data", {}).get("target")
+			if target != null and target != "":
+				var cards = msg.get("data", {}).get("")
+				if target == controller.PId && cards != null:
+					for card in cards:
+						add_new_card(card)
+				
 			
 			if msg.get("playerId") == controller.PId:
 				var played_id = msg.get("data", {}).get("cardId")

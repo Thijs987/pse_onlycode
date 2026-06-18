@@ -72,7 +72,7 @@ func Gift_Card(Opponent_Id: String, CardId: String, From_Hand: bool):
 # or Controller.Last_Message["data"]["cardId"]
 func Update_From_Server(msg: Dictionary):
 	Last_Message = msg
-	print(Last_Message)
+	print("Player: " + str(PId) +", " + str(Last_Message))
 	Last_Data = msg.get("data", {})
 	
 	if Last_Message.get("action") == "PLAYER_JOINED":
@@ -87,6 +87,10 @@ func Update_From_Server(msg: Dictionary):
 	if Last_Message.get("action") == "CARD_PLAYED":
 		if Last_Data.has("cardId"):
 			Player_Hand.erase(Last_Data["cardId"])
+		if Last_Data.has("cards"):
+			for card in Last_Data.get("cards"):
+				Player_Hand.append(card)
+				
 
 	if Last_Message.get("action") == "MATCH_STARTED":
 		if Last_Data.has("cards"):
