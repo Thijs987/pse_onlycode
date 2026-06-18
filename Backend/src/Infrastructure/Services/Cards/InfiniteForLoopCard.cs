@@ -3,18 +3,54 @@ using Domain;
 
 namespace Infrastructure.Services.Cards;
 
+//request =
+// {
+//   "action": "PLAY_CARD",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "inf",
+//     "target": "Player_2",
+//     "cards": ["inf", "inf"] <- [always inf, other blanco card]
+//   }
+// }
+
+//response target =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "cardId": "inf", <- received card from top of deck
+//     "target": "Player_2",
+//     "turns": 1,
+//     "cards": [ "inf", "inf"] <- [always inf, other blanco card]
+//     "isPrivate": false
+//   }
+// }
+
+//response for others =
+// {
+//   "action": "CARD_PLAYED",
+//   "playerId": "Player_1",
+//   "data": {
+//     "target": "Player_2",
+//     "turns": 1,
+//     "cards": [ "inf", "inf"], <- [always inf, other blanco card]
+//     "isPrivate": false
+//   }
+// }
+
 public class InfiniteForLoopCard : ICardEffect
 {
     public string CardId => "inf";
 
-    public DataInfo ApplyEffect(GameState matchState, string playerId, DataInfo cardData)
+    public DataInfo ApplyEffect(GameState match, string playerId, DataInfo cardData)
     {
         // TODO: Write the actual logic
         var responseData = new DataInfo{
             CardId = CardId
         };
 
-        if (!matchState.PlayerIds.Contains(cardData.Target)){
+        if (!match.PlayerIds.Contains(cardData.Target)){
             responseData.Error = $"{cardData.Target} not in game.";
             return responseData;
         }
@@ -32,49 +68,48 @@ public class InfiniteForLoopCard : ICardEffect
 
         //check if both cards are valid
         foreach (var cards in sendCards) {
-            if(!matchState.PlayerHands[playerId].Contains(cards) || !blank_cards.Contains(cards)){
+            if(!match.PlayerHands[playerId].Contains(cards) || !blank_cards.Contains(cards)){
                 responseData.Error = $"Incorrect set of cards have been send";
                 return responseData;
             }
         }
 
         //generate and shuffle deck if empty
-        if (matchState.Deck.Count <= 0)
+        if (match.Deck.Count <= 0)
         {
             // Refill deck
             Console.WriteLine("Deck empty");
-            matchState.Deck = new List<string>(matchState.TableCards);
-            matchState.TableCards = [];
+            match.Deck = new List<string>(match.TableCards);
+            match.TableCards = [];
             var rand = new Random();
-            matchState.Deck = matchState.Deck.OrderBy(_ => rand.Next()).ToList();
+            match.Deck = match.Deck.OrderBy(_ => rand.Next()).ToList();
             responseData.Message = "deck regenarated";
         }
 
         // No top card, not possible
-        if (matchState.Deck.Count <= 0)
+        if (match.Deck.Count <= 0)
         {
             responseData.Error = "Deck could not be generated";
             return responseData;
         }
 
         //give card to player.
-        var card = matchState.Deck[0];
+        var card = match.Deck[0];
 
-        matchState.Deck.RemoveAt(0);
-        Console.WriteLine($"The first card is {card}");
+        match.Deck.RemoveAt(0);
 
-        matchState.PlayerHands[target].Add(card);
+        match.PlayerHands[target].Add(card);
 
         // Return a basic response so the game doesn't crash
         responseData.Target = target;
         responseData.Message = card;
 
         // Standard Cleanup
-        if (matchState.PlayerHands.ContainsKey(playerId))
+        if (match.PlayerHands.ContainsKey(playerId))
         {
             foreach(var cards in sendCards) {
                 responseData.Cards.Add(cards);
-                matchState.PlayerHands[playerId].Remove(cards);
+                match.PlayerHands[playerId].Remove(cards);
             }
         }
         return responseData;
