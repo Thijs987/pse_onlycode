@@ -68,7 +68,7 @@ func play_card(card):
 		var target_id = ""
 		var blanco = ["nocom", "goto", "inf", "vibe"]
 		
-		for card1 in hand_reference.player_hand:
+		for card1 in hand_reference.player_hands[0]:
 			if "imp" == card1.own_card_id && current_id != "imp":
 				print("Hand contains imp, play it")
 				card.movable = true
@@ -92,7 +92,7 @@ func play_card(card):
 					card.movable = true
 					return false
 			else: # Second blanco card
-				# Checks if type matches or at least 1 card is a nocom
+				# Checks if type matches or at least 1 card is a goto
 				if current_id == first_combo_card.own_card_id or current_id == "goto" or first_combo_card.own_card_id == "goto":
 					played_cards = [first_combo_card.own_card_id, current_id]
 					print("Geldige combo gemaakt! Versturen naar server: ", played_cards)
@@ -102,8 +102,8 @@ func play_card(card):
 							cards = [first_combo_card.own_card_id, current_id]}
 
 					# Play both cards
-					hand_reference.remove_card_from_hand(first_combo_card)
-					hand_reference.remove_card_from_hand(card)
+					hand_reference.remove_card_from_hand(first_combo_card, 0)
+					hand_reference.remove_card_from_hand(card, 0)
 
 					first_combo_card.queue_free()
 					card.queue_free()
@@ -118,18 +118,18 @@ func play_card(card):
 
 		elif current_id == "sql":
 			played_cards = [current_id]
-			hand_reference.remove_card_from_hand(card)
+			hand_reference.remove_card_from_hand(card, 0)
 			card.queue_free()
 			target_id = await sql_attack()
 			data = {cardId = current_id,
 					target = target_id}
 		
 		elif current_id == "trojan":
-			if hand_reference.player_hand.size() < 2: # Need to have a card to give
+			if hand_reference.player_hands[0].size() < 2: # Need to have a card to give
 				print("You dont have a card to give")
 				card.movable = true
 				return false
-			hand_reference.remove_card_from_hand(card)
+			hand_reference.remove_card_from_hand(card, 0)
 			card.queue_free()
 
 			print("Choose a card to give to player")
@@ -139,10 +139,10 @@ func play_card(card):
 
 		elif current_id == "imp":
 			print("Playcard")
-			hand_reference.remove_card_from_hand(card)
+			hand_reference.remove_card_from_hand(card, 0)
 			card.queue_free()
 
-			if hand_reference.player_hand.size() == 0: # No other cards
+			if hand_reference.player_hands[0].size() == 0: # No other cards
 				print("No other cards in hand, play only improved hardware")
 				data = {cardId = card}
 				controller.Play_Card(controller.PId,data)
@@ -163,7 +163,7 @@ func play_card(card):
 				target = "view"
 			}
 			controller.Play_Card(controller.PId, initial_data)
-			hand_reference.remove_card_from_hand(card)
+			hand_reference.remove_card_from_hand(card, 0)
 			card.queue_free()
 
 			await controller.message_updated
@@ -184,7 +184,7 @@ func play_card(card):
 			return true
 
 		else:
-			hand_reference.remove_card_from_hand(card)
+			hand_reference.remove_card_from_hand(card, 0)
 			card.queue_free()
 			data = {cardId = current_id}
 
@@ -206,7 +206,7 @@ func open_source_menu(card_id_to_show: String):
 	get_tree().paused = false
 	# Voeg kaart toe aan hand
 	if gekozen_keuze == "take":
-		hand_reference.add_new_card(card_id_to_show)
+		hand_reference.add_new_card(card_id_to_show, 0)
 	
 	os_active = false
 	return gekozen_keuze
@@ -235,10 +235,10 @@ func sql_attack() -> String:
 func has_another_blanco(card_type: String) -> bool:
 	var count = 0
 	var blanco = ["nocom", "goto", "inf", "vibe"]
-	for c in hand_reference.player_hand:
-		if c.own_card_id == card_type or c.own_card_id == "nocom":
+	for c in hand_reference.player_hands[0]:
+		if c.own_card_id == card_type or c.own_card_id == "goto":
 			count += 1
-		elif card_type == "nocom" and c.own_card_id in blanco:
+		elif card_type == "goto" and c.own_card_id in blanco:
 			count += 1
 	return count >= 2
 		
@@ -258,7 +258,7 @@ func start_dragging(card):
 		print("Chosen card: ", gift_card_id)
 		
 		# Delete card from your hand
-		hand_reference.remove_card_from_hand(card)
+		hand_reference.remove_card_from_hand(card, 0)
 		card.queue_free()
 		var target_id = await sql_attack() 
 		
@@ -277,7 +277,7 @@ func start_dragging(card):
 		print("Chosen card: ", sacrifice_card_id)
 
 		# Delete card from your hand
-		hand_reference.remove_card_from_hand(card)
+		hand_reference.remove_card_from_hand(card, 0)
 		card.queue_free()
 
 		#var played_cards = ["imp", sacrifice_card_id]

@@ -85,7 +85,7 @@ func _on_message(msg):
 				if target != null and target != "":
 					var cards = msg.get("data", {}).get("cards")
 					if target == controller.PId && cards != null && cards.size() == 3:
-						add_new_card(cards[2])
+						add_new_card(cards[2], 0)
 				
 			# Trojan horse puts the sent card in cards[0].
 			if msg.get("data", {}).get("cardId") == "trojan":
@@ -93,18 +93,8 @@ func _on_message(msg):
 				if target != null and target != "":
 					var cards = msg.get("data", {}).get("cards")
 					if target == controller.PId && cards != null:
-						add_new_card(cards[0])
+						add_new_card(cards[0], 0)
 			
-			if msg.get("playerId") == controller.PId:
-				var played_id = msg.get("data", {}).get("cardId")
-				for i in range(player_hand.size()):
-					if player_hand[i].own_card_id == played_id and player_hand[i].has_meta("pending"):
-						var card = player_hand[i]
-						player_hand.remove_at(i)
-						card.queue_free()
-						update_card_hand_position()
-						break
-
 			if msg.get("playerId") == controller.PId:
 				var played_id = msg.get("data", {}).get("cardId")
 				for i in range(player_hands[0].size()):

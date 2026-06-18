@@ -41,7 +41,7 @@ public class MatchManager
         var pileCards = new List <int> {};
 
         if (data == null || data.Cards == null || data.Cards.Count != 15) {
-            pileCards = new List <int> {2,4,4,2,0,4,4,4,2,4,4,4,4,4,0};
+            pileCards = new List <int> {2,4,4,2,0,4,4,4,2,4,4,4,4,4,8};
         }
 
         if (data != null && data.Cards != null) {
@@ -60,38 +60,38 @@ public class MatchManager
 
         var allCards = new Dictionary<string, int>()
         {
-            {"blue", 0},
-            {"cm", 0},
-            {"ddos", 0},
-            {"err", 0},
-            {"garb", 0},
-            {"goto", 0},
-            {"imp", 0},
-            {"inf", 0},
-            {"merge", 0},
-            {"miracle", 0},
-            {"nocom", 0},
-            {"sql", 0},
-            {"trojan", 0},
-            {"vibe", 0},
-            {"os", 10},
-            {"test", 10}
+            // {"blue", 0},
+            // {"cm", 0},
+            // {"ddos", 0},
+            // {"err", 0},
+            // {"garb", 0},
+            // {"goto", 0},
+            // {"imp", 0},
+            // {"inf", 0},
+            // {"merge", 0},
+            // {"miracle", 0},
+            // {"nocom", 0},
+            // {"sql", 0},
+            // {"trojan", 0},
+            // {"vibe", 0},
+            // {"os", 10},
+            // {"test", 10}
 
-            // {"blue", pileCards[0]},
-            // {"cm", pileCards[1]},
-            // {"ddos", pileCards[2]},
-            // {"err", pileCards[3]},
-            // {"garb", pileCards[4]},
-            // {"goto", pileCards[5]},
-            // {"imp", pileCards[6]},
-            // {"inf", pileCards[7]},
-            // {"merge", pileCards[8]},
-            // {"miracle", pileCards[9]},
-            // {"nocom", pileCards[10]},
-            // {"sql", pileCards[11]},
-            // {"trojan", pileCards[12]},
-            // {"vibe", pileCards[13]},
-            // {"test", pileCards[14]}
+            {"blue", pileCards[0]},
+            {"cm", pileCards[1]},
+            {"ddos", pileCards[2]},
+            {"err", pileCards[3]},
+            {"garb", pileCards[4]},
+            {"goto", pileCards[5]},
+            {"imp", pileCards[6]},
+            {"inf", pileCards[7]},
+            {"merge", pileCards[8]},
+            {"miracle", pileCards[9]},
+            {"nocom", pileCards[10]},
+            {"sql", pileCards[11]},
+            {"trojan", pileCards[12]},
+            {"vibe", pileCards[13]},
+            {"os", pileCards[14]}
         };
 
         foreach (var card in allCards)
