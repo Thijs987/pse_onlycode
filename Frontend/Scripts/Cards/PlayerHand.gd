@@ -67,11 +67,15 @@ func _on_message(msg):
 					turn_timer.stop()
 
 		if msg["action"] == "CARD_PLAYED":
-			var player = msg.get("data", {}).get("nextPlayer")
-			if player != null and player != "":
-				next_turn.emit(player)
+			var next_player = msg.get("data", {}).get("nextPlayer")
+			if next_player != "" and next_player != null:
+				next_turn.emit(next_player)
 				if turn_label != null:
-					turn_label.text = str(player)
+					turn_label.text = str(next_player)
+				if next_player == controller.PId:
+					turn_timer.start()
+				else:
+					turn_timer.stop()
 
 			if msg.get("playerId") == controller.PId:
 				var played_id = msg.get("data", {}).get("cardId")
@@ -86,6 +90,7 @@ func _on_message(msg):
 			else:
 				#Remove card from the other player that played a card
 				var player_number = controller.player_list.find(msg.get("playerId"))
+				print(player_number)
 				var card = player_hands[player_number][0]
 				player_hands[player_number].remove_at(0)
 				card.queue_free()
@@ -99,24 +104,13 @@ func _on_message(msg):
 						card.modulate.a = 1.0
 						card.movable = true
 
-		if msg["action"] == "CARD_PLAYED":
-			var next_player = msg.get("data", {}).get("nextPlayer")
-			if next_player != "" and next_player != null:
-				next_turn.emit(next_player)
-				if turn_label != null:
-					turn_label.text = str(next_player)
-				if next_player == controller.PId:
-					turn_timer.start()
-				else:
-					turn_timer.stop()
+		if msg["action"] == "CARD_DRAWN":
+			if msg.get("playerId") != controller.PId:
+				add_new_card("achterkant", controller.player_list.find(msg.get("playerId")))
 
 
 func _on_timeout():
 	controller.Draw_Card(controller.PId)
-
-		if msg["action"] == "CARD_DRAWN":
-			if msg.get("playerId") != controller.PId:
-				add_new_card("achterkant", controller.player_list.find(msg.get("playerId")))
 
 func add_new_card(card_id, player_number):
 	var card_scene = preload(CARD_SCENE_PATH)
@@ -223,11 +217,11 @@ func calculate_card_y_position(position, player_number):
 func rotate_card(card, player_number):
 	match player_number:
 		1:
-			card.rotation = PI * 0.5
+			card.rotation = PI * 1.5
 		2:
 			card.rotation = PI
 		3:
-			card.rotation = PI * 1.5
+			card.rotation = PI * 0.5
 
 func move_to_position(card, position):
 	var tween = get_tree().create_tween()

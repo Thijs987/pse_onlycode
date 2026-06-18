@@ -120,9 +120,13 @@ func highlight_card(card, hovered):
 		if "is_others" in card:
 			if card.is_others == false:
 				card.scale = Vector2(1.1, 1.1)
-		if not dragging_card:
-			card_tooltip.show_tooltip(card.own_card_id)
-			card_tooltip.global_position = card.global_position
+				#if the mouse is below show_tooltip_y, show the tooltip
+				var show_tooltip_y = hand_reference.center_screen_y * 2
+				show_tooltip_y -= hand_reference.CARD_HEIGHT * 0.2
+				if not dragging_card and card.global_position.y > show_tooltip_y:
+					card_tooltip.show_tooltip(card.own_card_id)
+					card_tooltip.global_position.x = card.global_position.x
+					card_tooltip.global_position.y = show_tooltip_y
 	else:
 		card.scale = Vector2(1.0, 1.0)
 		card_tooltip.hide_tooltip()

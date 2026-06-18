@@ -11,6 +11,7 @@ signal message_updated(msg)
 signal lobbies_updated(lobbies)
 signal lobby_join_failed()
 signal lobby_left()
+
 var PId := ""
 var player_list = ["", "", "", ""]
 
