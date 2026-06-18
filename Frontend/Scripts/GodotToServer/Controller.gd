@@ -9,12 +9,23 @@ signal message_updated(msg)
 signal lobbies_updated(lobbies)
 signal lobby_join_failed()
 signal lobby_left()
-var PId := "" # SHOULD CHANGE THIS BACK TO ""
+var PId := "Bart" # SHOULD CHANGE THIS BACK TO ""
 
 var Last_Message := {}
 var Last_Data := {}
 var Active_Lobbies := []
 var Player_Hand := []
+var custom_set = {"CM" : 4,
+				 "Ddos" : 2,
+				 "SQL" : 2,
+				 "MS" : 2,
+				 "Err" : 4,
+				 "Goto" : 4,
+				 "IH" : 4,
+				 "Unplayable" : 6,
+				 "TH" : 4,
+				 "OpS" : 2
+				 }
 
 var interaction_disabled := false
 
@@ -47,7 +58,7 @@ func Draw_Card(Player_Id: String):
 func Start_Match(Player_Id: String):
 	interaction_disabled = false
 	PId = Player_Id
-	gscws.Start_Match()
+	gscws.Start_Match(custom_set)
 
 func Add_Bot():
 	gscws.Add_Bot()

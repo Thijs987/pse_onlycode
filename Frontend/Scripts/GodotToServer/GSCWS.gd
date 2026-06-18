@@ -71,8 +71,43 @@ func Draw_Card():
 	_Send(_Make_Message("DRAW_CARD"))
 
 # Function to start match
-func Start_Match():
-	_Send(_Make_Message("START_MATCH"))
+func Start_Match(custom_set: Dictionary):
+	var no_un := int(custom_set.get("Unplayable", 0))
+	
+	var no_merge := 0
+	var no_blue := 0
+	var no_err := 0
+	
+	while no_un > 0:
+		no_merge += 1
+		no_un -= 1
+		
+		if no_un > 0:
+			no_blue += 1
+			no_un -= 1
+		
+		if no_un > 0:
+			no_err += 1
+			no_un -= 1
+	
+	var new_set := {
+		"cm": int(custom_set.get("CM", 0)),
+		"ddos": int(custom_set.get("Ddos", 0)),
+		"sql": int(custom_set.get("SQL", 0)),
+		"goto": int(custom_set.get("Goto", 0)),
+		"imp": int(custom_set.get("IH", 0)),
+		"inf": int(custom_set.get("Err", 0)),
+		"nocom": int(custom_set.get("Err", 0)),
+		"vibe": int(custom_set.get("Err", 0)),
+		"merge": no_merge,
+		"blue": no_blue,
+		"err": no_err,
+		"miracle": int(custom_set.get("MS", 0)),
+		"os": int(custom_set.get("OpS", 0)),
+		"trojan": int(custom_set.get("TH", 0))
+	}
+	
+	_Send(_Make_Message("START_MATCH", {"message": new_set}))
 
 # Function to add bot
 func Add_Bot():
