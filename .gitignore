@@ -7,8 +7,13 @@ obj/
 /Backend/src/node_modules
 /Backend/src/wwwroot/node_modules
 
-# local development environment variables
+# environment variables & secrets
 .env
+appsettings.Development.json
+
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Logs
+*.log
