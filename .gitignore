@@ -9,3 +9,6 @@ obj/
 
 # local development environment variables
 .env
+# Godot 4+ specific ignores
+.godot/
+/android/

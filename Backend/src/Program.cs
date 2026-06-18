@@ -1,6 +1,7 @@
 using System;
 using Application;
 using Application.Results;
+using Application.Interfaces;
 using Infrastructure.Persistence;
 using Application.Services;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,8 @@ using System.Net.WebSockets;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Reflection;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,12 +81,28 @@ else
 // Audit and rate limit services (in-memory implementations; replace with distributed versions in production)
 builder.Services.AddSingleton<Application.Services.IAuditService, Application.Services.InMemoryAuditService>();
 builder.Services.AddSingleton<Application.Services.IRateLimitService, Application.Services.InMemoryRateLimitService>();
+var cardTypes = typeof(ICardEffect).Assembly.GetTypes()
+    .Where(t => t.IsClass && !t.IsAbstract && typeof(ICardEffect).IsAssignableFrom(t));
+
+foreach (var type in cardTypes)
+{
+    builder.Services.AddSingleton(typeof(ICardEffect), type);
+}
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<ConnectionManager>();
 builder.Services.AddSingleton<MessageRouter>();
+builder.Services.AddSingleton<MatchManager>();
+builder.Services.AddSingleton<BotService>();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 
 // Authentication with JWT bearer tokens (if configured)
@@ -150,6 +169,7 @@ if (authEnabled)
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.MapControllers();
 
 // Apply CORS policy if configured
@@ -244,7 +264,7 @@ app.MapAuthEndpoints();
 
 app.UseWebSockets();
 
-app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManager, MessageRouter router) =>
+app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManager, MessageRouter router, MatchManager matchManager) =>
 {
     if (context.WebSockets.IsWebSocketRequest)
     {
@@ -283,7 +303,7 @@ app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManage
 
         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
-        await connectionManager.HandleConnectionAsync(playerId, lobbyId, webSocket, router, context.RequestAborted);
+        await connectionManager.HandleConnectionAsync(playerId, lobbyId, webSocket, router, matchManager, context.RequestAborted);
     }
     else
     {

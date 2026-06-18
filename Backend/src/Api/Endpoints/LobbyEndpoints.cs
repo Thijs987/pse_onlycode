@@ -16,23 +16,16 @@ public static class LobbyEndpoints
         }
 
         // GET /api/lobbies/active
-        group.MapGet("/active", (ConnectionManager manager) =>
+        group.MapGet("/active", (ConnectionManager manager, MatchManager matchManager) =>
         {
-            var activeLobbies = manager.GetActiveLobbies();
+            var activeLobbies = manager.GetActiveLobbies(matchManager);
             return Results.Ok(activeLobbies);
         });
 
         // POST /api/lobbies/create?hostId=Player_x
         group.MapPost("/create", (string? hostId, ConnectionManager manager) =>
         {
-            // Basic input validation
-            if (string.IsNullOrWhiteSpace(hostId))
-            {
-                // HostId is optional, but require non-empty if provided
-                hostId = "";
-            }
-
-            string newLobbyId = manager.CreateLobby();
+            string newLobbyId = manager.CreateLobby(hostId);
             return Results.Ok(new { LobbyId = newLobbyId });
         });
     }

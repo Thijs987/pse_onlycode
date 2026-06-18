@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://dmhqmq1eo7wey"]
+
+[ext_resource type="Script" uid="uid://bh35agtmtnev6" path="res://Scripts/Loaders/LoadingScreen.gd" id="1_kddo8"]
+
+[sub_resource type="Animation" id="Animation_kstye"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Panel:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_kddo8"]
+resource_name = "transition"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Panel:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(0, 0, 0, 0), Color(0, 0, 0, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_xoop3"]
+_data = {
+&"RESET": SubResource("Animation_kstye"),
+&"transition": SubResource("Animation_kddo8")
+}
+
+[node name="LoadingScreen" type="CanvasLayer" unique_id=1483494809 node_paths=PackedStringArray("animation_player")]
+layer = 10
+script = ExtResource("1_kddo8")
+animation_player = NodePath("AnimationPlayer")
+
+[node name="Panel" type="Panel" parent="." unique_id=360172810]
+self_modulate = Color(2.094659, 2.094659, 2.094659, 1)
+offset_left = -21.0
+offset_top = -13.0
+offset_right = 1150.0
+offset_bottom = 655.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1607747894]
+libraries/ = SubResource("AnimationLibrary_xoop3")
+autoplay = &"transition"

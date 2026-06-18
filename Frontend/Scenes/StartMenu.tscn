@@ -1,0 +1,275 @@
+[gd_scene format=3 uid="uid://ctined7qq8dh2"]
+
+[ext_resource type="Script" uid="uid://64li53p86thf" path="res://Scripts/Menus/StartMenu.gd" id="1_dvnd1"]
+[ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Menu/BackgroundPattern.png" id="2_dl0pg"]
+[ext_resource type="Texture2D" uid="uid://bwaifo42khjiy" path="res://Sprites/Menu/TitleCodeGreen.png" id="2_xtte2"]
+[ext_resource type="Texture2D" uid="uid://cddmfc44v2cvs" path="res://Sprites/Menu/MainMenuButtons.png" id="3_h303d"]
+
+[sub_resource type="Curve" id="Curve_dl0pg"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.26602563, 0.26193547), 1.5700641, 1.5700641, 0, 0, Vector2(0.5769231, 0.90774196), 0.6886246, 0.6886246, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ujd4t"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(92, 83, 223, 70)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_h303d"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(98.5, 154.25, 208, 86.75)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ql1sk"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(113, 78, 179, 80)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dibtv"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(100, 240.25, 207.5, 78.5)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o6asp"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(102, 315.75, 200, 93)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o42a4"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(113.5, 240.25, 177.5, 78.5)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o7rkd"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(491.5, 330.75, 217, 60)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_x3sen"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_m7sq3"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0qo7l"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(500, 81.75, 205, 77)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_b3loq"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(498.5, 154.25, 208, 91.5)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ypme4"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(510, 78.75, 182, 81.5)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_dl0pg"]
+load_path = "res://.godot/imported/PressToStart.png-9d0c41c3b543a4dccf84ee832e0800b9.ctex"
+
+[sub_resource type="Animation" id="Animation_h303d"]
+resource_name = "PressStartAnimation"
+length = 1.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TitleCardContainer/TitleCardVContainer/PressToStart:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.7),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+
+[sub_resource type="Animation" id="Animation_dl0pg"]
+resource_name = "PressStartPressed"
+length = 1.8333334
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TitleCardContainer/TitleCardVContainer/PressToStart:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.70000005, 0.8, 0.90000004, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [true, false, true, false, true, false, true, false, true, false, true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("TitleCardContainer/TitleCardVContainer/PressToStart:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(1.5, 1.8333334),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_ujd4t"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TitleCardContainer/TitleCardVContainer/PressToStart:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("TitleCardContainer/TitleCardVContainer/PressToStart:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ql1sk"]
+_data = {
+&"PressStartAnimation": SubResource("Animation_h303d"),
+&"PressStartPressed": SubResource("Animation_dl0pg"),
+&"RESET": SubResource("Animation_ujd4t")
+}
+
+[node name="StartMenu" type="Control" unique_id=1398326018 node_paths=PackedStringArray("main_menu_buttons", "first_menu_screen", "press_to_start", "press_start_animation")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+script = ExtResource("1_dvnd1")
+multi_lobby = &"uid://bdxchheqi80lr"
+main_menu_buttons = NodePath("ButtonContainer")
+first_menu_screen = NodePath("TitleCardContainer")
+press_to_start = NodePath("TitleCardContainer/TitleCardVContainer/PressToStart")
+press_start_animation = NodePath("PressStartAnimation")
+movement_ease_curve = SubResource("Curve_dl0pg")
+
+[node name="Background" type="TextureRect" parent="." unique_id=2055996739]
+layout_mode = 0
+offset_left = -222.0
+offset_top = -257.0
+offset_right = 1410.0
+offset_bottom = 901.0
+texture = ExtResource("2_dl0pg")
+stretch_mode = 1
+
+[node name="ButtonContainer" type="MarginContainer" parent="." unique_id=599292621]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayButtonsContainer" type="CenterContainer" parent="ButtonContainer" unique_id=100660158]
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="MainMenuButtons" type="VBoxContainer" parent="ButtonContainer/PlayButtonsContainer" unique_id=1260967005]
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="ButtonContainer/PlayButtonsContainer/MainMenuButtons" unique_id=524639565]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxTexture_ujd4t")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_h303d")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ql1sk")
+
+[node name="QuitButton" type="Button" parent="ButtonContainer/PlayButtonsContainer/MainMenuButtons" unique_id=1923007763]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxTexture_dibtv")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_o6asp")
+theme_override_styles/hover = SubResource("StyleBoxTexture_o42a4")
+
+[node name="Seperator" type="Control" parent="ButtonContainer/PlayButtonsContainer/MainMenuButtons" unique_id=1914906759]
+custom_minimum_size = Vector2(0, 99.695)
+layout_mode = 2
+
+[node name="MuteButtonContainer" type="MarginContainer" parent="ButtonContainer" unique_id=1005440339]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ButtonContainer/MuteButtonContainer" unique_id=2090880296]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+
+[node name="MuteButton" type="Button" parent="ButtonContainer/MuteButtonContainer/HBoxContainer" unique_id=2100532035]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxTexture_o7rkd")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_x3sen")
+theme_override_styles/hover = SubResource("StyleBoxTexture_m7sq3")
+
+[node name="LoginContainer" type="MarginContainer" parent="ButtonContainer" unique_id=1055664539]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+
+[node name="LoginLayout" type="HBoxContainer" parent="ButtonContainer/LoginContainer" unique_id=1880022308]
+layout_mode = 2
+
+[node name="LoginButton" type="Button" parent="ButtonContainer/LoginContainer/LoginLayout" unique_id=1524910691]
+custom_minimum_size = Vector2(200, 70)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxTexture_0qo7l")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_b3loq")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ypme4")
+
+[node name="WelcomeLabel" type="Label" parent="ButtonContainer/LoginContainer/LoginLayout" unique_id=830985289]
+layout_mode = 2
+
+[node name="TitleCardContainer" type="MarginContainer" parent="." unique_id=116503845]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -345.5
+offset_top = -309.5
+offset_right = 345.5
+offset_bottom = 309.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TitleCardVContainer" type="VBoxContainer" parent="TitleCardContainer" unique_id=169313596]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Seperator" type="Control" parent="TitleCardContainer/TitleCardVContainer" unique_id=1163328570]
+custom_minimum_size = Vector2(0, 99.695)
+layout_mode = 2
+
+[node name="TitleCard" type="TextureRect" parent="TitleCardContainer/TitleCardVContainer" unique_id=2074036001]
+layout_mode = 2
+texture = ExtResource("2_xtte2")
+
+[node name="PressToStart" type="TextureRect" parent="TitleCardContainer/TitleCardVContainer" unique_id=1418016903]
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("CompressedTexture2D_dl0pg")
+stretch_mode = 3
+
+[node name="PressStartAnimation" type="AnimationPlayer" parent="." unique_id=819706605]
+libraries/ = SubResource("AnimationLibrary_ql1sk")
+
+[connection signal="pressed" from="ButtonContainer/PlayButtonsContainer/MainMenuButtons/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="ButtonContainer/PlayButtonsContainer/MainMenuButtons/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="pressed" from="ButtonContainer/MuteButtonContainer/HBoxContainer/MuteButton" to="." method="_on_mute_button_pressed"]

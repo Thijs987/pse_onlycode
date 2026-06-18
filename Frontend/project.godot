@@ -11,8 +11,23 @@ config_version=5
 [application]
 
 config/name="Frontend"
+run/main_scene="uid://ctined7qq8dh2"
 config/features=PackedStringArray("4.6", "Forward Plus")
-config/icon="res://icon.svg"
+
+[autoload]
+
+SceneLoader="*uid://1f6ldvtpwwgq"
+gschttp="*uid://br3mo8m8v4kiw"
+gscws="*uid://dg8okmsqxxyxb"
+controller="*uid://bb627jh3g5wj5"
+
+[display]
+
+window/stretch/mode="viewport"
+
+[dotnet]
+
+project/assembly_name="Frontend"
 
 [physics]
 
@@ -20,4 +35,5 @@ config/icon="res://icon.svg"
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
