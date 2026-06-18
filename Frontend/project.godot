@@ -21,6 +21,10 @@ gschttp="*uid://br3mo8m8v4kiw"
 gscws="*uid://dg8okmsqxxyxb"
 controller="*uid://bb627jh3g5wj5"
 
+[display]
+
+window/stretch/mode="viewport"
+
 [dotnet]
 
 project/assembly_name="Frontend"

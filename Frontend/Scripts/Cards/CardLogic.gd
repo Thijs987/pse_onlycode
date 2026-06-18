@@ -51,7 +51,7 @@ func play_card(card):
 
 		highlight_card(card, false)
 
-		hand_reference.add_card_to_hand(card)
+		hand_reference.add_card_to_hand(card,0)
 
 		controller.Play_Card(controller.PId, card.own_card_id)
 
@@ -76,7 +76,7 @@ func stop_dragging():
 	if released_card and (released_card.movable == true or released_card.has_meta("pending")):
 		released_card.scale = Vector2(1.1, 1.1)
 		dragging_card = null
-		hand_reference.add_card_to_hand(released_card)
+		hand_reference.add_card_to_hand(released_card, 0)
 	dragging_card = null
 
 # Connects the signals for various player actions
@@ -108,7 +108,9 @@ func hovered_away_card(card):
 # Will highlight the card if mouse is hovering over it
 func highlight_card(card, hovered):
 	if hovered:
-		card.scale = Vector2(1.1, 1.1)
+		if "is_others" in card:
+			if card.is_others == false:
+				card.scale = Vector2(1.1, 1.1)
 	else:
 		card.scale = Vector2(1.0, 1.0)
 

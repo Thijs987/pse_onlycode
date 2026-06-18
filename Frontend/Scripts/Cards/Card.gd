@@ -6,6 +6,7 @@ signal hovered
 signal hovered_away
 
 var movable = true
+var is_others
 var own_card_id = null
 var hand_position
 
@@ -14,10 +15,6 @@ var hand_position
 func _ready() -> void:
 	if get_parent().has_method("connect_card_signals"):
 		get_parent().connect_card_signals(self)
-
-func set_card(card_id):
-	own_card_id = card_id
-	sprite.texture = load("res://Sprites/CardIcons/" + card_id + ".png")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -31,3 +28,7 @@ func _on_area_2d_mouse_entered() -> void:
 func _on_area_2d_mouse_exited() -> void:
 	if movable:
 		emit_signal("hovered_away", self)
+
+func set_card(card_id):
+	own_card_id = card_id
+	sprite.texture = load("res://Sprites/CardIcons/" + card_id + ".png")

@@ -9,7 +9,8 @@ signal message_updated(msg)
 signal lobbies_updated(lobbies)
 signal lobby_join_failed()
 signal lobby_left()
-var PId := "" # SHOULD CHANGE THIS BACK TO ""
+var PId := ""
+var player_list = ["", "", "", ""]
 
 var Last_Message := {}
 var Last_Data := {}
