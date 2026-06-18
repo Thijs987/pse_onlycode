@@ -12,10 +12,10 @@ var is_connecting := false
 
 # Local
 #const BASE_URL = "ws://localhost:6767"
-const BASE_URL = "wss://localhost:6969"
+#const BASE_URL = "wss://localhost:6969"
 
 # Pointing to a No-IP.com domain. Its an A record that points towards the server ip.
-#const BASE_URL = "wss://codegreen-uva.ddns.net"
+const BASE_URL = "wss://codegreen-uva.ddns.net"
 
 
 func _on_lobby_joined():

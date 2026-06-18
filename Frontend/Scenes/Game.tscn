@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://dg8okmsqxxyxb" path="res://Scripts/GodotToServer/GSCWS.gd" id="9_x3xnh"]
 [ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://Scripts/GodotToServer/Controller.gd" id="10_8r6kd"]
 [ext_resource type="Script" uid="uid://ltey2a6xnpbk" path="res://Scripts/Menus/GameUI.gd" id="11_gameui"]
+[ext_resource type="Script" uid="uid://h003qqnoqrym" path="res://Scenes/turn_timer.gd" id="12_3so38"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
@@ -32,6 +33,12 @@ offset_left = 684.0
 offset_top = 184.0
 offset_right = 766.0
 offset_bottom = 207.0
+
+[node name="TimeLabel" type="Label" parent="Background" unique_id=571864682]
+offset_left = 693.0
+offset_top = 149.0
+offset_right = 763.0
+offset_bottom = 172.0
 
 [node name="Pile" type="Node2D" parent="." unique_id=738463849]
 script = ExtResource("2_dahhg")
@@ -91,3 +98,8 @@ script = ExtResource("10_8r6kd")
 
 [node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
 script = ExtResource("11_gameui")
+
+[node name="TurnTimer" type="Timer" parent="." unique_id=1071734473]
+wait_time = 30.0
+ignore_time_scale = true
+script = ExtResource("12_3so38")
