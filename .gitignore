@@ -9,7 +9,6 @@ obj/
 
 # environment variables & secrets
 .env
-appsettings.Development.json
 
 # Godot 4+ specific ignores
 .godot/
