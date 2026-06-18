@@ -30,6 +30,10 @@ func _ready() -> void:
 			next_turn.emit(player)
 			if turn_label != null:
 				turn_label.text = str(player)
+			if player == controller.PId:
+				turn_timer.start()
+			else:
+				turn_timer.stop()
 
 	turn_timer.timeout.connect(_on_timeout)
 	controller.message_updated.connect(_on_message)
@@ -55,22 +59,8 @@ func _on_message(msg):
 				else:
 					turn_timer.stop()
 
-		if msg["action"] == "CARD_PLAYED":
-			var player = msg.get("data", {}).get("nextPlayer")
-			if player != null and player != "":
-				next_turn.emit(player)
-				if turn_label != null:
-					turn_label.text = str(player)
-
-		if msg["action"] == "MATCH_STARTED":
-			var player = msg.get("data", {}).get("nextPlayer")
-			if player == controller.PId:
-				turn_timer.start()
-			else:
-				turn_timer.stop()
-
 		if msg["action"] == "CARD_DRAWN":
-			var player = msg.get("data", {}).get("playerId")
+			var player = msg.get("playerId")
 			if player == controller.PId:
 				var drawn_card = msg.get("data", {}).get("cardId")
 				add_new_card(drawn_card)
