@@ -130,7 +130,13 @@ text = "Log in"
 [node name="LoginStatusLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=2001705787]
 layout_mode = 2
 
-[node name="ReturnButton" type="Button" parent="." unique_id=780424951]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=342874477]
 layout_mode = 0
-offset_right = 8.0
-offset_bottom = 8.0
+offset_right = 59.0
+offset_bottom = 59.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+
+[node name="ReturnButton" type="Button" parent="MarginContainer" unique_id=780424951]
+layout_mode = 2
+text = "Back"

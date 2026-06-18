@@ -24,7 +24,7 @@ const MOCK_FILE_PATH = "user://mock_database.json"
 @onready var login_status: Label = $HBoxContainer/RightLoginPanel/LoginVBox/LoginStatusLabel
 
 # GENERAL NODES
-@onready var return_button: Button = $ReturnButton
+@onready var return_button: Button = $MarginContainer/ReturnButton
 @onready var http_request: HTTPRequest = $HTTPRequest
 
 var is_submitting: bool = false
@@ -154,7 +154,7 @@ func _handle_local_mock_auth(endpoint: String, data: Dictionary, status_label: L
 		local_db[email] = {
 			"username": data["username"],
 			"password": data["password"],
-			"id": "mock-guid-" + str(randi() % 100000)
+			"id": data["username"]
 		}
 		
 		var file = FileAccess.open(MOCK_FILE_PATH, FileAccess.WRITE)
