@@ -248,8 +248,25 @@ app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManage
 {
     if (context.WebSockets.IsWebSocketRequest)
     {
+        // Require authentication for WebSocket access when JWT auth is enabled.
+        if (authEnabled && !(context.User?.Identity?.IsAuthenticated == true))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+
         string lobbyId = context.Request.Query["lobbyId"].ToString();
         string playerId = context.Request.Query["playerId"].ToString();
+
+        if (authEnabled)
+        {
+            // Use the authenticated subject claim as the authoritative player identifier when available.
+            var authenticatedPlayerId = context.User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+            if (!string.IsNullOrEmpty(authenticatedPlayerId))
+            {
+                playerId = authenticatedPlayerId;
+            }
+        }
 
         if (string.IsNullOrEmpty(lobbyId) || string.IsNullOrEmpty(playerId))
         {

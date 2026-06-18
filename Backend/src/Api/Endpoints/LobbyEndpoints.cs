@@ -10,6 +10,11 @@ public static class LobbyEndpoints
         var enforceAuth = app.Configuration.GetValue("AppSettings:EnforceAuth", false);
         var authConfigured = !string.IsNullOrWhiteSpace(app.Configuration["Jwt:Key"]);
 
+        if (enforceAuth && authConfigured)
+        {
+            group.RequireAuthorization();
+        }
+
         // GET /api/lobbies/active
         group.MapGet("/active", (ConnectionManager manager) =>
         {
@@ -18,7 +23,7 @@ public static class LobbyEndpoints
         });
 
         // POST /api/lobbies/create?hostId=Player_x
-        var createEndpoint = group.MapPost("/create", (string? hostId, ConnectionManager manager) =>
+        group.MapPost("/create", (string? hostId, ConnectionManager manager) =>
         {
             // Basic input validation
             if (string.IsNullOrWhiteSpace(hostId))
@@ -30,11 +35,5 @@ public static class LobbyEndpoints
             string newLobbyId = manager.CreateLobby();
             return Results.Ok(new { LobbyId = newLobbyId });
         });
-
-        // If enforcement is enabled and auth is configured, require authorization for lobby creation
-        if (enforceAuth && authConfigured)
-        {
-            createEndpoint.RequireAuthorization();
-        }
     }
 }
