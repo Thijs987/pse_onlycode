@@ -425,3 +425,5 @@ static EmailSettings? LoadEmailSettingsFromAppSettings()
 
     return null;
 }
+
+public partial class Program { }

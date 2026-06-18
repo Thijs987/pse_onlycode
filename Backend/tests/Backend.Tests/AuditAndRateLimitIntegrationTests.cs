@@ -36,26 +36,41 @@ public class AuditAndRateLimitIntegrationTests
 
         var email = $"test+{Guid.NewGuid():N}@example.com";
         var reason = "Integration test audit event";
+        Guid? auditId = null;
 
         await using var context = CreateContext();
         var auditService = new DbAuditService(context);
 
-        await auditService.LogAuthEventAsync("LoginAttempt", email, success: false, reason, ipAddress: "127.0.0.1");
+        try
+        {
+            await auditService.LogAuthEventAsync("LoginAttempt", email, success: false, reason, ipAddress: "127.0.0.1");
 
-        var persisted = await context.AuditLogs
-            .Where(x => x.Action == "LoginAttempt" && x.Email == email && x.Reason == reason)
-            .OrderByDescending(x => x.Timestamp)
-            .FirstOrDefaultAsync();
+            var persisted = await context.AuditLogs
+                .Where(x => x.Action == "LoginAttempt" && x.Email == email && x.Reason == reason)
+                .OrderByDescending(x => x.Timestamp)
+                .FirstOrDefaultAsync();
 
-        Assert.NotNull(persisted);
-        Assert.Equal("LoginAttempt", persisted!.Action);
-        Assert.Equal(email, persisted.Email);
-        Assert.False(persisted.Success);
-        Assert.Equal(reason, persisted.Reason);
-        Assert.Equal("127.0.0.1", persisted.IpAddress);
+            Assert.NotNull(persisted);
+            Assert.Equal("LoginAttempt", persisted!.Action);
+            Assert.Equal(email, persisted.Email);
+            Assert.False(persisted.Success);
+            Assert.Equal(reason, persisted.Reason);
+            Assert.Equal("127.0.0.1", persisted.IpAddress);
 
-        context.Remove(persisted);
-        await context.SaveChangesAsync();
+            auditId = persisted.Id;
+        }
+        finally
+        {
+            if (auditId.HasValue)
+            {
+                var auditLog = await context.AuditLogs.FindAsync(auditId.Value);
+                if (auditLog != null)
+                {
+                    context.AuditLogs.Remove(auditLog);
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
     }
 
     [Fact]

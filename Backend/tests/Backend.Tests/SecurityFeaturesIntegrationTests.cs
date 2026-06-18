@@ -232,27 +232,39 @@ public class SecurityFeaturesIntegrationTests
     {
         if (!HasIntegrationConnection()) return;
 
+        Guid? createdUserId = null;
         await using var context = CreateContext();
-        var userId = Guid.NewGuid();
-        var user = new AppUser
+        try
         {
-            Id = userId,
-            Email = $"refreshtest{Guid.NewGuid():N}@test.com",
-            Username = $"ruser{Guid.NewGuid():N}"[..30],
-            PasswordHash = PasswordHasher.Hash("Password1!"),
-            IsEmailVerified = true
-        };
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
+            var userId = Guid.NewGuid();
+            var user = new AppUser
+            {
+                Id = userId,
+                Email = $"refreshtest{Guid.NewGuid():N}@test.com",
+                Username = $"ruser{Guid.NewGuid():N}"[..30],
+                PasswordHash = PasswordHasher.Hash("Password1!"),
+                IsEmailVerified = true
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+            createdUserId = userId;
 
-        var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
-        var plainToken = await authService.CreateRefreshTokenForUserAsync(userId, "127.0.0.1", 30);
+            var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
+            var plainToken = await authService.CreateRefreshTokenForUserAsync(userId, "127.0.0.1", 30);
 
-        Assert.NotNull(plainToken);
-        var storedToken = context.RefreshTokens.FirstOrDefault(rt => rt.UserId == userId);
-        Assert.NotNull(storedToken);
-        Assert.NotEqual(plainToken, storedToken.TokenHash);
-        Assert.Null(storedToken.Revoked);
+            Assert.NotNull(plainToken);
+            var storedToken = context.RefreshTokens.FirstOrDefault(rt => rt.UserId == userId);
+            Assert.NotNull(storedToken);
+            Assert.NotEqual(plainToken, storedToken.TokenHash);
+            Assert.Null(storedToken.Revoked);
+        }
+        finally
+        {
+            if (createdUserId.HasValue)
+            {
+                await CleanupIntegrationUserAsync(context, createdUserId.Value);
+            }
+        }
     }
 
     [Fact]
@@ -260,33 +272,45 @@ public class SecurityFeaturesIntegrationTests
     {
         if (!HasIntegrationConnection()) return;
 
+        Guid? createdUserId = null;
         await using var context = CreateContext();
-        var userId = Guid.NewGuid();
-        var user = new AppUser
+        try
         {
-            Id = userId,
-            Email = $"rotatetest{Guid.NewGuid():N}@test.com",
-            Username = $"rotuser{Guid.NewGuid():N}"[..30],
-            PasswordHash = PasswordHasher.Hash("Password1!"),
-            IsEmailVerified = true
-        };
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
+            var userId = Guid.NewGuid();
+            var user = new AppUser
+            {
+                Id = userId,
+                Email = $"rotatetest{Guid.NewGuid():N}@test.com",
+                Username = $"rotuser{Guid.NewGuid():N}"[..30],
+                PasswordHash = PasswordHasher.Hash("Password1!"),
+                IsEmailVerified = true
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+            createdUserId = userId;
 
-        var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
-        var oldToken = await authService.CreateRefreshTokenForUserAsync(userId, "127.0.0.1");
+            var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
+            var oldToken = await authService.CreateRefreshTokenForUserAsync(userId, "127.0.0.1");
 
-        var rotateResult = await authService.ValidateAndRotateRefreshTokenAsync(oldToken, "127.0.0.1");
-        Assert.True(rotateResult.IsSuccess);
+            var rotateResult = await authService.ValidateAndRotateRefreshTokenAsync(oldToken, "127.0.0.1");
+            Assert.True(rotateResult.IsSuccess);
 
-        var (returnedUser, newToken) = rotateResult.Value;
-        Assert.Equal(userId, returnedUser.Id);
-        Assert.NotEqual(oldToken, newToken);
+            var (returnedUser, newToken) = rotateResult.Value;
+            Assert.Equal(userId, returnedUser.Id);
+            Assert.NotEqual(oldToken, newToken);
 
-        var oldStored = context.RefreshTokens.FirstOrDefault(rt => rt.UserId == userId && rt.Revoked != null);
-        var newStored = context.RefreshTokens.FirstOrDefault(rt => rt.UserId == userId && rt.Revoked == null);
-        Assert.NotNull(oldStored);
-        Assert.NotNull(newStored);
+            var oldStored = context.RefreshTokens.FirstOrDefault(rt => rt.UserId == userId && rt.Revoked != null);
+            var newStored = context.RefreshTokens.FirstOrDefault(rt => rt.UserId == userId && rt.Revoked == null);
+            Assert.NotNull(oldStored);
+            Assert.NotNull(newStored);
+        }
+        finally
+        {
+            if (createdUserId.HasValue)
+            {
+                await CleanupIntegrationUserAsync(context, createdUserId.Value);
+            }
+        }
     }
 
     [Fact]
@@ -294,28 +318,40 @@ public class SecurityFeaturesIntegrationTests
     {
         if (!HasIntegrationConnection()) return;
 
+        Guid? createdUserId = null;
         await using var context = CreateContext();
-        var userId = Guid.NewGuid();
-        var user = new AppUser
+        try
         {
-            Id = userId,
-            Email = $"revoketest{Guid.NewGuid():N}@test.com",
-            Username = $"revokeuser{Guid.NewGuid():N}"[..30],
-            PasswordHash = PasswordHasher.Hash("Password1!"),
-            IsEmailVerified = true
-        };
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
+            var userId = Guid.NewGuid();
+            var user = new AppUser
+            {
+                Id = userId,
+                Email = $"revoketest{Guid.NewGuid():N}@test.com",
+                Username = $"revokeuser{Guid.NewGuid():N}"[..30],
+                PasswordHash = PasswordHasher.Hash("Password1!"),
+                IsEmailVerified = true
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+            createdUserId = userId;
 
-        var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
-        var token = await authService.CreateRefreshTokenForUserAsync(userId, "127.0.0.1");
+            var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
+            var token = await authService.CreateRefreshTokenForUserAsync(userId, "127.0.0.1");
 
-        var revokeResult = await authService.RevokeRefreshTokenAsync(token);
-        Assert.True(revokeResult.IsSuccess);
+            var revokeResult = await authService.RevokeRefreshTokenAsync(token);
+            Assert.True(revokeResult.IsSuccess);
 
-        var revokedToken = context.RefreshTokens.FirstOrDefault(rt => rt.UserId == userId);
-        Assert.NotNull(revokedToken);
-        Assert.NotNull(revokedToken.Revoked);
+            var revokedToken = context.RefreshTokens.FirstOrDefault(rt => rt.UserId == userId);
+            Assert.NotNull(revokedToken);
+            Assert.NotNull(revokedToken.Revoked);
+        }
+        finally
+        {
+            if (createdUserId.HasValue)
+            {
+                await CleanupIntegrationUserAsync(context, createdUserId.Value);
+            }
+        }
     }
 
     [Fact]
@@ -340,25 +376,37 @@ public class SecurityFeaturesIntegrationTests
     {
         if (!HasIntegrationConnection()) return;
 
+        Guid? createdUserId = null;
         await using var context = CreateContext();
-        var user = new AppUser
+        try
         {
-            Id = Guid.NewGuid(),
-            Email = $"unverified{Guid.NewGuid():N}@test.com",
-            Username = $"unverifieduser{Guid.NewGuid():N}"[..30],
-            PasswordHash = PasswordHasher.Hash("Password1!"),
-            IsEmailVerified = false,
-            VerificationToken = "token",
-            VerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
-        };
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
+            var user = new AppUser
+            {
+                Id = Guid.NewGuid(),
+                Email = $"unverified{Guid.NewGuid():N}@test.com",
+                Username = $"unverifieduser{Guid.NewGuid():N}"[..30],
+                PasswordHash = PasswordHasher.Hash("Password1!"),
+                IsEmailVerified = false,
+                VerificationToken = "token",
+                VerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+            createdUserId = user.Id;
 
-        var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
-        var result = await authService.Login(user.Email, "Password1!", "127.0.0.1");
+            var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
+            var result = await authService.Login(user.Email, "Password1!", "127.0.0.1");
 
-        Assert.False(result.IsSuccess);
-        Assert.Equal(ServiceErrorCode.EmailNotVerified, result.Error?.Code);
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ServiceErrorCode.EmailNotVerified, result.Error?.Code);
+        }
+        finally
+        {
+            if (createdUserId.HasValue)
+            {
+                await CleanupIntegrationUserAsync(context, createdUserId.Value);
+            }
+        }
     }
 
     [Fact]
@@ -366,25 +414,37 @@ public class SecurityFeaturesIntegrationTests
     {
         if (!HasIntegrationConnection()) return;
 
+        Guid? createdUserId = null;
         await using var context = CreateContext();
-        var user = new AppUser
+        try
         {
-            Id = Guid.NewGuid(),
-            Email = $"lockout{Guid.NewGuid():N}@test.com",
-            Username = $"lockeduser{Guid.NewGuid():N}"[..30],
-            PasswordHash = PasswordHasher.Hash("Password1!"),
-            IsEmailVerified = true,
-            FailedLoginAttempts = 5,
-            LockoutEnd = DateTime.UtcNow.AddMinutes(15)
-        };
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
+            var user = new AppUser
+            {
+                Id = Guid.NewGuid(),
+                Email = $"lockout{Guid.NewGuid():N}@test.com",
+                Username = $"lockeduser{Guid.NewGuid():N}"[..30],
+                PasswordHash = PasswordHasher.Hash("Password1!"),
+                IsEmailVerified = true,
+                FailedLoginAttempts = 5,
+                LockoutEnd = DateTime.UtcNow.AddMinutes(15)
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+            createdUserId = user.Id;
 
-        var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
-        var result = await authService.Login(user.Email, "Password1!", "127.0.0.1");
+            var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
+            var result = await authService.Login(user.Email, "Password1!", "127.0.0.1");
 
-        Assert.False(result.IsSuccess);
-        Assert.Equal(ServiceErrorCode.AccountLocked, result.Error?.Code);
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ServiceErrorCode.AccountLocked, result.Error?.Code);
+        }
+        finally
+        {
+            if (createdUserId.HasValue)
+            {
+                await CleanupIntegrationUserAsync(context, createdUserId.Value);
+            }
+        }
     }
 
     [Fact]
@@ -392,30 +452,42 @@ public class SecurityFeaturesIntegrationTests
     {
         if (!HasIntegrationConnection()) return;
 
+        Guid? createdUserId = null;
         await using var context = CreateContext();
-        var email = $"verify{Guid.NewGuid():N}@test.com";
-        var token = "test-token-123";
-        var user = new AppUser
+        try
         {
-            Id = Guid.NewGuid(),
-            Email = email,
-            Username = $"verifyuser{Guid.NewGuid():N}"[..30],
-            PasswordHash = PasswordHasher.Hash("Password1!"),
-            IsEmailVerified = false,
-            VerificationToken = token,
-            VerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
-        };
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
+            var email = $"verify{Guid.NewGuid():N}@test.com";
+            var token = "test-token-123";
+            var user = new AppUser
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                Username = $"verifyuser{Guid.NewGuid():N}"[..30],
+                PasswordHash = PasswordHasher.Hash("Password1!"),
+                IsEmailVerified = false,
+                VerificationToken = PasswordHasher.Hash(token),
+                VerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+            createdUserId = user.Id;
 
-        var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
-        var result = await authService.VerifyEmailAsync(email, token);
+            var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
+            var result = await authService.VerifyEmailAsync(email, token);
 
-        Assert.True(result.IsSuccess);
-        var verified = context.Users.FirstOrDefault(u => u.Email == email);
-        Assert.NotNull(verified);
-        Assert.True(verified.IsEmailVerified);
-        Assert.Null(verified.VerificationToken);
+            Assert.True(result.IsSuccess);
+            var verified = context.Users.FirstOrDefault(u => u.Email == email);
+            Assert.NotNull(verified);
+            Assert.True(verified.IsEmailVerified);
+            Assert.Null(verified.VerificationToken);
+        }
+        finally
+        {
+            if (createdUserId.HasValue)
+            {
+                await CleanupIntegrationUserAsync(context, createdUserId.Value);
+            }
+        }
     }
 
     [Fact]
@@ -423,27 +495,39 @@ public class SecurityFeaturesIntegrationTests
     {
         if (!HasIntegrationConnection()) return;
 
+        Guid? createdUserId = null;
         await using var context = CreateContext();
-        var email = $"expiredverify{Guid.NewGuid():N}@test.com";
-        var token = "expired-token";
-        var user = new AppUser
+        try
         {
-            Id = Guid.NewGuid(),
-            Email = email,
-            Username = $"expireduser{Guid.NewGuid():N}"[..30],
-            PasswordHash = PasswordHasher.Hash("Password1!"),
-            IsEmailVerified = false,
-            VerificationToken = token,
-            VerificationTokenExpiry = DateTime.UtcNow.AddHours(-1)
-        };
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
+            var email = $"expiredverify{Guid.NewGuid():N}@test.com";
+            var token = "expired-token";
+            var user = new AppUser
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                Username = $"expireduser{Guid.NewGuid():N}"[..30],
+                PasswordHash = PasswordHasher.Hash("Password1!"),
+                IsEmailVerified = false,
+                VerificationToken = PasswordHasher.Hash(token),
+                VerificationTokenExpiry = DateTime.UtcNow.AddHours(-1)
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+            createdUserId = user.Id;
 
-        var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
-        var result = await authService.VerifyEmailAsync(email, token);
+            var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
+            var result = await authService.VerifyEmailAsync(email, token);
 
-        Assert.False(result.IsSuccess);
-        Assert.Equal(ServiceErrorCode.InvalidCredentials, result.Error?.Code);
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ServiceErrorCode.InvalidCredentials, result.Error?.Code);
+        }
+        finally
+        {
+            if (createdUserId.HasValue)
+            {
+                await CleanupIntegrationUserAsync(context, createdUserId.Value);
+            }
+        }
     }
 
     #endregion
@@ -482,30 +566,54 @@ public class SecurityFeaturesIntegrationTests
     {
         if (!HasIntegrationConnection()) return;
 
+        Guid? createdUserId = null;
         await using var context = CreateContext();
-        var user = new AppUser
+        try
         {
-            Id = Guid.NewGuid(),
-            Email = $"ratelimit{Guid.NewGuid():N}@test.com",
-            Username = $"ratelimituser{Guid.NewGuid():N}"[..30],
-            PasswordHash = PasswordHasher.Hash("Password1!"),
-            IsEmailVerified = true
-        };
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
+            var user = new AppUser
+            {
+                Id = Guid.NewGuid(),
+                Email = $"ratelimit{Guid.NewGuid():N}@test.com",
+                Username = $"ratelimituser{Guid.NewGuid():N}"[..30],
+                PasswordHash = PasswordHasher.Hash("Password1!"),
+                IsEmailVerified = true
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+            createdUserId = user.Id;
 
-        var rateLimitService = new InMemoryRateLimitService();
-        var authService = new AuthService(context, new InMemoryAuditService(), rateLimitService, new ConsoleEmailService());
+            var rateLimitService = new InMemoryRateLimitService();
+            var authService = new AuthService(context, new InMemoryAuditService(), rateLimitService, new ConsoleEmailService());
 
-        const int maxAttempts = 5;
-        for (int i = 0; i < maxAttempts; i++)
+            const int maxAttempts = 5;
+            for (int i = 0; i < maxAttempts; i++)
+            {
+                await authService.Login(user.Email, "WrongPassword", "127.0.0.1");
+            }
+
+            var result = await authService.Login(user.Email, "Password1!", "127.0.0.1");
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ServiceErrorCode.RateLimited, result.Error?.Code);
+        }
+        finally
         {
-            await authService.Login(user.Email, "WrongPassword", "127.0.0.1");
+            if (createdUserId.HasValue)
+            {
+                await CleanupIntegrationUserAsync(context, createdUserId.Value);
+            }
+        }
+    }
+
+    private static async Task CleanupIntegrationUserAsync(AppDbContext context, Guid userId)
+    {
+        var user = await context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return;
         }
 
-        var result = await authService.Login(user.Email, "Password1!", "127.0.0.1");
-        Assert.False(result.IsSuccess);
-        Assert.Equal(ServiceErrorCode.RateLimited, result.Error?.Code);
+        context.Users.Remove(user);
+        await context.SaveChangesAsync();
     }
 
     #endregion
