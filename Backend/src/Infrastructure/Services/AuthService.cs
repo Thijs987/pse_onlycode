@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 using Application.Services;
+using Serilog;
 using Microsoft.Extensions.Configuration;
 using Application.Results;
 using Domain;
@@ -339,7 +340,7 @@ public class AuthService
             $"&email={Uri.EscapeDataString(email)}";
         try
         {
-            Console.WriteLine($"[VERIFICATION] Link for {email}: {verificationLink}");
+            Log.Debug("Prepared verification email for {Email} (link omitted from logs).", email);
             await _emailService.SendVerificationEmailAsync(email, username, verificationToken, verificationLink);
         }
         catch (Exception ex)
@@ -487,7 +488,7 @@ public class AuthService
             $"?token={Uri.EscapeDataString(newToken)}" +
             $"&email={Uri.EscapeDataString(email)}";
 
-        Console.WriteLine($"[VERIFICATION] Resend link for {email}: {verificationLink}");
+            Log.Debug("Prepared resend verification email for {Email} (link omitted from logs).", email);
         await _emailService.SendVerificationEmailAsync(email, user.Username, newToken, verificationLink);
         await _auditService.LogAuthEventAsync("resend_verification", email, true, null, null);
 

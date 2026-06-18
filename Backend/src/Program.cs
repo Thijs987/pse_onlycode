@@ -14,8 +14,16 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Reflection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 
@@ -44,9 +52,7 @@ builder.Services.Configure<EmailSettings>(
 
 // Register services
 builder.Services.AddScoped<AuthService>();
-// Register email service: prefer explicit env var, then appsettings; default to console stub for safety
-var sendRealEnv = Environment.GetEnvironmentVariable("SEND_REAL_EMAIL");
-var sendReal = (sendRealEnv ?? string.Empty).Equals("true", StringComparison.OrdinalIgnoreCase) || (sendRealEnv ?? "0") == "1";
+// Register email service: prefer SMTP when credentials are available; otherwise use a console stub
 
 // Bind EmailSettings from configuration so we can inspect credentials at startup
 var configuredEmailSettings = new EmailSettings();
@@ -60,21 +66,20 @@ if (!hasCreds)
     {
         configuredEmailSettings = fallbackSettings;
         hasCreds = true;
-        Console.WriteLine("EmailSettings loaded from Backend/src/appsettings.json fallback.");
+        Log.Information("EmailSettings loaded from Backend/src/appsettings.json fallback.");
     }
 }
 
-if (sendReal || hasCreds)
+if (hasCreds)
 {
-    // Register SMTP implementation and ensure options available
-    builder.Services.AddScoped<IEmailService, GmailEmailService>();
-    Console.WriteLine("IEmailService: GmailEmailService registered (SMTP will be used).");
+    builder.Services.AddSingleton<IEmailService, GmailEmailService>();
+    Log.Information("IEmailService: GmailEmailService registered (SMTP will be used).");
 }
 else
 {
     // Default to console stub in dev or when no SMTP settings provided
     builder.Services.AddSingleton<IEmailService, ConsoleEmailService>();
-    Console.WriteLine("IEmailService: ConsoleEmailService registered (no SMTP credentials found).");
+    Log.Information("IEmailService: ConsoleEmailService registered (no SMTP credentials found).");
 }
 //builder.Services.AddScoped<LobbyService>(); -> Still has to be made
 
@@ -183,7 +188,7 @@ if (authEnabled)
             };
     });
 
-    Console.WriteLine("Authentication: JWT bearer registered.");
+    Log.Information("Authentication: JWT bearer registered.");
 }
 
 var app = builder.Build();
@@ -192,6 +197,8 @@ if (forwardedHeadersEnabled)
 {
     app.UseForwardedHeaders();
 }
+
+app.UseSerilogRequestLogging();
 
 // Apply CORS policy if configured
 if (allowedOrigins != null && allowedOrigins.Length > 0)
@@ -318,7 +325,7 @@ app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManage
 
         if (!connectionManager.IsLobbyAvailable(lobbyId))
         {
-            Console.WriteLine($"Rejected {playerId}: Lobby {lobbyId} is full or doesn't exist.");
+            Log.Warning("Rejected {PlayerId}: Lobby {LobbyId} is full or doesn't exist.", playerId, lobbyId);
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
         }
@@ -334,7 +341,19 @@ app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManage
 });
 
 app.MapLobbyEndpoints();
-app.Run();
+
+try
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Unhandled exception terminating host");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 static EmailSettings? LoadEmailSettingsFromAppSettings()
 {
