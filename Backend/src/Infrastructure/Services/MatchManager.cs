@@ -63,7 +63,7 @@ public class MatchManager
             {"err", 0},
             {"garb", 0},
             {"goto", 0},
-            {"imp", 1},
+            {"imp", 0},
             {"inf", 0},
             {"merge", 0},
             {"miracle", 0},
@@ -71,8 +71,8 @@ public class MatchManager
             {"sql", 0},
             {"trojan", 0},
             {"vibe", 0},
-            {"os", 7},
-            {"test", 0}
+            {"os", 0},
+            {"test", 20}
 
             // {"blue", pileCards[0]},
             // {"cm", pileCards[1]},
