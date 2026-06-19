@@ -263,6 +263,47 @@ public class AuthServiceTests
     }
 
     [Fact]
+    // Full request + reset password workflow (unit-test style using in-memory DB)
+    public async Task RequestAndResetPassword_Workflow()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = CreateAuthService(context);
+
+        var email = $"test-reset-{Guid.NewGuid():N}@example.com";
+        var username = ($"testuser{Guid.NewGuid():N}").Substring(0, 12);
+        var oldPassword = "OldP@ssword1";
+
+        var reg = await service.Register(email, username, oldPassword, "127.0.0.1");
+        System.IO.File.AppendAllText("/tmp/pwreset_debug.txt", $"Register: Success={reg.IsSuccess} Error={reg.Error?.Message}\n");
+        Assert.True(reg.IsSuccess);
+
+        var req = await service.RequestPasswordResetAsync(email);
+        System.IO.File.AppendAllText("/tmp/pwreset_debug.txt", $"Request: Success={req.IsSuccess} ErrorCode={req.Error?.Code} ErrorMsg={req.Error?.Message}\n");
+        Assert.True(req.IsSuccess, $"RequestPasswordResetAsync failed: Code={req.Error?.Code} Message={req.Error?.Message}");
+
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        Assert.NotNull(user);
+        Assert.NotNull(user!.PasswordResetToken);
+        Assert.NotNull(user!.PasswordResetTokenExpiry);
+
+        // For test, set a known token and hash it so we can call ResetPasswordAsync with the plaintext
+        var tokenBytes = new byte[48];
+        System.Security.Cryptography.RandomNumberGenerator.Create().GetBytes(tokenBytes);
+        var token = Convert.ToBase64String(tokenBytes).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+        user.PasswordResetToken = Application.PasswordHasher.Hash(token);
+        user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+        await context.SaveChangesAsync();
+
+        var newPassword = "NewP@ssword1";
+        var reset = await service.ResetPasswordAsync(email, token, newPassword);
+        System.IO.File.AppendAllText("/tmp/pwreset_debug.txt", $"Reset: Success={reset.IsSuccess} ErrorCode={reset.Error?.Code} ErrorMsg={reset.Error?.Message}\n");
+        Assert.True(reset.IsSuccess, $"ResetPasswordAsync failed: Code={reset.Error?.Code} Message={reset.Error?.Message}");
+
+        var updated = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        Assert.True(Application.PasswordHasher.Verify(newPassword, updated!.PasswordHash));
+    }
+
+    [Fact]
     // Resend verification email updates the token and sends a new email for unverified users.
     public async Task ResendVerificationEmailAsync_Succeeds_ForUnverifiedUser()
     {

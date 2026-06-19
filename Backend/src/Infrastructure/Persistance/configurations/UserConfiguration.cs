@@ -26,6 +26,9 @@ public class UserConfiguration : IEntityTypeConfiguration<AppUser>
         // email verification
         builder.Property(x => x.IsEmailVerified).HasDefaultValue(false);
         builder.Property(x => x.VerificationToken).HasMaxLength(500);
+        // password reset
+        builder.Property(x => x.PasswordResetToken).HasMaxLength(500);
+        builder.Property(x => x.PasswordResetTokenExpiry);
 
         // account lockout
         builder.Property(x => x.FailedLoginAttempts).HasDefaultValue(0);

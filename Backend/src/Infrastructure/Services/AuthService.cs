@@ -28,6 +28,7 @@ public class AuthService
     private const int LoginAttemptWindowMinutes = 15;
     private const int RegisterAttemptWindowMinutes = 30;
     private const int EmailVerificationTokenExpiryHours = 24;
+    private const int PasswordResetTokenExpiryHours = 1;
 
     private readonly string _baseUrl;
     private const int RefreshTokenDaysDefault = 30; // default refresh token validity period in days
@@ -353,6 +354,122 @@ public class AuthService
         await _rateLimitService.RecordAttemptAsync(rateLimitKey);
 
         return Result<UserDto>.Success(new UserDto { Id = user.Id, Email = user.Email, Username = user.Username });
+    }
+
+    public async Task<Result> RequestPasswordResetAsync(string email, string? baseUrl = null)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return Result.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Email is required."));
+
+        var normalized = email.Trim().ToLowerInvariant();
+
+        // rate limit password reset attempts per email to avoid abuse
+        var rlKey = $"pwreset:{normalized}";
+        if (!await _rateLimitService.IsAllowedAsync(rlKey, 5, TimeSpan.FromHours(1)))
+        {
+            await _auditService.LogAuthEventAsync("password_reset_request", normalized, false, "Rate limit exceeded", null);
+            // Still return success to avoid revealing that rate limiting occurred
+            return Result.Success();
+        }
+
+        AppUser? user = null;
+        try
+        {
+            user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalized);
+        }
+        catch (Exception ex)
+        {
+            await _auditService.LogAuthEventAsync("password_reset_request", normalized, false, $"DB error: {ex.Message}", null);
+            return Result.Failure(new ServiceError(ServiceErrorCode.InternalError, "Unable to access user store."));
+        }
+
+        // always record attempt
+        await _rateLimitService.RecordAttemptAsync(rlKey);
+
+        // Do not reveal whether the account exists to the caller. If user exists, create a reset token and email it.
+        if (user != null)
+        {
+            // generate secure token
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            var data = new byte[48];
+            rng.GetBytes(data);
+            var token = Convert.ToBase64String(data).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+
+            var tokenHash = PasswordHasher.Hash(token);
+            user.PasswordResetToken = tokenHash;
+            user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours);
+
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch
+            {
+                // If we can't persist, do not reveal error to caller
+                await _auditService.LogAuthEventAsync("password_reset_request", normalized, false, "DB save failed", null);
+                return Result.Success();
+            }
+
+            var effectiveBase = string.IsNullOrWhiteSpace(baseUrl) ? _baseUrl : baseUrl.TrimEnd('/');
+            var resetLink = $"{effectiveBase}/api/auth/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(normalized)}";
+
+            try
+            {
+                await _emailService.SendPasswordResetEmailAsync(user.Email, user.Username, token, resetLink);
+            }
+            catch (Exception ex)
+            {
+                await _auditService.LogAuthEventAsync("password_reset_request", normalized, false, $"Email send failed: {ex.Message}", null);
+                // don't surface email errors to caller
+            }
+
+            await _auditService.LogAuthEventAsync("password_reset_request", normalized, true, "Password reset token issued", null);
+        }
+
+        // return generic success regardless of whether user exists
+        return Result.Success();
+    }
+
+    public async Task<Result> ResetPasswordAsync(string email, string token, string newPassword)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(newPassword))
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Email, token and new password are required."));
+
+        if (!IsPasswordValid(newPassword))
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Password does not meet complexity requirements."));
+
+        var normalized = email.Trim().ToLowerInvariant();
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalized);
+        if (user == null) return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Invalid token or email."));
+
+        if (string.IsNullOrWhiteSpace(user.PasswordResetToken) || !user.PasswordResetTokenExpiry.HasValue || user.PasswordResetTokenExpiry < DateTime.UtcNow)
+        {
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Reset token is missing or expired."));
+        }
+
+        if (!PasswordHasher.Verify(token, user.PasswordResetToken))
+        {
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Invalid reset token."));
+        }
+
+        // apply password change
+        user.PasswordHash = PasswordHasher.Hash(newPassword);
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpiry = null;
+
+        // Revoke all active refresh tokens for this user
+        var now = DateTime.UtcNow;
+        var tokens = await _db.RefreshTokens.Where(rt => rt.UserId == user.Id && rt.Revoked == null).ToListAsync();
+        foreach (var rt in tokens)
+        {
+            rt.Revoked = now;
+        }
+
+        await _db.SaveChangesAsync();
+
+        await _auditService.LogAuthEventAsync("password_reset", normalized, true, "Password reset completed", null);
+
+        return Result.Success();
     }
 
     private static bool IsPasswordValid(string password)
