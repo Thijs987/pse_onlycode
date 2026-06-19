@@ -89,16 +89,6 @@ custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Create lobby"
 
-[node name="MainMenuHBox" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=2043749616]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-
-[node name="MainMenuButton" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox" unique_id=360365469]
-custom_minimum_size = Vector2(200, 50)
-layout_mode = 2
-text = "Back"
-
 [node name="HBoxContainer2" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=1361923008]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -109,6 +99,27 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "Card Settings"
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=1290916625]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="TutorialButton" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer5" unique_id=369702215]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Tutorial"
+
+[node name="MainMenuHBox" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=2043749616]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="MainMenuButton" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox" unique_id=360365469]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Back"
 
 [node name="LobbyItemList" type="ItemList" parent="MultiLobbyContainer/BrowserView" unique_id=1164717918]
 layout_mode = 1

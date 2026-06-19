@@ -1,7 +1,5 @@
 extends Node2D
 
-@onready var sprite = $Sprite2D
-
 signal hovered
 signal hovered_away
 
@@ -27,5 +25,6 @@ func _on_area_2d_mouse_exited() -> void:
 
 func set_card(card_id):
 	own_card_id = card_id
+	var sprite = $Sprite2D
 	#print("Player: " + controller.PId + ", Card: " + card_id)
 	sprite.texture = load("res://Sprites/CardIcons/" + str(card_id) + ".png")

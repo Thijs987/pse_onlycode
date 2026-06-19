@@ -10,6 +10,7 @@ extends Control
 @onready var in_lobby_view: Control = $MultiLobbyContainer/InLobbyView
 @onready var leave_lobby_button: Button = $MultiLobbyContainer/InLobbyView/HBoxContainer6/LeaveLobby
 @onready var main_menu_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
+@onready var tutorial_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer5/TutorialButton
 
 @export var game_scene: StringName = &""
 @export var create_lobby_button: Button
@@ -48,6 +49,7 @@ func _ready() -> void:
 	leave_lobby_button.pressed.connect(_on_leave_lobby)
 	main_menu_button.pressed.connect(_on_main_menu_pressed)
 	card_setting_button.pressed.connect(_on_card_settings)
+	tutorial_button.pressed.connect(_on_tutorial_pressed)
 	lobby_item_list.item_selected.connect(_on_lobby_selected)
 	controller.message_updated.connect(_on_message)
 	controller.lobbies_updated.connect(_on_lobbies_updated)
@@ -193,6 +195,10 @@ func _on_card_settings():
 	else:
 		multi_lobby_container.visible = true
 		lobby_settings.visible = false
+
+func _on_tutorial_pressed():
+	#Load tutorial scene
+	SceneLoader.load_scene("uid://15klgveacs0r")
 
 func signal_connect(lobby):
 	lobby.connect("change_vis", _on_card_settings)
