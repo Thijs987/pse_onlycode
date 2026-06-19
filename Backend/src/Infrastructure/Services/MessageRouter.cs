@@ -141,14 +141,24 @@ public class MessageRouter
                         var action = "CARD_PLAYED";
 
                         response = MakeMessage(action, playerId, responseData);
-                        if (responseData.CardId == "imp" || (responseData.CardId == "os" && !string.IsNullOrEmpty(responseData.Target))) {
+                        if (responseData.CardId == "imp") {
                             await Next_player(lobbyId, playerId, "0", connectionManager, matchManager);
                         }
                         else if (responseData.IsPrivate == true)
                         {
                             await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         }
-
+                        else if (responseData.CardId == "os" && !string.IsNullOrEmpty(responseData.Target) && !responseData.Cards.Contains("imp"))
+                        {
+                            if (!responseData.Cards.Contains("imp")){
+                                await Next_player(lobbyId, playerId, "0", connectionManager, matchManager);
+                            } else
+                            {
+                                break;
+                            }
+                            responseData.Cards = [];
+                            response = MakeMessage(action, playerId, responseData);
+                        }
                         if (specialCards.Contains(responseData.CardId)) {
                             var dataBroad = new DataInfo {
                                 CardId = responseData.CardId,

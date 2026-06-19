@@ -66,7 +66,8 @@ public class OpenSourceCard : ICardEffect
                 CardId = CardId,
                 Target = cardData.Target,
                 Turns = match.NTurns,
-                Message = $"{playerId} resolved Open Source by choosing '{cardData.Target}'"
+                Message = $"{playerId} resolved Open Source by choosing '{cardData.Target}'",
+                Cards = [bottomCard]
             };
         }
 
