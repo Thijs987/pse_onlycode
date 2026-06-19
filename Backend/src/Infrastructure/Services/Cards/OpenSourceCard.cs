@@ -61,21 +61,10 @@ public class OpenSourceCard : ICardEffect
             match.PendingAction = string.Empty;
             match.PendingActionPlayerId = string.Empty;
 
-            // End turn
-            match.NTurns--;
-            if (match.NTurns <= 0)
-            {
-                int currentIndex = match.PlayerIds.IndexOf(playerId);
-                int nextIndex = (currentIndex + 1) % match.PlayerIds.Count;
-                match.CurrentTurnPlayerId = match.PlayerIds[nextIndex];
-                match.NTurns = 1;
-            }
-
             return new DataInfo
             {
                 CardId = CardId,
                 Target = cardData.Target,
-                NextPlayer = match.CurrentTurnPlayerId,
                 Turns = match.NTurns,
                 Message = $"{playerId} resolved Open Source by choosing '{cardData.Target}'"
             };

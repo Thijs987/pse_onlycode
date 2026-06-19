@@ -141,7 +141,7 @@ public class MessageRouter
                         var action = "CARD_PLAYED";
 
                         response = MakeMessage(action, playerId, responseData);
-                        if (responseData.CardId == "imp") {
+                        if (responseData.CardId == "imp" || (responseData.CardId == "os" && !string.IsNullOrEmpty(responseData.Target))) {
                             await Next_player(lobbyId, playerId, "0", connectionManager, matchManager);
                         }
                         else if (responseData.IsPrivate == true)
