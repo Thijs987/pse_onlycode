@@ -108,6 +108,15 @@ func _on_message(msg):
 		if new_host == controller.PId:
 			created_lobby = true
 			update_lobby_list()
+	elif msg["action"] == "HAND":
+		var p_id = msg.get("playerId", msg.get("PlayerId", ""))
+		for i in range(player_count):
+			if controller.player_list[i].strip_edges() == "":
+				controller.player_list.remove_at(i)
+				controller.player_list.append(p_id)
+				player_count += 1
+				update_lobby_list()
+		SceneLoader.load_scene(game_scene)
 	elif msg["action"] == "ERROR":
 		if msg.get("playerId", msg.get("PlayerId", "")) == controller.PId:
 			print("ERROR: ", msg.get("data", {}).get("error", "Unknown error"))

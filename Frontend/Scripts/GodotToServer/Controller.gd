@@ -117,6 +117,10 @@ func Update_From_Server(msg: Dictionary):
 	if Last_Message.get("action") == "CARD_LIMIT" and msg.get("playerId") == PId:
 		interaction_disabled = true
 
+	if Last_Message.get("action") == "HAND":
+		if Last_Data.has("cards"):
+			Player_Hand = Last_Data["cards"]
+
 	message_updated.emit(msg)
 
 

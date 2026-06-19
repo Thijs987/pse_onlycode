@@ -107,12 +107,30 @@ func _on_message(msg):
 
 			else:
 				#Remove card from the other player that played a card
+				var cardId = msg.get("data", {}).get("cardId")
 				var player_number = controller.player_list.find(msg.get("playerId"))
 				print(player_number)
-				var card = player_hands[player_number][0]
-				player_hands[player_number].remove_at(0)
-				card.queue_free()
-				update_card_hand_position(player_number)
+				if cardId in blanco or cardId == "trojan":
+					var card = player_hands[player_number][0]
+					player_hands[player_number].remove_at(0)
+					card.queue_free()
+					update_card_hand_position(player_number)
+					card = player_hands[player_number][0]
+					player_hands[player_number].remove_at(0)
+					card.queue_free()
+					update_card_hand_position(player_number)
+				elif cardId == "os":
+					var take_or = msg.get("data", {}).get("target")
+					if take_or == "top":
+						var card = player_hands[player_number][0]
+						player_hands[player_number].remove_at(0)
+						card.queue_free()
+						update_card_hand_position(player_number)
+				else:
+					var card = player_hands[player_number][0]
+					player_hands[player_number].remove_at(0)
+					card.queue_free()
+					update_card_hand_position(player_number)
 
 		if msg["action"] == "ERROR":
 			if msg.get("playerId") == controller.PId:
