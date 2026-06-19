@@ -1,5 +1,7 @@
+using Api;
 using Application;
 using Microsoft.AspNetCore.Builder;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.Results;
 using Results = Microsoft.AspNetCore.Http.Results;
@@ -9,6 +11,7 @@ public static class AuthEndpoints
     public static void MapAuthEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/auth");
+        group.AddEndpointFilter<ValidateModelEndpointFilter>();
 
         // GET /api/auth/verify-email?email=...&token=...
         group.MapGet("/verify-email", async (
@@ -54,6 +57,21 @@ public static class AuthEndpoints
         });
     }
 
-    public record RequestPasswordResetRequest(string Email);
-    public record ResetPasswordRequest(string Email, string Token, string Password);
+    public record RequestPasswordResetRequest(
+        [property: Required]
+        [property: EmailAddress]
+        [property: StringLength(255)]
+        string Email);
+
+    public record ResetPasswordRequest(
+        [property: Required]
+        [property: EmailAddress]
+        [property: StringLength(255)]
+        string Email,
+        [property: Required]
+        [property: StringLength(500)]
+        string Token,
+        [property: Required]
+        [property: StringLength(100)]
+        string Password);
 }

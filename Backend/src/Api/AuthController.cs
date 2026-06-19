@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Persistence;
@@ -216,6 +217,24 @@ public class UserController : ControllerBase
         return Convert.ToBase64String(data).Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
 
-    public record RegisterRequest(string Email, string Username, string Password);
-    public record LoginRequest(string Email, string Password);
+    public record RegisterRequest(
+        [property: Required]
+        [property: EmailAddress]
+        [property: StringLength(255)]
+        string Email,
+        [property: Required]
+        [property: StringLength(30, MinimumLength = 3)]
+        string Username,
+        [property: Required]
+        [property: StringLength(100, MinimumLength = 8)]
+        string Password);
+
+    public record LoginRequest(
+        [property: Required]
+        [property: EmailAddress]
+        [property: StringLength(255)]
+        string Email,
+        [property: Required]
+        [property: StringLength(100, MinimumLength = 8)]
+        string Password);
 }
