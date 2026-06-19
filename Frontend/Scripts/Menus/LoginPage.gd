@@ -35,6 +35,8 @@ func _ready() -> void:
 	login_button.pressed.connect(_on_login_button_pressed)
 	return_button.pressed.connect(_on_return_button_pressed)
 	
+	login_password_input.secret = true;
+	
 	register_status.text = ""
 	login_status.text = ""
 
