@@ -86,6 +86,8 @@ func _on_message(msg):
 					var cards = msg.get("data", {}).get("cards")
 					if target == controller.PId && cards != null && cards.size() == 3:
 						add_new_card(cards[2], 0)
+					if target != controller.PId:
+						add_new_card("achterkant", controller.player_list.find(target))
 				
 			# Trojan horse puts the sent card in cards[0].
 			if msg.get("data", {}).get("cardId") == "trojan":
@@ -94,6 +96,8 @@ func _on_message(msg):
 					var cards = msg.get("data", {}).get("cards")
 					if target == controller.PId && cards != null:
 						add_new_card(cards[0], 0)
+					if target != controller.PId:
+						add_new_card("achterkant", controller.player_list.find(target))
 			
 			if msg.get("playerId") == controller.PId:
 				var played_id = msg.get("data", {}).get("cardId")
@@ -111,6 +115,7 @@ func _on_message(msg):
 				var player_number = controller.player_list.find(msg.get("playerId"))
 				print(player_number)
 				if cardId in blanco or cardId == "trojan":
+					var target = msg.get("data",{}).get("target")
 					var card = player_hands[player_number][0]
 					player_hands[player_number].remove_at(0)
 					card.queue_free()
@@ -123,6 +128,15 @@ func _on_message(msg):
 					var take_or = msg.get("data", {}).get("target")
 					if take_or == "top":
 						var card = player_hands[player_number][0]
+						player_hands[player_number].remove_at(0)
+						card.queue_free()
+						update_card_hand_position(player_number)
+				#improved hardware can put down 1 or 2 cards
+				#based on if hand is empty if card is picked up
+				elif cardId == "imp":
+					var cards = msg.get("data", {}).get("cards")
+					for card in cards:
+						card = player_hands[player_number][0]
 						player_hands[player_number].remove_at(0)
 						card.queue_free()
 						update_card_hand_position(player_number)
