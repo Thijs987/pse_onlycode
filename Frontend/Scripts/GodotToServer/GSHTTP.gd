@@ -33,6 +33,31 @@ func Get_Lobbies():
 		print("Get_Lobbies request started successfully!")
 
 
+func Get_Rejoin_Lobbies(PId: String):
+	print("Creating lobby")
+	P_Name = PId
+	var request = HTTPRequest.new()
+	add_child(request)
+
+	# Tells Godot to trust our Nginx certificate hehehe
+	request.set_tls_options(TLSOptions.client_unsafe())
+
+	request.request_completed.connect(_On_Game_Created)
+
+	var json = JSON.stringify("")
+	var headers = auth_manager.get_auth_headers()
+	var err = request.request(
+        "%s/api/lobbies/create?hostId=%s"
+		% [BASE_URL, PId],
+		headers,
+		HTTPClient.METHOD_POST,
+		json
+	)
+	if err != OK:
+		print("HTTPRequest failed to start in Get_Lobbies: ", err)
+	else:
+		print("Get_Lobbies request started successfully!")
+
 # Emits the data received from the server.
 func _On_Lobbies_Received(result, response_code, headers, body):
 	print("_On_Lobbies_Received called. Result: ", result, ", Response Code: ", response_code)

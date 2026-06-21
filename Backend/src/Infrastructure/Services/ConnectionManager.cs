@@ -216,7 +216,7 @@ public class ConnectionManager
                         {
                             _lobbyHosts[lobbyId] = nextHost;
                             Log.Information("Host left. Lobby {LobbyId} host transferred to {NewHost}", lobbyId, nextHost);
-                            
+
                             // Broadcast host transfer
                             var transferMsg = new NetworkMessage
                             {
@@ -273,6 +273,8 @@ public class ConnectionManager
             {
                 _connectionToLobby.TryRemove(player, out _);
             }
+            _lobbyHosts.TryRemove(lobbyId, out _);
+            _lobbies.TryRemove(lobbyId, out _);
             Log.Information("Lobby {LobbyId} is empty and was destroyed.", lobbyId);
             matchManager.EndMatch(lobbyId);
         }
@@ -341,6 +343,17 @@ public class ConnectionManager
     {
         return _lobbies
             .Where(lobby => !matchManager.HasMatchStarted(lobby.Key))
+            .Select(lobby => new
+            {
+                LobbyId = lobby.Key,
+                PlayerCount = lobby.Value.Count,
+                Capacity = MaxPlayersPerLobby
+            });
+    }
+    public IEnumerable<object> RejoinLobbies(MatchManager matchManager)
+    {
+        return _lobbies
+            .Where(lobby => lobby.Key == "")
             .Select(lobby => new
             {
                 LobbyId = lobby.Key,

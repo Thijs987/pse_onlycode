@@ -13,6 +13,12 @@ public static class LobbyEndpoints
             return Results.Ok(activeLobbies);
         });
 
+        group.MapGet("/rejoin", (ConnectionManager manager, MatchManager matchManager, string playerId) =>
+        {
+            var rejoinLobbies = manager.RejoinLobbies(matchManager);
+            return Results.Ok(rejoinLobbies);
+        });
+
         // POST /api/lobbies/create?hostId=Player_x
         group.MapPost("/create", (HttpContext context, string? hostId, ConnectionManager manager) =>
         {
