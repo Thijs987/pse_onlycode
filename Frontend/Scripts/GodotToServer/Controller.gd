@@ -1,5 +1,7 @@
 extends Node2D
 
+@onready var LobbySettings = $"../LobbySettings"
+
 # In order to make use of this signal put
 # "Controller.message_updated.connect(_on_message)" in _ready()
 # Then create the function "_on_message" or any other name as long as it
@@ -9,12 +11,26 @@ signal message_updated(msg)
 signal lobbies_updated(lobbies)
 signal lobby_join_failed()
 signal lobby_left()
-var PId := "" # SHOULD CHANGE THIS BACK TO ""
+
+var PId := ""
+var player_list = ["", "", "", ""]
 
 var Last_Message := {}
 var Last_Data := {}
 var Active_Lobbies := []
 var Player_Hand := []
+var All_Player_Ids := []
+var custom_set = {"CM" : 4,
+				 "Ddos" : 2,
+				 "SQL" : 2,
+				 "MS" : 2,
+				 "Err" : 4,
+				 "Goto" : 4,
+				 "IH" : 4,
+				 "Unplayable" : 6,
+				 "TH" : 4,
+				 "OpS" : 2
+				 }
 
 var interaction_disabled := false
 
@@ -36,9 +52,13 @@ func Leave_Lobby():
 	interaction_disabled = true
 	gscws.Leave_Lobby()
 
-func Play_Card(Player_Id: String, card_id: String):
+#func Play_Card(Player_Id: String, Arr: Array,  OId: String):
+	#PId = Player_Id
+	#gscws.Play_Card(Arr, OId)
+	
+func Play_Card(Player_Id: String, data: Dictionary = {}):
 	PId = Player_Id
-	gscws.Play_Card(card_id)
+	gscws.Play_Card(data)
 
 func Draw_Card(Player_Id: String):
 	PId = Player_Id
@@ -47,7 +67,7 @@ func Draw_Card(Player_Id: String):
 func Start_Match(Player_Id: String):
 	interaction_disabled = false
 	PId = Player_Id
-	gscws.Start_Match()
+	gscws.Start_Match(custom_set)
 
 func Add_Bot():
 	gscws.Add_Bot()
@@ -67,16 +87,25 @@ func Gift_Card(Opponent_Id: String, CardId: String, From_Hand: bool):
 # or Controller.Last_Message["data"]["cardId"]
 func Update_From_Server(msg: Dictionary):
 	Last_Message = msg
-	print(Last_Message)
+	print("Player: " + str(PId) +", " + str(Last_Message))
 	Last_Data = msg.get("data", {})
-
+	
+	if Last_Message.get("action") == "PLAYER_JOINED":
+		var joined_id = Last_Message.get("playerId")
+		if joined_id and not All_Player_Ids.has(joined_id):
+			All_Player_Ids.append(joined_id)
+	
 	if Last_Message.get("action") == "CARD_DRAWN":
-		if Last_Data.has("cardId"):
+		if Last_Data.has("cardId") and Last_Data["cardId"] != null:
 			Player_Hand.append(Last_Data["cardId"])
 
 	if Last_Message.get("action") == "CARD_PLAYED":
 		if Last_Data.has("cardId"):
 			Player_Hand.erase(Last_Data["cardId"])
+		
+		if Last_Data.has("cards") && Last_Data.get("cards").size() == 3:
+				Player_Hand.append(Last_Data.get("cards")[2])
+				
 
 	if Last_Message.get("action") == "MATCH_STARTED":
 		if Last_Data.has("cards"):

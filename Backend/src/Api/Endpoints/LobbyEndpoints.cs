@@ -4,7 +4,7 @@ public static class LobbyEndpoints
 {
     public static void MapLobbyEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/lobbies");
+        var group = app.MapGroup("/api/lobbies").RequireJwtAuthentication(app.Configuration);
 
         // GET /api/lobbies/active
         group.MapGet("/active", (ConnectionManager manager, MatchManager matchManager) =>
@@ -13,9 +13,14 @@ public static class LobbyEndpoints
             return Results.Ok(activeLobbies);
         });
 
-        // POST /api/lobbies/create?hostId=PLayer_x
-        group.MapPost("/create", (string hostId, ConnectionManager manager) =>
+        // POST /api/lobbies/create?hostId=Player_x
+        group.MapPost("/create", (HttpContext context, string? hostId, ConnectionManager manager) =>
         {
+            var username = context.User.FindFirst("username")?.Value;
+            if (!string.IsNullOrEmpty(username))
+            {
+                hostId = username;
+            }
             string newLobbyId = manager.CreateLobby(hostId);
             return Results.Ok(new { LobbyId = newLobbyId });
         });

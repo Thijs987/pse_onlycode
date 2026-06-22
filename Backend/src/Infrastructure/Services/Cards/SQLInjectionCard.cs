@@ -43,7 +43,11 @@ public class SQLInjectionCard : ICardEffect
             return responseData;
         }
 
-        match.NTurns = 2;
+        if(match.NTurns == 1) {
+            match.NTurns = 2;
+        } else {
+            match.NTurns += 2;
+        }
         match.PlayerHands[playerId].Remove(CardId);
         match.CurrentTurnPlayerId = cardData.Target;
 

@@ -1,22 +1,26 @@
 extends Control
 
-@onready var lobby_input: LineEdit = $BrowserView/VBoxContainer/HBoxContainer3/LineEdit
-@onready var in_lobby: Label = $InLobbyView/HBoxContainer2/CurrentlyInLobby
-@onready var player_list_label: Label = $InLobbyView/PlayerList
-@onready var lobby_item_list: ItemList = $BrowserView/LobbyItemList
-@onready var refresh_button: Button = $BrowserView/RefreshButton
-@onready var error_dialog: AcceptDialog = $BrowserView/ErrorDialog
-@onready var browser_view: Control = $BrowserView
-@onready var in_lobby_view: Control = $InLobbyView
-@onready var leave_lobby_button: Button = $InLobbyView/HBoxContainer6/LeaveLobby
-@onready var main_menu_button: Button = $BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
+@onready var lobby_input: LineEdit = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer3/LineEdit
+@onready var in_lobby: Label = $MultiLobbyContainer/InLobbyView/HBoxContainer2/CurrentlyInLobby
+@onready var player_list_label: Label = $MultiLobbyContainer/InLobbyView/PlayerList
+@onready var lobby_item_list: ItemList = $MultiLobbyContainer/BrowserView/LobbyItemList
+@onready var refresh_button: Button = $MultiLobbyContainer/BrowserView/RefreshButton
+@onready var error_dialog: AcceptDialog = $MultiLobbyContainer/BrowserView/ErrorDialog
+@onready var browser_view: Control = $MultiLobbyContainer/BrowserView
+@onready var in_lobby_view: Control = $MultiLobbyContainer/InLobbyView
+@onready var leave_lobby_button: Button = $MultiLobbyContainer/InLobbyView/HBoxContainer6/LeaveLobby
+@onready var main_menu_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
+@onready var tutorial_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer5/TutorialButton
 
 @export var game_scene: StringName = &""
 @export var create_lobby_button: Button
 @export var join_lobby_button: Button
 @export var start_lobby_button: Button
+@export var card_setting_button: Button
 
-var player_list = ["", "", "", ""]
+@export var multi_lobby_container: Control
+@export var lobby_settings: Control
+
 var player_count = 0
 var match_started = false
 var lobby_id
@@ -44,6 +48,8 @@ func _ready() -> void:
 	refresh_button.pressed.connect(_on_refresh_lobbies)
 	leave_lobby_button.pressed.connect(_on_leave_lobby)
 	main_menu_button.pressed.connect(_on_main_menu_pressed)
+	card_setting_button.pressed.connect(_on_card_settings)
+	tutorial_button.pressed.connect(_on_tutorial_pressed)
 	lobby_item_list.item_selected.connect(_on_lobby_selected)
 	controller.message_updated.connect(_on_message)
 	controller.lobbies_updated.connect(_on_lobbies_updated)
@@ -68,7 +74,7 @@ func _on_lobby_left() -> void:
 	in_lobby_state = false
 	created_lobby = false
 	player_count = 0
-	player_list = ["", "", "", ""]
+	controller.player_list = ["", "", "", ""]
 	update_lobby_list()
 	update_views()
 	controller.Get_Lobbies()
@@ -80,26 +86,31 @@ func _on_message(msg):
 	elif msg["action"] == "PLAYER_JOINED":
 		var p_id = msg.get("playerId", msg.get("PlayerId", ""))
 		if p_id == controller.PId:
-			player_list[player_count] = controller.PId + "\n"
+			controller.player_list[player_count] = controller.PId
 			player_count += 1
 			update_lobby_list()
 		else:
 			print("Another player joined")
-			player_list[player_count] = p_id + "\n"
+			controller.player_list[player_count] = p_id
 			player_count += 1
 			update_lobby_list()
 	elif msg["action"] == "PLAYER_LEFT" or msg["action"] == "PLAYER_DISCONNECTED":
 		var p_id = msg.get("playerId", msg.get("PlayerId", ""))
 		for i in range(player_count):
-			if player_list[i].strip_edges() == p_id:
-				player_list.remove_at(i)
-				player_list.append("")
+			if controller.player_list[i].strip_edges() == p_id:
+				controller.player_list.remove_at(i)
+				controller.player_list.append("")
 				player_count -= 1
 				update_lobby_list()
 				break
+	elif msg["action"] == "HOST_TRANSFERRED":
+		var new_host = msg.get("playerId", msg.get("PlayerId", ""))
+		if new_host == controller.PId:
+			created_lobby = true
+			update_lobby_list()
 	elif msg["action"] == "ERROR":
-		if msg["playerId"] == controller.PId:
-			print("ERROR type stuff")
+		if msg.get("playerId", msg.get("PlayerId", "")) == controller.PId:
+			print("ERROR: ", msg.get("data", {}).get("error", "Unknown error"))
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _on_create_lobby() -> void:
@@ -129,7 +140,7 @@ func update_lobby_list() -> void:
 	add_bot_btn.visible = in_lobby_state and created_lobby
 
 	for i in range(player_count):
-		var pid = player_list[i].strip_edges()
+		var pid = controller.player_list[i].strip_edges()
 		if pid == "":
 			continue
 
@@ -177,6 +188,20 @@ func _on_lobby_join_failed() -> void:
 func _on_leave_lobby() -> void:
 	controller.Leave_Lobby()
 
+func _on_card_settings():
+	if multi_lobby_container.visible == true:
+		multi_lobby_container.visible = false
+		lobby_settings.visible = true
+	else:
+		multi_lobby_container.visible = true
+		lobby_settings.visible = false
+
+func _on_tutorial_pressed():
+	#Load tutorial scene
+	SceneLoader.load_scene("uid://15klgveacs0r")
+
+func signal_connect(lobby):
+	lobby.connect("change_vis", _on_card_settings)
 
 func update_views() -> void:
 	browser_view.visible = not in_lobby_state

@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Domain;
+using Serilog;
 
 namespace Infrastructure.Services.Cards;
 
@@ -16,6 +17,7 @@ public class TestCard : ICardEffect
         }
 
         // TODO: Write the actual logic
+        Log.Information("Played test card effect for player {PlayerId} in match {MatchId}", playerId, match.MatchId);
 
         // Return a basic response so the game doesn't crash
         return new DataInfo

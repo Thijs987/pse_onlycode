@@ -2,6 +2,7 @@
     Call MatchManager and ConnectionManager functions based on te incomming message.
 */
 using System.Text.Json;
+using Serilog;
 using Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
@@ -9,11 +10,11 @@ using Microsoft.VisualBasic;
 
 public class MessageRouter
 {
-    private readonly BotService _botService;
+    public readonly BotService botService;
 
-    public MessageRouter(BotService botService)
+    public MessageRouter(BotService bServ)
     {
-        _botService = botService;
+        botService = bServ;
     }
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -39,7 +40,7 @@ public class MessageRouter
             DataInfo responseData;
             NetworkMessage response;
 
-            Console.WriteLine($"Received {message.Action} from {playerId}");
+            Log.Debug("Received {Action} from {PlayerId} in {LobbyId}", message.Action, playerId, lobbyId);
 
             // TODO: add actual logic
             switch (message.Action)
@@ -66,23 +67,38 @@ public class MessageRouter
                     // Registers a new bot in the lobby. AddBotAsync adds it to the
                     // ConnectionManager lobby (so START_MATCH includes it) and
                     // broadcasts PLAYER_JOINED for the new bot itself.
-                    string botId = await _botService.AddBotAsync(lobbyId);
-                    Console.WriteLine($"Bot {botId} requested by {playerId} for lobby {lobbyId}");
+                    string botId = await botService.AddBotAsync(lobbyId);
+                    Log.Information("Bot {BotId} requested by {PlayerId} for lobby {LobbyId}", botId, playerId, lobbyId);
                     break;
 
                 case "KICK_PLAYER":
                     var target = message.Data?.Target;
-                    if (!string.IsNullOrEmpty(target))
+                    // Prevent kicking yourself and ensure you are the host
+                    if (!string.IsNullOrEmpty(target) && target != playerId && connectionManager.IsHost(lobbyId, playerId))
                     {
-                        if (_botService.IsBot(target))
+                        if (botService.IsBot(target, lobbyId))
                         {
-                            _botService.RemoveBot(target);
+                            botService.RemoveBot(lobbyId, target);
                         }
                         await connectionManager.KickPlayerAsync(target, lobbyId, matchManager);
+                    }
+                    else if (target == playerId)
+                    {
+                        Log.Warning("{PlayerId} tried to kick themselves from {LobbyId}", playerId, lobbyId);
+                    }
+                    else if (!connectionManager.IsHost(lobbyId, playerId))
+                    {
+                        Log.Warning("{PlayerId} tried to kick {Target} from {LobbyId} but is not the host", playerId, target, lobbyId);
                     }
                     break;
 
                 case "START_MATCH":
+                    if (!connectionManager.IsHost(lobbyId, playerId))
+                    {
+                        Log.Warning("{PlayerId} tried to start match in {LobbyId} but is not the host", playerId, lobbyId);
+                        break;
+                    }
+                    
                     // matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
                     // Changed matchId to lobbyId
                     var players = connectionManager.GetPlayers(lobbyId);
@@ -135,8 +151,9 @@ public class MessageRouter
 
                         if (specialCards.Contains(responseData.CardId)) {
                             var dataBroad = new DataInfo {
+                                CardId = responseData.CardId,
                                 Target = responseData.Target,
-                                Cards = responseData.Cards
+                                Cards = [responseData.Cards[0], responseData.Cards[1]]
                             };
                             var broadMessage = MakeMessage(action,playerId, dataBroad);
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
@@ -150,7 +167,7 @@ public class MessageRouter
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
                             await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
                         }
-                        else {
+                         else if (responseData.IsPrivate == false) {
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
 
@@ -174,6 +191,15 @@ public class MessageRouter
                     break;
 
                 case "DRAW_CARD":
+                    // Check for Improved Hardware
+                    if (matchManager.GetPlayerHand(lobbyId, playerId).Contains("imp"))
+                    {
+                        responseData = new DataInfo { Error = "Hand contains imp, cannot draw!"};
+                        response = MakeMessage("ERROR", playerId, responseData);
+                        await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
+                        break;
+                    }
+
                     // Normal end to a turn. Grab card (check IH) and broadcast action to lobby.
                     responseData = matchManager.GetFirstCard(lobbyId, playerId);
                     var card = responseData.CardId;
@@ -186,7 +212,7 @@ public class MessageRouter
                         break;
                     }
 
-                    Console.WriteLine($"Gotten top card {card} succesfully!");
+                    Log.Debug("Top card {Card} drawn for {PlayerId} in {LobbyId}", card, playerId, lobbyId);
 
                     // Send card to player.
                     response = MakeMessage("CARD_DRAWN", playerId, responseData);
@@ -212,7 +238,7 @@ public class MessageRouter
         }
         catch (JsonException)
         {
-            Console.WriteLine("Received invalid JSON from client.");
+            Log.Warning("Received invalid JSON from {PlayerId} in {LobbyId}", playerId, lobbyId);
         }
     }
 
@@ -264,6 +290,8 @@ public class MessageRouter
                 var winnerData = new DataInfo { NextPlayer = winnerId };
                 var gameOverMessage = MakeMessage("GAME_OVER", winnerId, winnerData);
                 await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(gameOverMessage));
+                matchManager.EndMatch(lobbyId);
+                botService.CleanUpLobby(lobbyId);
                 return; // Stop broadcasting NEXT_TURN
             }
         }
@@ -277,19 +305,10 @@ public class MessageRouter
 
     private bool lobbyHasHuman(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
     {
-        bool hasHuman;
-        try
-        {
-            hasHuman = connectionManager.GetPlayers(lobbyId).Any(p => !_botService.IsBot(p));
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            return false;
-        }
+        bool hasHuman = connectionManager.GetPlayers(lobbyId).Any(p => !botService.IsBot(p, lobbyId));
         if (!hasHuman)
         {
-            Console.WriteLine($"Only bots in lobby");
+            Log.Debug("Only bots in lobby {LobbyId}", lobbyId);
             return false;
         }
         return true;
@@ -297,8 +316,9 @@ public class MessageRouter
 
     public async Task CheckBotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager, DataInfo responseData)
     {
+        Log.Debug("IsBot check for {PlayerId} in {LobbyId}: {IsBot}", responseData.NextPlayer, lobbyId, botService.IsBot(responseData.NextPlayer, lobbyId));
         // If the turn now lands on a bot.
-        if (_botService.IsBot(responseData.NextPlayer))
+        if (botService.IsBot(responseData.NextPlayer, lobbyId))
         {
             await BotTurn(lobbyId, connectionManager, matchManager);
         }
@@ -317,30 +337,20 @@ public class MessageRouter
         // Don't drive bots if there's no human left to play against,
         // otherwise bots would pass the turn among themselves forever.
         var current = matchManager.GetCurrentTurnPlayer(lobbyId);
-        while (lobbyHasHuman(lobbyId, connectionManager, matchManager) && !string.IsNullOrEmpty(current) && _botService.IsBot(current))
+        while (lobbyHasHuman(lobbyId, connectionManager, matchManager) && !string.IsNullOrEmpty(current) && botService.IsBot(current, lobbyId))
         {
             await Task.Delay(500);
-            await _botService.BotPlayCard(lobbyId, current);
+            Log.Debug("Pending action for {PlayerId} in {LobbyId}: {Pending}", current, lobbyId, matchManager.GetPendingAction(lobbyId, current));
+            await botService.BotPlayCard(lobbyId, current);
+            Log.Debug("Current turn player for {LobbyId}: {Current}", lobbyId, matchManager.GetCurrentTurnPlayer(lobbyId));
             // If the current turn player did not change and there is not a pending action.
             if (current == matchManager.GetCurrentTurnPlayer(lobbyId) && string.IsNullOrEmpty(matchManager.GetPendingAction(lobbyId, current)))
             {
-                await _botService.DrawCard(lobbyId, current);
+                await botService.DrawCard(lobbyId, current);
             }
             current = matchManager.GetCurrentTurnPlayer(lobbyId);
         }
 
         // TODO: remove lobby of bots
-        // TODO normal turn procs drawcard and thus only plays one card.
-        // But why? There is a foreach loop in botservice.botplaycard.
-        // This should keep it in there and play everyuthing playable.
     }
-    //     private async Task BotTurn(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
-    //     {
-    //         var current = matchManager.GetCurrentTurnPlayer(lobbyId);
-    //         while (_botService.hasHuman() && !string.IsNullOrEmpty(current) && _botService.IsBot(current))
-    //         {
-    //             await _botService.ProcessBotTurnAsync(lobbyId, current);
-    //             current = matchManager.GetCurrentTurnPlayer(lobbyId);
-    //         }
-    //     }
 }

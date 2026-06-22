@@ -10,12 +10,8 @@ var socket := WebSocketPeer.new()
 var joined_emitted := false
 var is_connecting := false
 
-# Local
-#const BASE_URL = "ws://localhost:6767"
-const BASE_URL = "wss://localhost:6969"
-
-# Pointing to a No-IP.com domain. Its an A record that points towards the server ip.
-#const BASE_URL = "wss://codegreen-uva.ddns.net"
+# Automatically use localhost in Godot Editor, and the actual server for exported builds
+var BASE_URL: String = "wss://localhost:6969" if OS.has_feature("editor") else "wss://codegreen-uva.ddns.net"
 
 
 func _on_lobby_joined():
@@ -48,9 +44,11 @@ func Join_Lobby(LId: String, PId: String):
 	is_connecting = true
 	# Tells Godot to trust our Nginx certificate heh
 	var tls_options = TLSOptions.client_unsafe()
+	var url = "%s/lobby?lobbyId=%s&playerId=%s" % [BASE_URL, LId, PId]
+	# Append JWT token for authentication
+	url = auth_manager.get_ws_url_with_auth(url)
 	socket.connect_to_url(
-        "%s/lobby?lobbyId=%s&playerId=%s"
-		% [BASE_URL, LId, PId],
+		url,
 		tls_options # <-- Pass the bypass here!
 	)
 
@@ -63,16 +61,58 @@ func Leave_Lobby():
 
 
 # Function to play a card
-func Play_Card(card_id: String):
-	_Send(_Make_Message("PLAY_CARD", {"cardId": card_id}))
+#func Play_Card(card_id: Array, OId: String):
+	#if OId == "":
+		#_Send(_Make_Message("PLAY_CARD", { "cardId": card_id }))
+	#else:
+		#_Send(_Make_Message("PLAY_CARD", { "cardId": card_id ,"target": OId }))
+
+func Play_Card(data: Dictionary = {}):
+	_Send(_Make_Message("PLAY_CARD", data))
 
 # Function to draw a card
 func Draw_Card():
 	_Send(_Make_Message("DRAW_CARD"))
 
 # Function to start match
-func Start_Match():
-	_Send(_Make_Message("START_MATCH"))
+func Start_Match(custom_set: Dictionary):
+	var no_un := int(custom_set.get("Unplayable", 0))
+
+	var no_merge := 0
+	var no_blue := 0
+	var no_err := 0
+	
+	while no_un > 0:
+		no_merge += 1
+		no_un -= 1
+		
+		if no_un > 0:
+			no_blue += 1
+			no_un -= 1
+		
+		if no_un > 0:
+			no_err += 1
+			no_un -= 1
+	
+	var new_set := [
+		no_blue,
+		int(custom_set.get("CM", 0)),
+		int(custom_set.get("Ddos", 0)),
+		no_err,
+		0,#is garbage collector
+		int(custom_set.get("Goto", 0)),
+		int(custom_set.get("IH", 0)),
+		int(custom_set.get("Err", 0)),
+		no_merge,
+		int(custom_set.get("MS", 0)),
+		int(custom_set.get("Err", 0)),
+		int(custom_set.get("SQL", 0)),
+		int(custom_set.get("TH", 0)),
+		int(custom_set.get("Err", 0)),
+		int(custom_set.get("OpS", 0)),
+	]
+
+	_Send(_Make_Message("START_MATCH", {"data": new_set}))
 
 # Function to add bot
 func Add_Bot():
@@ -126,11 +166,24 @@ func _handle_message(text: String):
 			pass
 
 		"CARD_PLAYED":
+			if (msg.has("playerId") && msg.has("data") && msg.get("data").has("cardId")):
+				var player = msg.get("playerId")
+				var data = msg.get("data") 
+				var card = data.get("cardId")
+				# might bug for trojan, be wary
+				if (data.has("cards") && data.get("cards").size() >= 2):
+					var cards = data.get("cards")
+					print("extra emit %s", cards[0])
+					card_played.emit(player, cards[0])
+					card = cards[1]
+				print("normal emit" + card)
+				card_played.emit(player, card)
 			#print("CP")
-			card_played.emit(
-				msg["playerId"],
-				msg["data"]["cardId"]
-			)
+			#card_drawn.emit(
+				#msg["data"]["target"],
+				#1
+			#)
+			pass
 
 		"CARD_DRAWN":
 			#print("CD")

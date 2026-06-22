@@ -34,12 +34,8 @@ func check_at_cursor(is_pressed):
 		if result_collision_mask == COLLISION_MASK_CARD:
 			var card_found = result[0].collider.get_parent()
 			if card_found and "movable" in card_found:
-				if card_found.movable == true:
+				if card_found.movable == true and card_found.is_others == false:
 					card_logic_reference.start_dragging(card_found)
 		elif result_collision_mask == COLLISION_MASK_PILE:
 			if is_pressed:
 				pile_reference.decrease_counter()
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
