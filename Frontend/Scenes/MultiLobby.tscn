@@ -18,7 +18,7 @@ game_scene = &"uid://qekpyka670e2"
 create_lobby_button = NodePath("MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer/CreateLobby")
 join_lobby_button = NodePath("MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer4/JoinLobby")
 start_lobby_button = NodePath("MultiLobbyContainer/InLobbyView/HBoxContainer5/StartLobby")
-card_setting_button = NodePath("MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer2/CardSettingButton")
+card_setting_button = NodePath("")
 multi_lobby_container = NodePath("MultiLobbyContainer")
 lobby_settings = NodePath("LobbySettings")
 
@@ -88,17 +88,6 @@ size_flags_vertical = 4
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Create lobby"
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=1361923008]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="CardSettingButton" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer2" unique_id=204939168]
-custom_minimum_size = Vector2(200, 50)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-text = "Card Settings"
 
 [node name="HBoxContainer5" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=1290916625]
 layout_mode = 2
@@ -222,6 +211,17 @@ size_flags_vertical = 4
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Back"
+
+[node name="CardSettingsBox" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView" unique_id=199627811]
+layout_mode = 0
+size_flags_horizontal = 4
+
+[node name="CardSettingButton" type="Button" parent="MultiLobbyContainer/InLobbyView/CardSettingsBox" unique_id=1226144401]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Card Settings"
 
 [node name="LobbySettings" parent="." unique_id=1787609362 instance=ExtResource("2_jlkr6")]
 visible = false

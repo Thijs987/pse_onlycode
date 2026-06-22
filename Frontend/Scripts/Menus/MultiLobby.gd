@@ -11,6 +11,7 @@ extends Control
 @onready var leave_lobby_button: Button = $MultiLobbyContainer/InLobbyView/HBoxContainer6/LeaveLobby
 @onready var main_menu_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
 @onready var tutorial_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer5/TutorialButton
+@onready var card_setting_box: BoxContainer = $MultiLobbyContainer/InLobbyView/CardSettingsBox
 
 @export var game_scene: StringName = &""
 @export var create_lobby_button: Button
@@ -60,6 +61,9 @@ func _ready() -> void:
 
 	update_views()
 	controller.Get_Lobbies()
+	
+	if created_lobby != controller.PId:
+		card_setting_box.visible = false
 
 func _on_add_bot():
 	controller.Add_Bot()
@@ -189,11 +193,11 @@ func _on_leave_lobby() -> void:
 	controller.Leave_Lobby()
 
 func _on_card_settings():
-	if multi_lobby_container.visible == true:
-		multi_lobby_container.visible = false
+	if in_lobby_view.visible == true:
+		in_lobby_view.visible = false
 		lobby_settings.visible = true
 	else:
-		multi_lobby_container.visible = true
+		in_lobby_view.visible = true
 		lobby_settings.visible = false
 
 func _on_tutorial_pressed():
