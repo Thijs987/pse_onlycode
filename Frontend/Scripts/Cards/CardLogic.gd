@@ -144,7 +144,7 @@ func play_card(card):
 
 			if hand_reference.player_hands[0].size() == 0: # No other cards
 				print("No other cards in hand, play only improved hardware")
-				data = {cardId = card}
+				data = {cardId = current_id}
 				controller.Play_Card(controller.PId,data)
 			else: # Choose another card
 				print("Chose card to play without effect")

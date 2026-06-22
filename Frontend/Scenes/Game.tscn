@@ -11,7 +11,6 @@
 [ext_resource type="Script" uid="uid://dg8okmsqxxyxb" path="res://Scripts/GodotToServer/GSCWS.gd" id="9_x3xnh"]
 [ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://Scripts/GodotToServer/Controller.gd" id="10_8r6kd"]
 [ext_resource type="Script" uid="uid://ltey2a6xnpbk" path="res://Scripts/Menus/GameUI.gd" id="11_gameui"]
-[ext_resource type="AudioStream" uid="uid://kcb2r6t0fny" path="res://Sounds/PlayCard.mp3" id="12_3so38"]
 [ext_resource type="Script" uid="uid://h003qqnoqrym" path="res://Scenes/turn_timer.gd" id="12_3so38"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
@@ -99,8 +98,8 @@ script = ExtResource("10_8r6kd")
 script = ExtResource("11_gameui")
 
 [node name="Card Play" type="AudioStreamPlayer2D" parent="." unique_id=1269714596]
-stream = ExtResource("12_3so38")
 autoplay = true
+
 [node name="TurnTimer" type="Timer" parent="." unique_id=2082152117]
 wait_time = 30.0
 ignore_time_scale = true
