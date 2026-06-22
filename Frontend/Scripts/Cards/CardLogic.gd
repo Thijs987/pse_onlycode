@@ -30,7 +30,6 @@ func _ready() -> void:
 	card_tooltip = tooltip_scene.instantiate()
 	add_child(card_tooltip)
 
-
 # Runs every frame, card is set to current mouse position with offset
 func _process(_delta: float) -> void:
 	if dragging_card != null:
@@ -41,6 +40,7 @@ func _process(_delta: float) -> void:
 func _newturn(player):
 	if player != null:
 		turns = player
+		update_hand_playability()
 
 func play_card(card):
 	if controller.interaction_disabled:
@@ -189,8 +189,48 @@ func play_card(card):
 			data = {cardId = current_id}
 
 		controller.Play_Card(controller.PId, data)
+		update_hand_playability()
 		return true
 	return false
+
+# De opgeschoonde versie voor onderaan cardlogic.gd
+
+func update_hand_playability() -> void:
+	if hand_reference == null or hand_reference.player_hands[0].is_empty():
+		return
+		
+	var my_turn = (controller.PId == turns) and not controller.interaction_disabled
+	var hand_cards = hand_reference.player_hands[0]
+	
+	for card in hand_cards:
+		var playable = false
+		
+		if my_turn:
+			if trojan_selecting_gift or imp_hardware_active or os_active: # Not in these situations
+				playable = false
+			else:
+				match card.own_card_id:
+					"nocom", "goto", "inf", "vibe": # Blanco cards
+						if first_combo_card == null:
+							playable = has_another_blanco(card.own_card_id)
+						else:
+							playable = (card.own_card_id == first_combo_card.own_card_id or card.own_card_id == "goto" or first_combo_card.own_card_id == "goto")
+							
+					"trojan": # Need a card to give
+						playable = (hand_cards.size() >= 2)
+						
+					"os":
+						playable = (pile_node != null and pile_node.card_count > 0)
+						
+					"blue", "err", "merge": # Not playable
+						playable = false
+						
+					_:
+						playable = true
+						
+		if card.has_method("set_playable_visual"):
+			card.set_playable_visual(playable)
+
 
 func open_source_menu(card_id_to_show: String):
 	os_active = true
@@ -209,8 +249,8 @@ func open_source_menu(card_id_to_show: String):
 		hand_reference.add_new_card(card_id_to_show, 0)
 	
 	os_active = false
+	update_hand_playability()
 	return gekozen_keuze
-
 
 # Code for sql attack card
 func sql_attack() -> String:
@@ -249,10 +289,18 @@ func has_another_blanco(card_type: String) -> bool:
 func start_dragging(card):
 	if controller.interaction_disabled:
 		return
-		
+
+	if "is_playable" in card and not card.is_playable:
+		# Uitzondering: Als je een Trojan gift aan het kiezen bent, of een IMP sacrifice, 
+		# mag je de kaart wél oppakken/klikken!
+		if not (trojan_selecting_gift or imp_hardware_active):
+			print("Deze kaart mag je nu niet spelen!")
+			return
+
 		# TROJAN HORSE
 	if trojan_selecting_gift:
 		trojan_selecting_gift = false # Reset status
+		update_hand_playability()
 		
 		var gift_card_id = card.own_card_id
 		print("Chosen card: ", gift_card_id)
