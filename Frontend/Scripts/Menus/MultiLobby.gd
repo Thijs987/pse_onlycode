@@ -69,56 +69,51 @@ var rejoin_panel: PanelContainer
 var rejoin_lobby_id: String = ""
 
 func _setup_rejoin_dialog() -> void:
-	# Create a custom Control-based dialog to make future styling easier for artists
 	rejoin_panel = PanelContainer.new()
 	rejoin_panel.visible = false
-	
-	# Full screen semi-transparent background to block other interactions
 	rejoin_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
-	# Center the content
+
 	var center = CenterContainer.new()
 	rejoin_panel.add_child(center)
-	
-	# The actual popup box
+
 	var box_bg = PanelContainer.new()
 	center.add_child(box_bg)
-	
+
 	var margin = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 20)
 	margin.add_theme_constant_override("margin_right", 20)
 	margin.add_theme_constant_override("margin_top", 20)
 	margin.add_theme_constant_override("margin_bottom", 20)
 	box_bg.add_child(margin)
-	
+
 	var vbox = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 15)
 	margin.add_child(vbox)
-	
+
 	var title = Label.new()
 	title.text = "Reconnect"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
-	
+
 	var text = Label.new()
 	text.text = "You disconnected from an active match. Would you like to rejoin?"
 	vbox.add_child(text)
-	
+
 	var hbox = HBoxContainer.new()
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	hbox.add_theme_constant_override("separation", 20)
 	vbox.add_child(hbox)
-	
+
 	var btn_rejoin = Button.new()
 	btn_rejoin.text = "Rejoin Match"
 	btn_rejoin.pressed.connect(_on_rejoin_confirmed)
 	hbox.add_child(btn_rejoin)
-	
+
 	var btn_cancel = Button.new()
 	btn_cancel.text = "Cancel"
 	btn_cancel.pressed.connect(_on_rejoin_cancelled)
 	hbox.add_child(btn_cancel)
-	
-	# Add to the root so it renders on top
+
 	add_child(rejoin_panel)
 
 func _on_rejoin_lobbies_updated(lobbies: Array) -> void:
