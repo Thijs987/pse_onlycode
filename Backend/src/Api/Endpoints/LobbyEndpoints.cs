@@ -15,7 +15,7 @@ public static class LobbyEndpoints
 
         group.MapGet("/rejoin", (ConnectionManager manager, MatchManager matchManager, string playerId) =>
         {
-            var rejoinLobbies = manager.RejoinLobbies(matchManager);
+            var rejoinLobbies = manager.RejoinLobbies(playerId, matchManager);
             return Results.Ok(rejoinLobbies);
         });
 

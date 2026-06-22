@@ -51,12 +51,30 @@ public class ConnectionManager
         string action;
         string message;
 
+        foreach (var existingPlayer in existingPlayers)
+        {
+            if (existingPlayer != playerId)
+            {
+                var existingPlayerMessage = new NetworkMessage
+                {
+                    Action = "PLAYER_JOINED",
+                    PlayerId = existingPlayer,
+                    Data = new DataInfo
+                    {
+                        Message = $"{existingPlayer} is in the game!"
+                    }
+                };
+                await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(existingPlayerMessage));
+            }
+        }
+
         if (rejoin == true)
         {
             matchManager.Rejoin(playerId);
             var responseData = new DataInfo
             {
-                Cards = matchManager.GetPlayerHand(lobbyId, playerId)
+                Cards = matchManager.GetPlayerHand(lobbyId, playerId),
+                NextPlayer = matchManager.GetCurrentTurnPlayer(lobbyId)
             };
             var response = router.MakeMessage("HAND", playerId, responseData);
             await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(response));
@@ -83,23 +101,6 @@ public class ConnectionManager
             }
         };
         await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(joinMessage));
-
-        foreach (var existingPlayer in existingPlayers)
-        {
-            if (existingPlayer != playerId)
-            {
-                var existingPlayerMessage = new NetworkMessage
-                {
-                    Action = "PLAYER_JOINED",
-                    PlayerId = existingPlayer,
-                    Data = new DataInfo
-                    {
-                        Message = $"{existingPlayer} is in the game!"
-                    }
-                };
-                await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(existingPlayerMessage));
-            }
-        }
 
         var buffer = new byte[1024 * 4];
 
@@ -350,10 +351,10 @@ public class ConnectionManager
                 Capacity = MaxPlayersPerLobby
             });
     }
-    public IEnumerable<object> RejoinLobbies(MatchManager matchManager)
+    public IEnumerable<object> RejoinLobbies(string playerId, MatchManager matchManager)
     {
         return _lobbies
-            .Where(lobby => lobby.Key == "")
+            .Where(lobby => lobby.Value.ContainsKey(playerId) && matchManager.IsMatchActive(lobby.Key))
             .Select(lobby => new
             {
                 LobbyId = lobby.Key,

@@ -411,6 +411,7 @@ public class BotService
                 await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(gameOverMessage));
                 _matchManager.EndMatch(lobbyId);
                 CleanUpLobby(lobbyId);
+                _connectionManager.RemoveLobby(botId, _matchManager);
                 return; // Stop broadcasting NEXT_TURN
             }
         }

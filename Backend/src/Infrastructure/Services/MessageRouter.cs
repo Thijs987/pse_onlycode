@@ -302,6 +302,7 @@ public class MessageRouter
                 await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(gameOverMessage));
                 matchManager.EndMatch(lobbyId);
                 botService.CleanUpLobby(lobbyId);
+                connectionManager.RemoveLobby(playerId, matchManager);
                 return; // Stop broadcasting NEXT_TURN
             }
         }

@@ -26,7 +26,7 @@ signal next_turn(player)
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	if controller.Last_Message.has("action") and controller.Last_Message["action"] == "MATCH_STARTED":
+	if controller.Last_Message.has("action") and (controller.Last_Message["action"] == "MATCH_STARTED" or controller.Last_Message["action"] == "HAND"):
 		var player = controller.Last_Message.get("data", {}).get("nextPlayer")
 		if player != null:
 			next_turn.emit(player)
@@ -114,37 +114,43 @@ func _on_message(msg):
 				var cardId = msg.get("data", {}).get("cardId")
 				var player_number = controller.player_list.find(msg.get("playerId"))
 				print(player_number)
-				if cardId in blanco or cardId == "trojan":
-					var target = msg.get("data",{}).get("target")
-					var card = player_hands[player_number][0]
-					player_hands[player_number].remove_at(0)
-					card.queue_free()
-					update_card_hand_position(player_number)
-					card = player_hands[player_number][0]
-					player_hands[player_number].remove_at(0)
-					card.queue_free()
-					update_card_hand_position(player_number)
-				elif cardId == "os":
-					var take_or = msg.get("data", {}).get("target")
-					if take_or == "top":
-						var card = player_hands[player_number][0]
-						player_hands[player_number].remove_at(0)
-						card.queue_free()
-						update_card_hand_position(player_number)
-				#improved hardware can put down 1 or 2 cards
-				#based on if hand is empty if card is picked up
-				elif cardId == "imp":
-					var cards = msg.get("data", {}).get("cards")
-					for card in cards:
-						card = player_hands[player_number][0]
-						player_hands[player_number].remove_at(0)
-						card.queue_free()
-						update_card_hand_position(player_number)
-				else:
-					var card = player_hands[player_number][0]
-					player_hands[player_number].remove_at(0)
-					card.queue_free()
-					update_card_hand_position(player_number)
+				if player_number != -1:
+					if cardId in blanco or cardId == "trojan":
+						var target = msg.get("data",{}).get("target")
+						if player_hands[player_number].size() > 0:
+							var card = player_hands[player_number][0]
+							player_hands[player_number].remove_at(0)
+							card.queue_free()
+							update_card_hand_position(player_number)
+						if player_hands[player_number].size() > 0:
+							var card = player_hands[player_number][0]
+							player_hands[player_number].remove_at(0)
+							card.queue_free()
+							update_card_hand_position(player_number)
+					elif cardId == "os":
+						var take_or = msg.get("data", {}).get("target")
+						if take_or == "top":
+							if player_hands[player_number].size() > 0:
+								var card = player_hands[player_number][0]
+								player_hands[player_number].remove_at(0)
+								card.queue_free()
+								update_card_hand_position(player_number)
+					#improved hardware can put down 1 or 2 cards
+					#based on if hand is empty if card is picked up
+					elif cardId == "imp":
+						var cards = msg.get("data", {}).get("cards")
+						for c in cards:
+							if player_hands[player_number].size() > 0:
+								var card = player_hands[player_number][0]
+								player_hands[player_number].remove_at(0)
+								card.queue_free()
+								update_card_hand_position(player_number)
+					else:
+						if player_hands[player_number].size() > 0:
+							var card = player_hands[player_number][0]
+							player_hands[player_number].remove_at(0)
+							card.queue_free()
+							update_card_hand_position(player_number)
 
 		if msg["action"] == "ERROR":
 			if msg.get("playerId") == controller.PId:

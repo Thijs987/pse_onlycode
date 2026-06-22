@@ -58,8 +58,82 @@ func _ready() -> void:
 	gscws.lobby_joined.connect(_on_lobby_joined_success)
 	gscws.lobby_left.connect(_on_lobby_left)
 
+	_setup_rejoin_dialog()
+	controller.rejoin_lobbies_updated.connect(_on_rejoin_lobbies_updated)
+	controller.Get_Rejoin_Lobbies(controller.PId)
+
 	update_views()
 	controller.Get_Lobbies()
+
+var rejoin_panel: PanelContainer
+var rejoin_lobby_id: String = ""
+
+func _setup_rejoin_dialog() -> void:
+	# Create a custom Control-based dialog to make future styling easier for artists
+	rejoin_panel = PanelContainer.new()
+	rejoin_panel.visible = false
+	
+	# Full screen semi-transparent background to block other interactions
+	rejoin_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Center the content
+	var center = CenterContainer.new()
+	rejoin_panel.add_child(center)
+	
+	# The actual popup box
+	var box_bg = PanelContainer.new()
+	center.add_child(box_bg)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	box_bg.add_child(margin)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 15)
+	margin.add_child(vbox)
+	
+	var title = Label.new()
+	title.text = "Reconnect"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+	
+	var text = Label.new()
+	text.text = "You disconnected from an active match. Would you like to rejoin?"
+	vbox.add_child(text)
+	
+	var hbox = HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 20)
+	vbox.add_child(hbox)
+	
+	var btn_rejoin = Button.new()
+	btn_rejoin.text = "Rejoin Match"
+	btn_rejoin.pressed.connect(_on_rejoin_confirmed)
+	hbox.add_child(btn_rejoin)
+	
+	var btn_cancel = Button.new()
+	btn_cancel.text = "Cancel"
+	btn_cancel.pressed.connect(_on_rejoin_cancelled)
+	hbox.add_child(btn_cancel)
+	
+	# Add to the root so it renders on top
+	add_child(rejoin_panel)
+
+func _on_rejoin_lobbies_updated(lobbies: Array) -> void:
+	if lobbies.size() > 0:
+		rejoin_lobby_id = lobbies[0].get("lobbyId", lobbies[0].get("LobbyId", ""))
+		rejoin_panel.visible = true
+
+func _on_rejoin_confirmed() -> void:
+	rejoin_panel.visible = false
+	if rejoin_lobby_id != "":
+		controller.Join_Lobby(rejoin_lobby_id, controller.PId)
+
+func _on_rejoin_cancelled() -> void:
+	rejoin_panel.visible = false
+	rejoin_lobby_id = ""
 
 func _on_add_bot():
 	controller.Add_Bot()
@@ -110,12 +184,16 @@ func _on_message(msg):
 			update_lobby_list()
 	elif msg["action"] == "HAND":
 		var p_id = msg.get("playerId", msg.get("PlayerId", ""))
-		for i in range(player_count):
-			if controller.player_list[i].strip_edges() == "":
-				controller.player_list.remove_at(i)
-				controller.player_list.append(p_id)
-				player_count += 1
-				update_lobby_list()
+		var new_list = ["", "", "", ""]
+		new_list[0] = controller.PId
+		var idx = 1
+		for p in controller.player_list:
+			if p != "" and p != controller.PId:
+				new_list[idx] = p
+				idx += 1
+		controller.player_list = new_list
+		player_count = idx
+		update_lobby_list()
 		SceneLoader.load_scene(game_scene)
 	elif msg["action"] == "ERROR":
 		if msg.get("playerId", msg.get("PlayerId", "")) == controller.PId:

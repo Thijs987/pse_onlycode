@@ -35,8 +35,17 @@ var custom_set = {"CM" : 4,
 var interaction_disabled := false
 
 
+signal rejoin_lobbies_updated(lobbies)
+
 func Get_Lobbies():
 	gschttp.Get_Lobbies()
+
+func Get_Rejoin_Lobbies(Player_Id: String):
+	PId = Player_Id
+	gschttp.Get_Rejoin_Lobbies(PId)
+
+func Update_Rejoin_Lobbies(lobbies: Array):
+	rejoin_lobbies_updated.emit(lobbies)
 
 func Create_Lobby(Player_Id: String):
 	interaction_disabled = false
