@@ -44,4 +44,10 @@ public class DataInfo
     // Current hand-size limit for the match (starts at 5, drops by 1 each time the pile empties)
     [JsonPropertyName("cardLimit")]
     public int? CardLimit { get; set; }
+
+    [JsonPropertyName("players")]
+    public List<string>? Players { get; set; } = new();
+
+    [JsonPropertyName("handSizes")]
+    public Dictionary<string, int>? HandSizes { get; set; } = new();
 }

@@ -33,6 +33,60 @@ func Get_Lobbies():
 		print("Get_Lobbies request started successfully!")
 
 
+signal Rejoin_Lobbies_Received(data) # Signal for passing a list of rejoinable lobbies
+
+func Get_Rejoin_Lobbies(PId: String):
+	print("Getting rejoin lobbies")
+	P_Name = PId
+	var request = HTTPRequest.new()
+	add_child(request)
+
+	# Tells Godot to trust our Nginx certificate hehehe
+	request.set_tls_options(TLSOptions.client_unsafe())
+
+	request.request_completed.connect(_On_Rejoin_Lobbies_Received)
+
+	var headers = auth_manager.get_auth_headers()
+	var err = request.request(
+		"%s/api/lobbies/rejoin?playerId=%s" % [BASE_URL, PId],
+		headers
+	)
+	if err != OK:
+		print("HTTPRequest failed to start in Get_Rejoin_Lobbies: ", err)
+	else:
+		print("Get_Rejoin_Lobbies request started successfully!")
+
+func Abandon_Lobby(LobbyId: String, PId: String):
+	print("Abandoning lobby ", LobbyId)
+	var request = HTTPRequest.new()
+	add_child(request)
+
+	request.set_tls_options(TLSOptions.client_unsafe())
+	request.request_completed.connect(func(_res, _code, _headers, _body): request.queue_free())
+
+	var headers = auth_manager.get_auth_headers()
+	var err = request.request(
+		"%s/api/lobbies/abandon?playerId=%s&lobbyId=%s" % [BASE_URL, PId, LobbyId],
+		headers,
+		HTTPClient.METHOD_POST,
+		""
+	)
+	if err != OK:
+		print("HTTPRequest failed to start in Abandon_Lobby: ", err)
+
+func _On_Rejoin_Lobbies_Received(result, response_code, headers, body):
+	print("_On_Rejoin_Lobbies_Received called. Result: ", result, ", Response Code: ", response_code)
+	if response_code != 200:
+		print("Failed to get rejoin lobbies. Error code: ", response_code)
+		return
+
+	var lobbies = JSON.parse_string(
+		body.get_string_from_utf8()
+	)
+
+	if lobbies != null:
+		controller.Update_Rejoin_Lobbies(lobbies)
+
 # Emits the data received from the server.
 func _On_Lobbies_Received(result, response_code, headers, body):
 	print("_On_Lobbies_Received called. Result: ", result, ", Response Code: ", response_code)

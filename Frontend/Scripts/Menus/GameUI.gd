@@ -12,6 +12,11 @@ func _ready() -> void:
 	player_list_container = VBoxContainer.new()
 	player_list_container.position = Vector2(20, 60)
 	add_child(player_list_container)
+	
+	_update_player_list()
+	if controller.Last_Message.get("action") == "HAND":
+		var turn_player = controller.Last_Message.get("data", {}).get("nextPlayer", "")
+		_highlight_turn(turn_player)
 
 func _setup_card_limit_label() -> void:
 	card_limit_label = Label.new()
@@ -47,8 +52,12 @@ func _on_message(msg):
 		if sent != null:
 			_update_card_limit(int(sent))
 
-	if action == "PLAYER_JOINED" or action == "MATCH_STARTED":
+	if action == "PLAYER_JOINED" or action == "MATCH_STARTED" or action == "PLAYER_REJOINED" or action == "HAND":
 		_update_player_list()
+
+	if action == "PLAYER_REJOINED":
+		var rejoined_player = msg.get("playerId", "")
+		_set_player_reconnected(rejoined_player)
 
 	if action == "NEXT_TURN":
 		var current_turn_player = msg.get("playerId", "")
@@ -98,6 +107,12 @@ func _set_player_disconnected(player_id: String):
 		var lbl = player_labels[player_id]
 		lbl.text = lbl.text.replace("🟢", "🔴")
 		lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+
+func _set_player_reconnected(player_id: String):
+	if player_labels.has(player_id):
+		var lbl = player_labels[player_id]
+		lbl.text = lbl.text.replace("🔴", "🟢")
+		lbl.remove_theme_color_override("font_color")
 
 func show_notification(text_str: String):
 	var label = Label.new()
