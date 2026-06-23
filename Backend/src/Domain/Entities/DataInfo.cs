@@ -47,4 +47,7 @@ public class DataInfo
 
     [JsonPropertyName("players")]
     public List<string>? Players { get; set; } = new();
+
+    [JsonPropertyName("handSizes")]
+    public Dictionary<string, int>? HandSizes { get; set; } = new();
 }

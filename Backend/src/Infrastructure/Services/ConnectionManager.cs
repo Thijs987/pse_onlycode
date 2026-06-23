@@ -75,7 +75,8 @@ public class ConnectionManager
             {
                 Cards = matchManager.GetPlayerHand(lobbyId, playerId),
                 NextPlayer = matchManager.GetCurrentTurnPlayer(lobbyId),
-                Players = matchManager.GetPlayerOrder(lobbyId)
+                Players = matchManager.GetPlayerOrder(lobbyId),
+                HandSizes = matchManager.GetPlayerHandSizes(lobbyId)
             };
             var response = router.MakeMessage("HAND", playerId, responseData);
             await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(response));

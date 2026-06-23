@@ -44,8 +44,12 @@ func _ready() -> void:
 	center_screen_y = get_viewport().size.y / 2
 	for card_id in controller.Player_Hand:
 		add_new_card(card_id, 0)
-		for i in range(1,4):
-			if controller.player_list[i] != "":
+
+	for i in range(1, 4):
+		var p_id = controller.player_list[i]
+		if p_id != "":
+			var hand_size = controller.Hand_Sizes.get(p_id, 5)
+			for j in range(hand_size):
 				add_new_card("achterkant", i)
 
 func _process(_delta: float) -> void:
@@ -54,7 +58,6 @@ func _process(_delta: float) -> void:
 
 func _on_message(msg):
 	if msg != null:
-
 		if msg["action"] == "NEXT_TURN":
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
@@ -88,7 +91,7 @@ func _on_message(msg):
 						add_new_card(cards[2], 0)
 					if target != controller.PId:
 						add_new_card("achterkant", controller.player_list.find(target))
-				
+
 			# Trojan horse puts the sent card in cards[0].
 			if msg.get("data", {}).get("cardId") == "trojan":
 				var target = msg.get("data", {}).get("target")
@@ -98,7 +101,7 @@ func _on_message(msg):
 						add_new_card(cards[0], 0)
 					if target != controller.PId:
 						add_new_card("achterkant", controller.player_list.find(target))
-			
+
 			if msg.get("playerId") == controller.PId:
 				var played_id = msg.get("data", {}).get("cardId")
 				for i in range(player_hands[0].size()):
@@ -116,7 +119,7 @@ func _on_message(msg):
 				print(player_number)
 				if player_number != -1:
 					if cardId in blanco or cardId == "trojan":
-						var target = msg.get("data",{}).get("target")
+						var target = msg.get("data", {}).get("target")
 						if player_hands[player_number].size() > 0:
 							var card = player_hands[player_number][0]
 							player_hands[player_number].remove_at(0)
@@ -192,7 +195,6 @@ func add_new_card(card_id, player_number):
 	animate_draw_card(new_card)
 
 func animate_draw_card(card):
-
 	card.scale = Vector2(0.5, 0.5)
 
 	var tween = get_tree().create_tween()
@@ -291,15 +293,15 @@ func change_player_list():
 	var number_of_players = controller.All_Player_Ids.size()
 	if number_of_players == 0:
 		return
-		
+
 	var local_idx = controller.All_Player_Ids.find(controller.PId)
 	if local_idx == -1:
 		return
-		
+
 	var relative_list = ["", "", "", ""]
 	for i in range(number_of_players):
 		relative_list[i] = controller.All_Player_Ids[(local_idx + i) % number_of_players]
-		
+
 	var final_list = ["", "", "", ""]
 	if number_of_players == 2:
 		final_list[0] = relative_list[0]
@@ -311,5 +313,5 @@ func change_player_list():
 	elif number_of_players >= 4:
 		for i in range(4):
 			final_list[i] = relative_list[i]
-		
+
 	controller.player_list = final_list

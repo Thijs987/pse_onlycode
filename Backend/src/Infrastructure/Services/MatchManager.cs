@@ -686,6 +686,15 @@ public class MatchManager
         return match.PlayerIds.ToList();
     }
 
+    public Dictionary<string, int> GetPlayerHandSizes(string matchId)
+    {
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            return new Dictionary<string, int>();
+        }
+        return match.PlayerHands.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Count);
+    }
+
     // Get the current deck size
     public int GetDeckSize(string matchId)
     {
@@ -696,7 +705,8 @@ public class MatchManager
     }
 
     // Get the current hand-size limit for the match.
-    public int GetCardLimit(string matchId) {
+    public int GetCardLimit(string matchId)
+    {
         if (!_activeMatches.TryGetValue(matchId, out var match))
             return 0;
 
