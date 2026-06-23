@@ -8,16 +8,16 @@ extends Control
 @onready var error_dialog: AcceptDialog = $MultiLobbyContainer/BrowserView/ErrorDialog
 @onready var browser_view: Control = $MultiLobbyContainer/BrowserView
 @onready var in_lobby_view: Control = $MultiLobbyContainer/InLobbyView
-@onready var leave_lobby_button: Button = $MultiLobbyContainer/InLobbyView/HBoxContainer6/LeaveLobby
 @onready var main_menu_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
 @onready var tutorial_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer5/TutorialButton
-@onready var card_setting_box: BoxContainer = $MultiLobbyContainer/InLobbyView/CardSettingsBox
+@onready var card_setting_box: BoxContainer = $MultiLobbyContainer/InLobbyView/VBoxContainer/CardSettingsBox
 
 @export var game_scene: StringName = &""
 @export var create_lobby_button: Button
 @export var join_lobby_button: Button
 @export var start_lobby_button: Button
 @export var card_setting_button: Button
+@export var leave_lobby_button: Button
 
 @export var multi_lobby_container: Control
 @export var lobby_settings: Control
@@ -61,9 +61,6 @@ func _ready() -> void:
 
 	update_views()
 	controller.Get_Lobbies()
-	
-	if created_lobby != controller.PId:
-		card_setting_box.visible = false
 
 func _on_add_bot():
 	controller.Add_Bot()
@@ -209,6 +206,11 @@ func signal_connect(lobby):
 
 func update_views() -> void:
 	browser_view.visible = not in_lobby_state
+	if in_lobby_state == true:
+		if created_lobby == false:
+			card_setting_button.visible = false
+		else:
+			card_setting_button.visible = true
 	in_lobby_view.visible = in_lobby_state
 
 func _on_main_menu_pressed() -> void:
