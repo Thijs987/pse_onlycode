@@ -8,6 +8,7 @@ extends Node2D
 var visual_cards = []
 const CARD_SCENE = preload("uid://dlb3crw3qdkv2")
 var turns = null
+var updating_pile := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -74,6 +75,11 @@ func setup_draw_pile_card(card, index):
 	card.z_index = index
 	
 func update_visual_pile():
+
+	if updating_pile:
+		return
+
+	updating_pile = true
 	var wanted_cards = min(3, card_count)
 
 	# Remove cards if needed
@@ -92,6 +98,7 @@ func update_visual_pile():
 		await tween.finished
 
 		card.queue_free()
+	updating_pile = false
 
 	while visual_cards.size() < wanted_cards:
 		var card = CARD_SCENE.instantiate()
