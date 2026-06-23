@@ -41,9 +41,6 @@ public class MatchManager
         var pileCards = new List <int> {};
 
         if (data == null || data.Cards == null || data.Cards.Count != 15) {
-            Log.Warning("{data}", data);
-            Log.Warning("{data.Cards}", data.Cards);
-            Log.Warning("{data.Cards.Count}", data.Cards.Count);
             pileCards = new List <int> {2,4,4,2,0,4,4,4,2,4,4,4,4,4,8};
         }
 
