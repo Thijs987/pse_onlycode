@@ -60,10 +60,10 @@ func Abandon_Lobby(LobbyId: String, PId: String):
 	print("Abandoning lobby ", LobbyId)
 	var request = HTTPRequest.new()
 	add_child(request)
-	
+
 	request.set_tls_options(TLSOptions.client_unsafe())
 	request.request_completed.connect(func(_res, _code, _headers, _body): request.queue_free())
-	
+
 	var headers = auth_manager.get_auth_headers()
 	var err = request.request(
 		"%s/api/lobbies/abandon?playerId=%s&lobbyId=%s" % [BASE_URL, PId, LobbyId],
