@@ -1,22 +1,103 @@
 extends Node2D
 
+var card_limit_label: Label
+var player_labels = {}
+
+var player_list_container: VBoxContainer
+
 func _ready() -> void:
 	controller.message_updated.connect(_on_message)
+	_setup_card_limit_label()
+
+	player_list_container = VBoxContainer.new()
+	player_list_container.position = Vector2(20, 60)
+	add_child(player_list_container)
+
+func _setup_card_limit_label() -> void:
+	card_limit_label = Label.new()
+	card_limit_label.add_theme_font_size_override("font_size", 24)
+	card_limit_label.position = Vector2(20, 20)
+	card_limit_label.z_index = 1000
+	add_child(card_limit_label)
+
+	# MATCH_STARTED is received before this scene loads, so the signal has already
+	# fired by the time we connect. Read the initial card limit from the stored last
+	# message instead of waiting for a (missed) signal; default to 5 otherwise.
+	var limit := 5
+	if controller.Last_Message.get("action") == "MATCH_STARTED":
+		var sent = controller.Last_Message.get("data", {}).get("cardLimit")
+		if sent != null:
+			limit = int(sent)
+	_update_card_limit(limit)
+
+func _update_card_limit(value: int) -> void:
+	if card_limit_label != null:
+		card_limit_label.text = "Card limit: " + str(value)
 
 func _on_message(msg):
 	if not msg.has("action"):
 		return
 
-	if msg["action"] == "CARD_LIMIT":
-		var eliminated_player = msg["playerId"]
+	var action = msg["action"]
+
+	# Both MATCH_STARTED and DECK_SIZE carry the current card limit. The limit starts
+	# at 5 and the backend drops it by 1 each time the draw pile is emptied.
+	if action == "MATCH_STARTED" or action == "DECK_SIZE":
+		var sent = msg.get("data", {}).get("cardLimit")
+		if sent != null:
+			_update_card_limit(int(sent))
+
+	if action == "PLAYER_JOINED" or action == "MATCH_STARTED":
+		_update_player_list()
+
+	if action == "NEXT_TURN":
+		var current_turn_player = msg.get("playerId", "")
+		_highlight_turn(current_turn_player)
+
+	if action == "PLAYER_LEFT" or action == "PLAYER_DISCONNECTED":
+		var left_player = msg.get("playerId", "")
+		_set_player_disconnected(left_player)
+
+	if action == "CARD_LIMIT":
+		var eliminated_player = msg.get("playerId", "")
 		if eliminated_player == controller.PId:
 			show_notification("You have been eliminated! Spectating...")
 		else:
 			show_notification(str(eliminated_player) + " was eliminated!")
 
-	if msg["action"] == "GAME_OVER":
-		var winner = msg["playerId"]
+	if action == "GAME_OVER":
+		var winner = msg.get("playerId", "")
 		show_game_over(winner)
+
+func _update_player_list():
+	for p_id in controller.All_Player_Ids:
+		if not player_labels.has(p_id):
+			var new_label = Label.new()
+			new_label.text = "🟢 " + str(p_id)
+			new_label.add_theme_font_size_override("font_size", 24)
+
+			if p_id == controller.PId:
+				new_label.text += " (You)"
+
+			player_list_container.add_child(new_label)
+			player_labels[p_id] = new_label
+
+func _highlight_turn(current_player_id: String):
+	for p_id in player_labels:
+		var lbl = player_labels[p_id]
+		lbl.add_theme_color_override("font_color", Color(1, 1, 1))
+		lbl.text = lbl.text.replace(">> ", "")
+
+	if player_labels.has(current_player_id):
+		var active_lbl = player_labels[current_player_id]
+		active_lbl.add_theme_color_override("font_color", Color(1.0, 0.845, 0.392, 1.0))
+		active_lbl.text = ">> " + active_lbl.text
+
+func _set_player_disconnected(player_id: String):
+	if player_labels.has(player_id):
+		var lbl = player_labels[player_id]
+		lbl.text = lbl.text.replace("🟢", "🔴")
+		lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 
 func show_notification(text_str: String):
 	var label = Label.new()
@@ -29,7 +110,7 @@ func show_notification(text_str: String):
 	label.custom_minimum_size = Vector2(400, 50)
 	label.z_index = 1000
 	add_child(label)
-	
+
 	var tween = create_tween()
 	tween.tween_property(label, "modulate:a", 0.0, 3.0).set_delay(2.0)
 	tween.tween_callback(label.queue_free)

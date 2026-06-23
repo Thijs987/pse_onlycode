@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Persistence;
@@ -5,6 +6,7 @@ using Domain;
 using Application;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Application.Results;
@@ -44,7 +46,7 @@ public class UserController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Logincontrol(LoginRequest request)
     {
-        var result = await _auth.Login(request.Email, request.Password);
+        var result = await _auth.Login(request.Username, request.Password);
         if (!result.IsSuccess)
         {
             // authentication error
@@ -207,6 +209,19 @@ public class UserController : ControllerBase
         return Ok(new { success = true });
     }
 
+    [Authorize]
+    [HttpDelete("me")]
+    public async Task<IActionResult> DeleteMe()
+    {
+        var sub = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        if (string.IsNullOrWhiteSpace(sub) || !Guid.TryParse(sub, out var userId))
+            return Unauthorized(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid user token."));
+
+        var res = await _auth.DeleteAccountAsync(userId, HttpContext.Connection.RemoteIpAddress?.ToString());
+        if (!res.IsSuccess) return BadRequest(res.Error);
+        return Ok(new { success = true });
+    }
+
     private static string GenerateCsrfToken()
     {
         // Generate a random CSRF token (32 bytes, base64url encoded)
@@ -216,6 +231,23 @@ public class UserController : ControllerBase
         return Convert.ToBase64String(data).Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
 
-    public record RegisterRequest(string Email, string Username, string Password);
-    public record LoginRequest(string Email, string Password);
+    public record RegisterRequest(
+        [Required]
+        [EmailAddress]
+        [StringLength(255)]
+        string Email,
+        [Required]
+        [StringLength(30, MinimumLength = 3)]
+        string Username,
+        [Required]
+        [StringLength(100, MinimumLength = 8)]
+        string Password);
+
+    public record LoginRequest(
+        [Required]
+        [StringLength(30, MinimumLength = 3)]
+        string Username,
+        [Required]
+        [StringLength(100, MinimumLength = 8)]
+        string Password);
 }

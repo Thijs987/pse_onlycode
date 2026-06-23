@@ -100,13 +100,13 @@ text = "Log in"
 label_settings = SubResource("LabelSettings_sq1ca")
 horizontal_alignment = 1
 
-[node name="LoginEmailLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=1442675738]
+[node name="LoginIdentifierLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=1442675738]
 modulate = Color(0, 0, 0, 1)
 layout_mode = 2
-text = "Email"
+text = "Username/Email"
 horizontal_alignment = 1
 
-[node name="LoginEmailInput" type="LineEdit" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=472526710]
+[node name="LoginIdentifierInput" type="LineEdit" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=472526710]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
