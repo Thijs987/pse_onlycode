@@ -96,6 +96,9 @@ script = ExtResource("10_8r6kd")
 [node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
 script = ExtResource("11_gameui")
 
+[node name="Card Play" type="AudioStreamPlayer2D" parent="." unique_id=1269714596]
+autoplay = true
+
 [node name="TurnTimer" type="Timer" parent="." unique_id=2082152117]
 wait_time = 30.0
 ignore_time_scale = true
