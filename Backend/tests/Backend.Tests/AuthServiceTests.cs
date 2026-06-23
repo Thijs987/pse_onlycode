@@ -653,7 +653,7 @@ public class AuthServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login("test@example.com", password, "127.0.0.1");
+        var result = await service.Login("testuser", password, "127.0.0.1");
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
@@ -695,28 +695,28 @@ public class AuthServiceTests
 
         for (var i = 0; i < 5; i++)
         {
-            var attempt = await service.Login("test@example.com", "WrongPassword1!", "127.0.0.1");
+            var attempt = await service.Login("testuser", "WrongPassword1!", "127.0.0.1");
             Assert.False(attempt.IsSuccess);
             Assert.Equal(Application.Results.ServiceErrorCode.InvalidCredentials, attempt.Error!.Code);
         }
 
-        var final = await service.Login("test@example.com", "WrongPassword1!", "127.0.0.1");
+        var final = await service.Login("testuser", "WrongPassword1!", "127.0.0.1");
         Assert.False(final.IsSuccess);
         Assert.NotNull(final.Error);
         Assert.Equal(Application.Results.ServiceErrorCode.RateLimited, final.Error!.Code);
     }
 
     [Fact]
-    // Login should trim and lowercase the email before lookup.
-    public async Task Login_TrimsAndNormalizesEmail()
+    // Login should trim the username before lookup (username lookup is case-insensitive).
+    public async Task Login_TrimsAndHandlesUsername()
     {
         using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
         var pwd = "Password1!";
-        context.Users.Add(new Domain.AppUser { Id = Guid.NewGuid(), Email = "test@example.com", Username = "tu", PasswordHash = Application.PasswordHasher.Hash(pwd), IsEmailVerified = true });
+        context.Users.Add(new Domain.AppUser { Id = Guid.NewGuid(), Email = "test@example.com", Username = "testuser", PasswordHash = Application.PasswordHasher.Hash(pwd), IsEmailVerified = true });
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login(" TEST@Example.com ", pwd, "127.0.0.1");
+        var result = await service.Login(" TestUser ", pwd, "127.0.0.1");
 
         Assert.True(result.IsSuccess);
     }
@@ -728,22 +728,22 @@ public class AuthServiceTests
         using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateAuthService(context);
 
-        var result = await service.Login("doesnotexist@example.com", "Password1!", "127.0.0.1");
+        var result = await service.Login("nonexistentuser", "Password1!", "127.0.0.1");
         Assert.False(result.IsSuccess);
         Assert.Equal(Application.Results.ServiceErrorCode.InvalidCredentials, result.Error!.Code);
     }
 
     [Theory]
-    // Login with invalid email formats should return InvalidCredentials and not throw.
-    [InlineData("not-an-email")]
-    [InlineData("space in@domain.com")]
-    [InlineData("user@@domain.com")]
-    public async Task Login_InvalidEmailFormat_ReturnsInvalidCredentials(string badEmail)
+    // Login with invalid/non-existent usernames should return InvalidCredentials and not throw.
+    [InlineData("nonexistentuser1")]
+    [InlineData("bad@user")]
+    [InlineData("user@@domain")]
+    public async Task Login_InvalidUsername_ReturnsInvalidCredentials(string badUsername)
     {
         using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateAuthService(context);
 
-        var result = await service.Login(badEmail, "Password1!", "127.0.0.1");
+        var result = await service.Login(badUsername, "Password1!", "127.0.0.1");
         Assert.False(result.IsSuccess);
         Assert.Equal(Application.Results.ServiceErrorCode.InvalidCredentials, result.Error!.Code);
     }
@@ -759,7 +759,7 @@ public class AuthServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login("test@example.com", pwd, "127.0.0.1");
+        var result = await service.Login("tu", pwd, "127.0.0.1");
 
         Assert.True(result.IsSuccess);
         var refreshed = await context.Users.FirstAsync(u => u.Email == "test@example.com");
@@ -787,14 +787,14 @@ public class AuthServiceTests
         var service = CreateAuthService(context);
         for (var i = 0; i < 5; i++)
         {
-            var attempt = await service.Login("test@example.com", "WrongPassword1!", "127.0.0.1");
+            var attempt = await service.Login("testuser", "WrongPassword1!", "127.0.0.1");
             Assert.False(attempt.IsSuccess);
             Assert.Equal(Application.Results.ServiceErrorCode.InvalidCredentials, attempt.Error!.Code);
         }
 
         // The account should now be locked; using a fresh rate limiter avoids the rate-limit path.
         var retryService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
-        var lockedAttempt = await retryService.Login("test@example.com", "Password1!", "127.0.0.1");
+        var lockedAttempt = await retryService.Login("testuser", "Password1!", "127.0.0.1");
         Assert.False(lockedAttempt.IsSuccess);
         Assert.Equal(Application.Results.ServiceErrorCode.AccountLocked, lockedAttempt.Error!.Code);
 
@@ -816,14 +816,14 @@ public class AuthServiceTests
         var service = new AuthService(context, new InMemoryAuditService(), rateLimitService, new ConsoleEmailService());
 
         // one failed attempt
-        var fail = await service.Login("test@example.com", "WrongPass1!", "127.0.0.1");
+        var fail = await service.Login("tu", "WrongPass1!", "127.0.0.1");
         Assert.False(fail.IsSuccess);
 
         // successful login resets rate limit
-        var ok = await service.Login("test@example.com", pwd, "127.0.0.1");
+        var ok = await service.Login("tu", pwd, "127.0.0.1");
         Assert.True(ok.IsSuccess);
 
-        var allowed = await rateLimitService.IsAllowedAsync("login:test@example.com", 5, TimeSpan.FromMinutes(15));
+        var allowed = await rateLimitService.IsAllowedAsync("login:tu", 5, TimeSpan.FromMinutes(15));
         Assert.True(allowed);
     }
 
@@ -845,7 +845,7 @@ public class AuthServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login("test@example.com", "WrongPassword1!", "127.0.0.1");
+        var result = await service.Login("testuser", "WrongPassword1!", "127.0.0.1");
 
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
@@ -871,7 +871,7 @@ public class AuthServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login("test@example.com", "Password1!", "127.0.0.1");
+        var result = await service.Login("testuser", "Password1!", "127.0.0.1");
 
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
@@ -896,7 +896,7 @@ public class AuthServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login("test@example.com", "Password1!", "127.0.0.1");
+        var result = await service.Login("testuser", "Password1!", "127.0.0.1");
 
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
