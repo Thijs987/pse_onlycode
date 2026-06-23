@@ -288,17 +288,28 @@ func move_to_position(card, position):
 	tween.tween_property(card, "position", position, 0.2)
 
 func change_player_list():
-	var player_amount = 0
-	for player in controller.player_list:
-		if player != "":
-			player_amount += 1
-	var new_list = ["", "", "", ""]
-	if player_amount == 2:
-		new_list[0] = controller.player_list[0]
-		new_list[2] = controller.player_list[1]
-		controller.player_list = new_list
-	elif player_amount == 3:
-		new_list[0] = controller.player_list[0]
-		new_list[1] = controller.player_list[1]
-		new_list[3] = controller.player_list[2]
-		controller.player_list = new_list
+	var number_of_players = controller.All_Player_Ids.size()
+	if number_of_players == 0:
+		return
+		
+	var local_idx = controller.All_Player_Ids.find(controller.PId)
+	if local_idx == -1:
+		return
+		
+	var relative_list = ["", "", "", ""]
+	for i in range(number_of_players):
+		relative_list[i] = controller.All_Player_Ids[(local_idx + i) % number_of_players]
+		
+	var final_list = ["", "", "", ""]
+	if number_of_players == 2:
+		final_list[0] = relative_list[0]
+		final_list[2] = relative_list[1]
+	elif number_of_players == 3:
+		final_list[0] = relative_list[0]
+		final_list[1] = relative_list[1]
+		final_list[3] = relative_list[2]
+	elif number_of_players >= 4:
+		for i in range(4):
+			final_list[i] = relative_list[i]
+		
+	controller.player_list = final_list

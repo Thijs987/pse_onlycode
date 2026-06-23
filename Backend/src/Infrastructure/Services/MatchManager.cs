@@ -677,6 +677,15 @@ public class MatchManager
         return activePlayers;
     }
 
+    public List<string> GetPlayerOrder(string matchId)
+    {
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            return new List<string> { };
+        }
+        return match.PlayerIds.ToList();
+    }
+
     // Get the current deck size
     public int GetDeckSize(string matchId)
     {

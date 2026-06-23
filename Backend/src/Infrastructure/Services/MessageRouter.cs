@@ -112,7 +112,8 @@ public class MessageRouter
                         responseData = new DataInfo {
                             NextPlayer = newState.CurrentTurnPlayerId,
                             DeckSize = newState.Deck.Count,
-                            CardLimit = newState.CardLimit
+                            CardLimit = newState.CardLimit,
+                            Players = newState.PlayerIds
                         };
 
                         foreach (var player in players)
@@ -155,7 +156,7 @@ public class MessageRouter
                         else if (responseData.CardId == "os" && !string.IsNullOrEmpty(responseData.Target) && !responseData.Cards.Contains("imp"))
                         {
                             if (!responseData.Cards.Contains("imp")){
-                                await Next_player(lobbyId, playerId, "0", connectionManager, matchManager);
+                                await Next_player(lobbyId, playerId, false, connectionManager, matchManager);
                             } else
                             {
                                 break;

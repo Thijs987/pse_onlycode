@@ -74,7 +74,8 @@ public class ConnectionManager
             var responseData = new DataInfo
             {
                 Cards = matchManager.GetPlayerHand(lobbyId, playerId),
-                NextPlayer = matchManager.GetCurrentTurnPlayer(lobbyId)
+                NextPlayer = matchManager.GetCurrentTurnPlayer(lobbyId),
+                Players = matchManager.GetPlayerOrder(lobbyId)
             };
             var response = router.MakeMessage("HAND", playerId, responseData);
             await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(response));
@@ -168,8 +169,10 @@ public class ConnectionManager
                 Log.Information("Adding bot for disconnected player {PlayerId} in lobby {LobbyId}", playerId, lobbyId);
                 await router.botService.AddBotAsync(lobbyId, playerId);
                 if (matchManager.GetCurrentTurnPlayer(lobbyId) == playerId)
-                    await router.botService.DrawCard(lobbyId, playerId);
-                // router.CheckBotTurn(lobbyId, matchManager, )
+                {
+                    var botTurnData = new DataInfo { NextPlayer = playerId };
+                    await router.CheckBotTurn(lobbyId, this, matchManager, botTurnData);
+                }
             }
         }
     }

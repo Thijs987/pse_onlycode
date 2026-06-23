@@ -99,7 +99,7 @@ func Update_From_Server(msg: Dictionary):
 	print("Player: " + str(PId) +", " + str(Last_Message))
 	Last_Data = msg.get("data", {})
 	
-	if Last_Message.get("action") == "PLAYER_JOINED":
+	if Last_Message.get("action") == "PLAYER_JOINED" or Last_Message.get("action") == "PLAYER_REJOINED":
 		var joined_id = Last_Message.get("playerId")
 		if joined_id and not All_Player_Ids.has(joined_id):
 			All_Player_Ids.append(joined_id)
@@ -119,6 +119,8 @@ func Update_From_Server(msg: Dictionary):
 	if Last_Message.get("action") == "MATCH_STARTED":
 		if Last_Data.has("cards"):
 			Player_Hand = Last_Data["cards"]
+		if Last_Data.has("players"):
+			All_Player_Ids = Last_Data["players"]
 
 	if Last_Message.get("action") == "GAME_OVER":
 		interaction_disabled = true
@@ -129,6 +131,8 @@ func Update_From_Server(msg: Dictionary):
 	if Last_Message.get("action") == "HAND":
 		if Last_Data.has("cards"):
 			Player_Hand = Last_Data["cards"]
+		if Last_Data.has("players"):
+			All_Player_Ids = Last_Data["players"]
 
 	message_updated.emit(msg)
 
