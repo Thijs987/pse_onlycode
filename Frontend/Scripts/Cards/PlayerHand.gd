@@ -138,7 +138,7 @@ func add_new_card(card_id, player_number):
 
 	new_card.name = "Card"
 	new_card.set_card(card_id)
-	var pile_pos = $"../Pile/PileArea/Pile".global_position
+	var pile_pos = $"../Pile/PileArea".global_position
 	new_card.global_position = pile_pos
 	if player_number == 0:
 		new_card.is_others = false
