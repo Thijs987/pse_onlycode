@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -75,13 +77,18 @@ public class UserController : ControllerBase
         var signingKey = new SymmetricSecurityKey(keyBytes);
         var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var sessionId = await _auth.GetCurrentSessionIdAsync(result.Value.Id);
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, result.Value.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, result.Value.Email),
             new Claim("username", result.Value.Username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+        if (!string.IsNullOrWhiteSpace(sessionId))
+        {
+            claims.Add(new Claim("sid", sessionId));
+        }
 
         var token = new JwtSecurityToken(
             issuer: issuer,
@@ -145,6 +152,7 @@ public class UserController : ControllerBase
         }
 
         var (userDto, newRefreshToken) = res.Value;
+        var sessionId = await _auth.GetCurrentSessionIdAsync(userDto.Id);
 
         // issue new access token
         var jwtKey = _config["Jwt:Key"];
@@ -159,13 +167,17 @@ public class UserController : ControllerBase
         var signingKey = new SymmetricSecurityKey(keyBytes);
         var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, userDto.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, userDto.Email),
             new Claim("username", userDto.Username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+        if (!string.IsNullOrWhiteSpace(sessionId))
+        {
+            claims.Add(new Claim("sid", sessionId));
+        }
 
         var token = new JwtSecurityToken(
             issuer: issuer,
@@ -199,6 +211,15 @@ public class UserController : ControllerBase
         if (!string.IsNullOrWhiteSpace(refreshToken))
         {
             await _auth.RevokeRefreshTokenAsync(refreshToken);
+        }
+
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var sub = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            if (Guid.TryParse(sub, out var userId))
+            {
+                await _auth.ClearCurrentSessionAsync(userId);
+            }
         }
 
         // delete cookies

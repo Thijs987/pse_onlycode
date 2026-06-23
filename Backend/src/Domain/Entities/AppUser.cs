@@ -31,4 +31,7 @@ public class AppUser
 
     // Refresh tokens for this user (for refresh/rotation)
     public ICollection<RefreshToken>? RefreshTokens { get; set; }
+
+    // Enforces a single active session per account
+    public string? CurrentSessionId { get; set; }
 }

@@ -688,6 +688,39 @@ public class AuthServiceTests
     }
 
     [Fact]
+    // Login should generate a session id and revoke previously issued refresh tokens to enforce a single active session.
+    public async Task Login_GeneratesSessionId_AndRevokesPreviousRefreshTokens()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var userId = Guid.NewGuid();
+        var password = "Password1!";
+        var passwordHash = Application.PasswordHasher.Hash(password);
+
+        context.Users.Add(new Domain.AppUser
+        {
+            Id = userId,
+            Email = "test@example.com",
+            Username = "testuser",
+            PasswordHash = passwordHash,
+            IsEmailVerified = true
+        });
+        await context.SaveChangesAsync();
+
+        var service = CreateAuthService(context);
+        var firstToken = await service.CreateRefreshTokenForUserAsync(userId, "127.0.0.1");
+        var existingToken = await context.RefreshTokens.FirstAsync(rt => Application.PasswordHasher.Verify(firstToken, rt.TokenHash));
+        Assert.NotNull(existingToken);
+        Assert.Null(existingToken.Revoked);
+
+        var result = await service.Login("testuser", password, "127.0.0.1");
+
+        Assert.True(result.IsSuccess);
+        var sessionId = await service.GetCurrentSessionIdAsync(userId);
+        Assert.False(string.IsNullOrWhiteSpace(sessionId));
+        Assert.Equal(0, await context.RefreshTokens.CountAsync(rt => rt.UserId == userId && rt.Revoked == null));
+    }
+
+    [Fact]
     // Login should also succeed with email instead of username.
     public async Task Login_Succeeds_WithEmailIdentifier()
     {

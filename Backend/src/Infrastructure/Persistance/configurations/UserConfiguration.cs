@@ -41,5 +41,7 @@ public class UserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(x => x.Wins).HasDefaultValue(0);
         builder.Property(x => x.Losses).HasDefaultValue(0);
 
+        // active session enforcement
+        builder.Property(x => x.CurrentSessionId).HasMaxLength(36);
     }
 }

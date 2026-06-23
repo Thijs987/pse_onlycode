@@ -120,6 +120,11 @@ public class AuthService
         // rotate: revoke current and create new
         found.Revoked = DateTime.UtcNow;
 
+        if (string.IsNullOrWhiteSpace(user.CurrentSessionId))
+        {
+            return Result<(UserDto, string)>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid refresh token."));
+        }
+
         var newToken = await CreateRefreshTokenForUserAsync(user.Id, ipAddress, RefreshTokenDaysDefault);
         found.ReplacedByToken = "(rotated)";
 
@@ -127,6 +132,24 @@ public class AuthService
 
         var userDto = new UserDto { Id = user.Id, Email = user.Email, Username = user.Username };
         return Result<(UserDto, string)>.Success((userDto, newToken));
+    }
+
+    public async Task<string?> GetCurrentSessionIdAsync(Guid userId)
+    {
+        return await _db.Users.AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => u.CurrentSessionId)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task ClearCurrentSessionAsync(Guid userId)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user != null)
+        {
+            user.CurrentSessionId = null;
+            await _db.SaveChangesAsync();
+        }
     }
 
     public async Task<Result> RevokeRefreshTokenAsync(string refreshToken)
@@ -248,9 +271,18 @@ public class AuthService
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
         }
 
-        // successful login: reset failed attempts and lockout, log success, return user info
+        // successful login: reset failed attempts and lockout, revoke any previous refresh tokens, enforce a single active session.
         user.FailedLoginAttempts = 0;
         user.LockoutEnd = null;
+        user.CurrentSessionId = Guid.NewGuid().ToString();
+
+        var now = DateTime.UtcNow;
+        var activeTokens = await _db.RefreshTokens.Where(rt => rt.UserId == user.Id && rt.Revoked == null).ToListAsync();
+        foreach (var rt in activeTokens)
+        {
+            rt.Revoked = now;
+        }
+
         await _db.SaveChangesAsync();
         await _rateLimitService.ResetAsync(rateLimitKey);
         await _auditService.LogAuthEventAsync("login_success", identifier, true, null, ipAddress);
@@ -466,6 +498,7 @@ public class AuthService
         user.PasswordHash = PasswordHasher.Hash(newPassword);
         user.PasswordResetToken = null;
         user.PasswordResetTokenExpiry = null;
+        user.CurrentSessionId = null;
 
         // Revoke all active refresh tokens for this user
         var now = DateTime.UtcNow;
@@ -518,6 +551,7 @@ public class AuthService
         user.VerificationTokenExpiry = null;
         user.PasswordResetToken = null;
         user.PasswordResetTokenExpiry = null;
+        user.CurrentSessionId = null;
         user.IsDeleted = true;
 
         try

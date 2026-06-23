@@ -16,6 +16,8 @@ using System.Text;
 using System.Reflection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.DependencyInjection;
+using System.IdentityModel.Tokens.Jwt;
 using Api;
 using Serilog;
 
@@ -230,6 +232,30 @@ if (authEnabled)
                     }
 
                     return Task.CompletedTask;
+                },
+                OnTokenValidated = async context =>
+                {
+                    var principal = context.Principal;
+                    if (principal == null)
+                    {
+                        context.Fail("Invalid token payload.");
+                        return;
+                    }
+
+                    var sessionId = principal.FindFirst("sid")?.Value;
+                    var subject = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                    if (string.IsNullOrWhiteSpace(sessionId) || string.IsNullOrWhiteSpace(subject) || !Guid.TryParse(subject, out var userId))
+                    {
+                        context.Fail("Invalid session or subject claim.");
+                        return;
+                    }
+
+                    var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                    var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+                    if (user == null || string.IsNullOrWhiteSpace(user.CurrentSessionId) || user.CurrentSessionId != sessionId)
+                    {
+                        context.Fail("Session invalid or expired.");
+                    }
                 }
             };
     });
