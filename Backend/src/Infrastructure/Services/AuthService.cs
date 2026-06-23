@@ -28,6 +28,7 @@ public class AuthService
     private const int LoginAttemptWindowMinutes = 15;
     private const int RegisterAttemptWindowMinutes = 30;
     private const int EmailVerificationTokenExpiryHours = 24;
+    private const int PasswordResetTokenExpiryHours = 1;
 
     private readonly string _baseUrl;
     private const int RefreshTokenDaysDefault = 30; // default refresh token validity period in days
@@ -156,43 +157,45 @@ public class AuthService
     }
 
 
-    public async Task<Result<UserDto>> Login(string email, string password, string? ipAddress = null)
+    public async Task<Result<UserDto>> Login(string identifier, string password, string? ipAddress = null)
     {
         // validation
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        if (string.IsNullOrWhiteSpace(identifier) || string.IsNullOrWhiteSpace(password))
         {
-            await _auditService.LogAuthEventAsync("login_attempt", email ?? "unknown", false, "Validation failed: empty input", ipAddress);
-            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Email and password are required."));
+            await _auditService.LogAuthEventAsync("login_attempt", identifier ?? "unknown", false, "Validation failed: empty input", ipAddress);
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Username or email and password are required."));
         }
 
-        // normalize email
-        email = email.Trim().ToLowerInvariant();
-        if (!IsValidEmail(email))
-        {
-            await _auditService.LogAuthEventAsync("login_attempt", email, false, "Validation failed: invalid email format", ipAddress);
-            PasswordHasher.Verify(password, _dummyHash);
-            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
-        }
+        // normalize identifier
+        identifier = identifier.Trim();
+        var isEmail = identifier.Contains('@') && IsValidEmail(identifier);
+        var normalizedIdentifier = isEmail ? identifier.ToLowerInvariant() : identifier;
 
-        // rate limiting: max 5 failed login attempts per 15 minutes, per email
-        var rateLimitKey = $"login:{email}";
+        // rate limiting: max 5 failed login attempts per 15 minutes, per identifier
+        var rateLimitKey = $"login:{normalizedIdentifier.ToLowerInvariant()}";
         if (!await _rateLimitService.IsAllowedAsync(rateLimitKey, MaxFailedLoginAttempts, TimeSpan.FromMinutes(LoginAttemptWindowMinutes)))
         {
-            await _auditService.LogAuthEventAsync("login_attempt", email, false, "Rate limit exceeded", ipAddress);
+            await _auditService.LogAuthEventAsync("login_attempt", identifier, false, "Rate limit exceeded", ipAddress);
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.RateLimited, "Too many login attempts. Try again later."));
         }
 
-        // fetch user by email; if not found, do a dummy password verify to mitigate timing attacks,
-        // then return generic error without revealing which part was wrong (this extra security
-        // measure is done everywhere below here).
+        // fetch user by email or username (case-insensitive); if not found, do a dummy password verify to mitigate timing attacks,
+        // then return generic error without revealing which part was wrong.
         AppUser? user;
         try
         {
-            user = await _db.Users.FirstOrDefaultAsync(x => x.Email == email);
+            if (isEmail)
+            {
+                user = await _db.Users.FirstOrDefaultAsync(x => x.Email == normalizedIdentifier);
+            }
+            else
+            {
+                user = await _db.Users.FirstOrDefaultAsync(x => x.Username.ToLower() == normalizedIdentifier.ToLower());
+            }
         }
         catch (Exception ex)
         {
-            await _auditService.LogAuthEventAsync("login_attempt", email, false, $"DB error: {ex.Message}", ipAddress);
+            await _auditService.LogAuthEventAsync("login_attempt", identifier, false, $"DB error: {ex.Message}", ipAddress);
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InternalError, "Unable to access user store."));
         }
 
@@ -204,17 +207,25 @@ public class AuthService
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
         }
 
+        // prevent login for soft-deleted accounts
+        if (user.IsDeleted)
+        {
+            await _auditService.LogAuthEventAsync("login_attempt", identifier, false, "Account deleted", ipAddress);
+            await _rateLimitService.RecordAttemptAsync(rateLimitKey);
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
+        }
+
         // check if account is locked
         if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
         {
-            await _auditService.LogAuthEventAsync("login_attempt", email, false, $"Account locked until {user.LockoutEnd:O}", ipAddress);
+            await _auditService.LogAuthEventAsync("login_attempt", identifier, false, $"Account locked until {user.LockoutEnd:O}", ipAddress);
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.AccountLocked, "Account is temporarily locked."));
         }
 
         // check email verification
         if (!user.IsEmailVerified)
         {
-            await _auditService.LogAuthEventAsync("login_attempt", email, false, "Email not verified", ipAddress);
+            await _auditService.LogAuthEventAsync("login_attempt", identifier, false, "Email not verified", ipAddress);
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.EmailNotVerified, "Email address has not been verified."));
         }
 
@@ -225,11 +236,11 @@ public class AuthService
             if (user.FailedLoginAttempts >= MaxFailedLoginAttempts)
             {
                 user.LockoutEnd = DateTime.UtcNow.AddMinutes(LockoutDurationMinutes);
-                await _auditService.LogAuthEventAsync("login_attempt", email, false, $"Account locked after {user.FailedLoginAttempts} failed attempts", ipAddress);
+                await _auditService.LogAuthEventAsync("login_attempt", identifier, false, $"Account locked after {user.FailedLoginAttempts} failed attempts", ipAddress);
             }
             else
             {
-                await _auditService.LogAuthEventAsync("login_attempt", email, false, $"Wrong password (attempt {user.FailedLoginAttempts}/{MaxFailedLoginAttempts})", ipAddress);
+                await _auditService.LogAuthEventAsync("login_attempt", identifier, false, $"Wrong password (attempt {user.FailedLoginAttempts}/{MaxFailedLoginAttempts})", ipAddress);
             }
 
             await _db.SaveChangesAsync();
@@ -242,7 +253,7 @@ public class AuthService
         user.LockoutEnd = null;
         await _db.SaveChangesAsync();
         await _rateLimitService.ResetAsync(rateLimitKey);
-        await _auditService.LogAuthEventAsync("login_success", email, true, null, ipAddress);
+        await _auditService.LogAuthEventAsync("login_success", identifier, true, null, ipAddress);
 
         return Result<UserDto>.Success(new UserDto { Id = user.Id, Email = user.Email, Username = user.Username });
     }
@@ -274,8 +285,8 @@ public class AuthService
         }
 
         // username check + valid password check
-        if (username.Length < 3 || username.Length > 30)
-            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Username must be between 3 and 30 characters."));
+        if (!IsValidUsername(username))
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Username must be between 3 and 30 characters and must not contain whitespace or '@'."));
 
         if (!IsPasswordValid(password))
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Password does not meet complexity requirements. Use at least 8 characters including upper, lower, digit and special character."));
@@ -355,6 +366,174 @@ public class AuthService
         return Result<UserDto>.Success(new UserDto { Id = user.Id, Email = user.Email, Username = user.Username });
     }
 
+    public async Task<Result> RequestPasswordResetAsync(string email, string? baseUrl = null)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return Result.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Email is required."));
+
+        var normalized = email.Trim().ToLowerInvariant();
+
+        // rate limit password reset attempts per email to avoid abuse
+        var rlKey = $"pwreset:{normalized}";
+        if (!await _rateLimitService.IsAllowedAsync(rlKey, 5, TimeSpan.FromHours(1)))
+        {
+            await _auditService.LogAuthEventAsync("password_reset_request", normalized, false, "Rate limit exceeded", null);
+            // Still return success to avoid revealing that rate limiting occurred
+            return Result.Success();
+        }
+
+        AppUser? user = null;
+        try
+        {
+            user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalized);
+        }
+        catch (Exception ex)
+        {
+            await _auditService.LogAuthEventAsync("password_reset_request", normalized, false, $"DB error: {ex.Message}", null);
+            return Result.Failure(new ServiceError(ServiceErrorCode.InternalError, "Unable to access user store."));
+        }
+
+        // always record attempt
+        await _rateLimitService.RecordAttemptAsync(rlKey);
+
+        // Do not reveal whether the account exists to the caller. If user exists, create a reset token and email it.
+        if (user != null)
+        {
+            // generate secure token
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            var data = new byte[48];
+            rng.GetBytes(data);
+            var token = Convert.ToBase64String(data).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+
+            var tokenHash = PasswordHasher.Hash(token);
+            user.PasswordResetToken = tokenHash;
+            user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours);
+
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch
+            {
+                // If we can't persist, do not reveal error to caller
+                await _auditService.LogAuthEventAsync("password_reset_request", normalized, false, "DB save failed", null);
+                return Result.Success();
+            }
+
+            var effectiveBase = string.IsNullOrWhiteSpace(baseUrl) ? _baseUrl : baseUrl.TrimEnd('/');
+            var resetLink = $"{effectiveBase}/api/auth/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(normalized)}";
+
+            try
+            {
+                await _emailService.SendPasswordResetEmailAsync(user.Email, user.Username, token, resetLink);
+            }
+            catch (Exception ex)
+            {
+                await _auditService.LogAuthEventAsync("password_reset_request", normalized, false, $"Email send failed: {ex.Message}", null);
+                // don't surface email errors to caller
+            }
+
+            await _auditService.LogAuthEventAsync("password_reset_request", normalized, true, "Password reset token issued", null);
+        }
+
+        // return generic success regardless of whether user exists
+        return Result.Success();
+    }
+
+    public async Task<Result> ResetPasswordAsync(string email, string token, string newPassword)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(newPassword))
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Email, token and new password are required."));
+
+        if (!IsPasswordValid(newPassword))
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Password does not meet complexity requirements."));
+
+        var normalized = email.Trim().ToLowerInvariant();
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalized);
+        if (user == null) return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Invalid token or email."));
+
+        if (string.IsNullOrWhiteSpace(user.PasswordResetToken) || !user.PasswordResetTokenExpiry.HasValue || user.PasswordResetTokenExpiry < DateTime.UtcNow)
+        {
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Reset token is missing or expired."));
+        }
+
+        if (!PasswordHasher.Verify(token, user.PasswordResetToken))
+        {
+            return Result.Failure(new ServiceError(ServiceErrorCode.InvalidOperation, "Invalid reset token."));
+        }
+
+        // apply password change
+        user.PasswordHash = PasswordHasher.Hash(newPassword);
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpiry = null;
+
+        // Revoke all active refresh tokens for this user
+        var now = DateTime.UtcNow;
+        var tokens = await _db.RefreshTokens.Where(rt => rt.UserId == user.Id && rt.Revoked == null).ToListAsync();
+        foreach (var rt in tokens)
+        {
+            rt.Revoked = now;
+        }
+
+        await _db.SaveChangesAsync();
+
+        await _auditService.LogAuthEventAsync("password_reset", normalized, true, "Password reset completed", null);
+
+        return Result.Success();
+    }
+
+    // Soft-delete a user account: revoke tokens, anonymize PII, and mark as deleted.
+    public async Task<Result> DeleteAccountAsync(Guid userId, string? ipAddress = null)
+    {
+        var user = await _db.Users.Include(u => u.RefreshTokens).FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) return Result.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "User not found."));
+
+        if (user.IsDeleted)
+        {
+            // idempotent
+            await _auditService.LogAuthEventAsync("delete_account", user.Email, true, "Already deleted", ipAddress);
+            return Result.Success();
+        }
+
+        // capture original identifying info for the audit
+        var originalEmail = user.Email;
+        var originalUsername = user.Username;
+
+        // Revoke active refresh tokens
+        var now = DateTime.UtcNow;
+        if (user.RefreshTokens != null)
+        {
+            foreach (var rt in user.RefreshTokens.Where(t => t.Revoked == null))
+            {
+                rt.Revoked = now;
+            }
+        }
+
+        // Anonymize PII and make the account unusable
+        user.Email = $"deleted+{user.Id}@deleted.local";
+        user.Username = $"deleted_{user.Id}";
+        user.PasswordHash = PasswordHasher.Hash(Guid.NewGuid().ToString());
+        user.IsEmailVerified = false;
+        user.VerificationToken = null;
+        user.VerificationTokenExpiry = null;
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpiry = null;
+        user.IsDeleted = true;
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            await _auditService.LogAuthEventAsync("delete_account", originalEmail ?? originalUsername, false, $"DB error: {ex.Message}", ipAddress);
+            return Result.Failure(new ServiceError(ServiceErrorCode.InternalError, "Failed to delete user."));
+        }
+
+        await _auditService.LogAuthEventAsync("delete_account", originalEmail ?? originalUsername, true, "User soft-deleted", ipAddress);
+        return Result.Success();
+    }
+
     private static bool IsPasswordValid(string password)
     {
         /* Checks if password has the following requirements:
@@ -370,6 +549,15 @@ public class AuthService
         var hasSpecial = Regex.IsMatch(password, "[^a-zA-Z0-9]");
 
         return hasUpper && hasLower && hasDigit && hasSpecial;
+    }
+
+    private static bool IsValidUsername(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return false;
+        if (username.Length < 3 || username.Length > 30) return false;
+        if (username.Any(char.IsWhiteSpace)) return false;
+        if (username.Contains('@')) return false;
+        return true;
     }
 
     private static bool IsValidEmail(string email)

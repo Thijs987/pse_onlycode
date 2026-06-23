@@ -185,7 +185,7 @@ public class AuthServiceIntegrationTests
             Assert.Equal(username, registerResult.Value.Username);
             createdUserId = registerResult.Value.Id;
 
-            var loginResult = await service.Login(email, "Password1!", "127.0.0.1");
+            var loginResult = await service.Login(username, "Password1!", "127.0.0.1");
             Assert.False(loginResult.IsSuccess);
             Assert.Equal(ServiceErrorCode.EmailNotVerified, loginResult.Error?.Code);
         }

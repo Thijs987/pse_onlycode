@@ -395,7 +395,7 @@ public class SecurityFeaturesIntegrationTests
             createdUserId = user.Id;
 
             var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
-            var result = await authService.Login(user.Email, "Password1!", "127.0.0.1");
+            var result = await authService.Login(user.Username, "Password1!", "127.0.0.1");
 
             Assert.False(result.IsSuccess);
             Assert.Equal(ServiceErrorCode.EmailNotVerified, result.Error?.Code);
@@ -433,7 +433,7 @@ public class SecurityFeaturesIntegrationTests
             createdUserId = user.Id;
 
             var authService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
-            var result = await authService.Login(user.Email, "Password1!", "127.0.0.1");
+            var result = await authService.Login(user.Username, "Password1!", "127.0.0.1");
 
             Assert.False(result.IsSuccess);
             Assert.Equal(ServiceErrorCode.AccountLocked, result.Error?.Code);
