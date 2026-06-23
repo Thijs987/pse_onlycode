@@ -29,10 +29,6 @@ public class AppUser
     public int Wins { get; set; }
     public int Losses { get; set; }
 
-    // current lobby (NULL = geen lobby)
-    public Guid? CurrentLobbyId { get; set; }
-    public Lobby? CurrentLobby { get; set; }
-
     // Refresh tokens for this user (for refresh/rotation)
     public ICollection<RefreshToken>? RefreshTokens { get; set; }
 }

@@ -518,7 +518,6 @@ public class AuthService
         user.VerificationTokenExpiry = null;
         user.PasswordResetToken = null;
         user.PasswordResetTokenExpiry = null;
-        user.CurrentLobbyId = null;
         user.IsDeleted = true;
 
         try
