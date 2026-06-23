@@ -31,6 +31,13 @@ func check_at_cursor(is_pressed):
 	var result_size = result.size()
 	if result.size() > 0:
 		var result_collision_mask = result[0].collider.collision_mask
+		var result_highest_z = result_collision_mask.z_index
+		for i in range(0, result.size()):
+			var new_item = result[i].collider.get_parent()
+			var new_item_z = new_item.z_index
+			if new_item_z > result_highest_z:
+				result_collision_mask = new_item
+				result_highest_z = new_item_z
 		if result_collision_mask == COLLISION_MASK_CARD:
 			var card_found = result[0].collider.get_parent()
 			if card_found and "movable" in card_found:

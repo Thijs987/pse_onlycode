@@ -1,13 +1,15 @@
 [gd_scene format=3 uid="uid://ctined7qq8dh2"]
 
 [ext_resource type="Script" uid="uid://64li53p86thf" path="res://Scripts/Menus/StartMenu.gd" id="1_dvnd1"]
-[ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Menu/BackgroundPattern.png" id="2_dl0pg"]
 [ext_resource type="Texture2D" uid="uid://bwaifo42khjiy" path="res://Sprites/Menu/TitleCodeGreen.png" id="2_xtte2"]
 [ext_resource type="Texture2D" uid="uid://cddmfc44v2cvs" path="res://Sprites/Menu/MainMenuButtons.png" id="3_h303d"]
 
 [sub_resource type="Curve" id="Curve_dl0pg"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.26602563, 0.26193547), 1.5700641, 1.5700641, 0, 0, Vector2(0.5769231, 0.90774196), 0.6886246, 0.6886246, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
 point_count = 4
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_h303d"]
+load_path = "res://.godot/imported/BackgroundPattern.png-cc0b75765b21b15dfad1034272551030.ctex"
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ujd4t"]
 texture = ExtResource("3_h303d")
@@ -158,7 +160,7 @@ offset_left = -222.0
 offset_top = -257.0
 offset_right = 1410.0
 offset_bottom = 901.0
-texture = ExtResource("2_dl0pg")
+texture = SubResource("CompressedTexture2D_h303d")
 stretch_mode = 1
 
 [node name="ButtonContainer" type="MarginContainer" parent="." unique_id=599292621]
