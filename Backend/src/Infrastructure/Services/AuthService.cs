@@ -187,10 +187,6 @@ public class AuthService
             if (isEmail)
             {
                 user = await _db.Users.FirstOrDefaultAsync(x => x.Email == normalizedIdentifier);
-                if (user == null)
-                {
-                    user = await _db.Users.FirstOrDefaultAsync(x => x.Username.ToLower() == normalizedIdentifier.ToLower());
-                }
             }
             else
             {
@@ -289,8 +285,8 @@ public class AuthService
         }
 
         // username check + valid password check
-        if (username.Length < 3 || username.Length > 30)
-            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Username must be between 3 and 30 characters."));
+        if (!IsValidUsername(username))
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Username must be between 3 and 30 characters and must not contain whitespace or '@'."));
 
         if (!IsPasswordValid(password))
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "Password does not meet complexity requirements. Use at least 8 characters including upper, lower, digit and special character."));
@@ -554,6 +550,15 @@ public class AuthService
         var hasSpecial = Regex.IsMatch(password, "[^a-zA-Z0-9]");
 
         return hasUpper && hasLower && hasDigit && hasSpecial;
+    }
+
+    private static bool IsValidUsername(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return false;
+        if (username.Length < 3 || username.Length > 30) return false;
+        if (username.Any(char.IsWhiteSpace)) return false;
+        if (username.Contains('@')) return false;
+        return true;
     }
 
     private static bool IsValidEmail(string email)

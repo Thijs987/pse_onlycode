@@ -502,6 +502,32 @@ public class AuthServiceTests
         Assert.Equal(shouldSucceed, result.IsSuccess);
     }
 
+    [Fact]
+    // Username may not contain an @ sign.
+    public async Task Register_ReturnsInvalidInput_WhenUsernameContainsAtSign()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = CreateAuthService(context);
+
+        var result = await service.Register("test@example.com", "user@example.com", "Password1!", "127.0.0.1");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(Application.Results.ServiceErrorCode.InvalidInput, result.Error!.Code);
+    }
+
+    [Fact]
+    // Username may not contain whitespace.
+    public async Task Register_ReturnsInvalidInput_WhenUsernameContainsWhitespace()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = CreateAuthService(context);
+
+        var result = await service.Register("test@example.com", "user name", "Password1!", "127.0.0.1");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(Application.Results.ServiceErrorCode.InvalidInput, result.Error!.Code);
+    }
+
     [Theory]
     // Password policy edge-cases
     [InlineData("password1!", false)] // no upper
