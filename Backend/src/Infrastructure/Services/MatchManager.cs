@@ -355,9 +355,7 @@ public class MatchManager
             // Refill deck
             Log.Warning("Deck empty for match {MatchId}, regenerating.", match.MatchId);
             GenerateDeck(match);
-            // Use a dedicated flag so it is not clobbered by the card-type message
-            // (e.g. when the card drawn after the refill is "imp").
-            responseData.DeckRefilled = true;
+            responseData.Message = "1";
         }
 
         // No top card, not possible
@@ -452,7 +450,7 @@ public class MatchManager
         return new List<string>();
     }
 
-    public DataInfo CheckCardLimit(string matchId, string playerId, bool deckRefilled)
+    public DataInfo CheckCardLimit(string matchId, string playerId, string newLimit)
     {
         // hands.TryGetValue(playerId, out var hand);
         // var count = hand.Count;
@@ -478,21 +476,15 @@ public class MatchManager
         {
             // remove from cycle
             match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
-            if (match.CurrentTurnPlayerId == playerId)
+            if (match.CurrentTurnPlayerId == playerId) 
             {
                 match.NTurns = 0;
-            }
-            // return the eliminated player's cards to the discard pile so they stay in
-            // circulation and are counted in future draw-pile refills (matches RemoveFromMatch).
-            foreach (var card in hand)
-            {
-                match.TableCards.Add(card);
             }
             // remove hand from dict
             match.PlayerHands.Remove(playerId);
             responseData.Message = "Removed";
         }
-        if (deckRefilled)
+        if (newLimit == "1")
         {
             match.CardLimit--;
         }
@@ -681,25 +673,6 @@ public class MatchManager
             return 0;
 
         return match.Deck.Count;
-    }
-
-    // Get the current hand-size limit for the match.
-    public int GetCardLimit(string matchId) {
-        if (!_activeMatches.TryGetValue(matchId, out var match))
-            return 0;
-
-        return match.CardLimit;
-    }
-
-    // Lowers the match-wide card limit by one. Used when the draw pile is exhausted and
-    // reshuffled on a draw that does not end the player's turn (e.g. drawing Improved Hardware),
-    // so the limit-decrement normally done in CheckCardLimit still happens.
-    public void LowerCardLimit(string matchId)
-    {
-        if (_activeMatches.TryGetValue(matchId, out var match))
-        {
-            match.CardLimit--;
-        }
     }
 
     // Removes a match from active tracking to prevent memory leaks when a game ends or is abandoned

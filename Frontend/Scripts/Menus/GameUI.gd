@@ -1,42 +1,11 @@
 extends Node2D
 
-var card_limit_label: Label
-
 func _ready() -> void:
 	controller.message_updated.connect(_on_message)
-	_setup_card_limit_label()
-
-func _setup_card_limit_label() -> void:
-	card_limit_label = Label.new()
-	card_limit_label.add_theme_font_size_override("font_size", 24)
-	card_limit_label.position = Vector2(20, 20)
-	card_limit_label.z_index = 1000
-	add_child(card_limit_label)
-
-	# MATCH_STARTED is received before this scene loads, so the signal has already
-	# fired by the time we connect. Read the initial card limit from the stored last
-	# message instead of waiting for a (missed) signal; default to 5 otherwise.
-	var limit := 5
-	if controller.Last_Message.get("action") == "MATCH_STARTED":
-		var sent = controller.Last_Message.get("data", {}).get("cardLimit")
-		if sent != null:
-			limit = int(sent)
-	_update_card_limit(limit)
-
-func _update_card_limit(value: int) -> void:
-	if card_limit_label != null:
-		card_limit_label.text = "Card limit: " + str(value)
 
 func _on_message(msg):
 	if not msg.has("action"):
 		return
-
-	# Both MATCH_STARTED and DECK_SIZE carry the current card limit. The limit starts
-	# at 5 and the backend drops it by 1 each time the draw pile is emptied.
-	if msg["action"] == "MATCH_STARTED" or msg["action"] == "DECK_SIZE":
-		var sent = msg.get("data", {}).get("cardLimit")
-		if sent != null:
-			_update_card_limit(int(sent))
 
 	if msg["action"] == "CARD_LIMIT":
 		var eliminated_player = msg["playerId"]

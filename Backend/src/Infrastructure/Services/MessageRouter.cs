@@ -109,11 +109,7 @@ public class MessageRouter
                         response = MakeMessage("ERROR", playerId, responseData);
                         await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                     } else {
-                        responseData = new DataInfo {
-                            NextPlayer = newState.CurrentTurnPlayerId,
-                            DeckSize = newState.Deck.Count,
-                            CardLimit = newState.CardLimit
-                        };
+                        responseData = new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
 
                         foreach (var player in players)
                         {
@@ -146,7 +142,7 @@ public class MessageRouter
 
                         response = MakeMessage(action, playerId, responseData);
                         if (responseData.CardId == "imp") {
-                            await Next_player(lobbyId, playerId, false, connectionManager, matchManager);
+                            await Next_player(lobbyId, playerId, "0", connectionManager, matchManager);
                         }
                         else if (responseData.IsPrivate == true)
                         {
@@ -175,24 +171,8 @@ public class MessageRouter
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
 
-                        // goto/vibe/inf/nocom draw a card from the deck for the target without
-                        // sending a CARD_DRAWN, so the clients' deck counter would not update.
-                        // Re-sync it here, and drop the card limit if the draw exhausted and
-                        // refilled the pile.
-                        if (specialCards.Contains(responseData.CardId))
-                        {
-                            if (responseData.DeckRefilled == true)
-                            {
-                                matchManager.LowerCardLimit(lobbyId);
-                            }
-                            await BroadcastDeckSize(lobbyId, playerId, connectionManager, matchManager);
-                        }
-
-                        // For endTurncards, check if bot. These cards end the player's turn from
-                        // within their own effect (rather than via DRAW_CARD), so the next player
-                        // must be driven here. "os" only advances the turn on its take/top resolve
-                        // phase; on the "view" phase NextPlayer is null and CheckBotTurn is a no-op.
-                        if (new List<string> { "cm", "ddos", "sql", "os" }.Contains(responseData.CardId))
+                        // For endTurncards, check if bot.
+                        if (new List<string> { "cm", "ddos", "sql" }.Contains(responseData.CardId))
                         {
                             await CheckBotTurn(lobbyId, connectionManager, matchManager, responseData);
                         }
@@ -223,7 +203,7 @@ public class MessageRouter
                     // Normal end to a turn. Grab card (check IH) and broadcast action to lobby.
                     responseData = matchManager.GetFirstCard(lobbyId, playerId);
                     var card = responseData.CardId;
-                    var deckRefilled = responseData.DeckRefilled == true;
+                    var newLimit = responseData.Message;
 
                     if (string.IsNullOrEmpty(card))
                     {
@@ -246,20 +226,13 @@ public class MessageRouter
                     response = MakeMessage("CARD_DRAWN", playerId, Data);
                     await connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response), playerId);
 
-                    // Check for Improved Hardware. Drawing it does not end the turn, but if this
-                    // draw also exhausted and refilled the pile we must still lower the card limit
-                    // and report the new deck size to all clients.
+                    // Check for Improved Hardware
                     if (card == "imp")
                     {
-                        if (deckRefilled)
-                        {
-                            matchManager.LowerCardLimit(lobbyId);
-                            await BroadcastDeckSize(lobbyId, playerId, connectionManager, matchManager);
-                        }
                         break;
                     }
                     // Switch to next player
-                    await Next_player(lobbyId, playerId, deckRefilled, connectionManager, matchManager);
+                    await Next_player(lobbyId, playerId, newLimit, connectionManager, matchManager);
                     break;
             }
         }
@@ -280,23 +253,10 @@ public class MessageRouter
         return message;
     }
 
-    // Broadcasts the current draw-pile size and card limit to every player in the lobby.
-    public async Task BroadcastDeckSize(string lobbyId, string playerId, ConnectionManager connectionManager, MatchManager matchManager)
-    {
-        var deckSize = matchManager.GetDeckSize(lobbyId);
-        var message = new DataInfo
-        {
-            Message = $"{deckSize}",
-            CardLimit = matchManager.GetCardLimit(lobbyId)
-        };
-        var deckSizeMessage = MakeMessage("DECK_SIZE", playerId, message);
-        await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(deckSizeMessage));
-    }
-
-    public async Task Next_player(string lobbyId, string playerId, bool deckRefilled, ConnectionManager connectionManager, MatchManager matchManager)
+    public async Task Next_player(string lobbyId, string playerId, string newLimit, ConnectionManager connectionManager, MatchManager matchManager)
     {
         // check player card limit and remove player if over the limit
-        var end = matchManager.CheckCardLimit(lobbyId, playerId, deckRefilled);
+        var end = matchManager.CheckCardLimit(lobbyId, playerId, newLimit);
 
         // next turn
         var responseData = matchManager.NextTurn(lobbyId, playerId);
@@ -308,8 +268,14 @@ public class MessageRouter
             await connectionManager.SendMessageAsync(playerId, SerializeMsg(errorMessage));
         }
 
-        if (deckRefilled) {
-            await BroadcastDeckSize(lobbyId, playerId, connectionManager, matchManager);
+        if(newLimit == "1") {
+            var deck_size = matchManager.GetDeckSize(lobbyId);
+            var message = new DataInfo {
+                Message = $"{deck_size}"
+                };
+            var limitMessage = MakeMessage("DECK_SIZE", playerId,message);
+            //broadcast remove player
+            await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(limitMessage));
         }
 
         if (end.Message == "Removed") {
