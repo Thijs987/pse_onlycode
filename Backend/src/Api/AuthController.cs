@@ -6,6 +6,7 @@ using Domain;
 using Application;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Application.Results;
@@ -205,6 +206,28 @@ public class UserController : ControllerBase
         Response.Cookies.Delete("access_token");
         Response.Cookies.Delete("csrf_token");
 
+        return Ok(new { success = true });
+    }
+
+    [Authorize]
+    [HttpDelete("me")]
+    public async Task<IActionResult> DeleteMe()
+    {
+        var sub = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        if (string.IsNullOrWhiteSpace(sub) || !Guid.TryParse(sub, out var userId))
+            return Unauthorized(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid user token."));
+
+        var res = await _auth.DeleteAccountAsync(userId, HttpContext.Connection.RemoteIpAddress?.ToString());
+        if (!res.IsSuccess) return BadRequest(res.Error);
+        return Ok(new { success = true });
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("users/{id:guid}")]
+    public async Task<IActionResult> DeleteUser(Guid id)
+    {
+        var res = await _auth.DeleteAccountAsync(id, HttpContext.Connection.RemoteIpAddress?.ToString());
+        if (!res.IsSuccess) return BadRequest(res.Error);
         return Ok(new { success = true });
     }
 

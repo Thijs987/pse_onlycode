@@ -734,6 +734,53 @@ public class AuthServiceTests
     }
 
     [Fact]
+    // Deleting an account should revoke refresh tokens, anonymize PII and prevent further login.
+    public async Task DeleteAccount_SoftDeletesUser_RevokeTokensAndPreventsLogin()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var pwd = "Password1!";
+        var userId = Guid.NewGuid();
+
+        var user = new Domain.AppUser
+        {
+            Id = userId,
+            Email = "delete-me@example.com",
+            Username = "deleteuser",
+            PasswordHash = Application.PasswordHasher.Hash(pwd),
+            IsEmailVerified = true
+        };
+        context.Users.Add(user);
+
+        context.RefreshTokens.Add(new Domain.RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = "active-token",
+            Created = DateTime.UtcNow,
+            Expires = DateTime.UtcNow.AddDays(30),
+            Revoked = null,
+            UserId = userId
+        });
+
+        await context.SaveChangesAsync();
+
+        var service = CreateAuthService(context);
+        var res = await service.DeleteAccountAsync(userId, "127.0.0.1");
+        Assert.True(res.IsSuccess);
+
+        var refreshed = await context.Users.FirstAsync(u => u.Id == userId);
+        Assert.True(refreshed.IsDeleted);
+        Assert.StartsWith("deleted+", refreshed.Email);
+        Assert.StartsWith("deleted_", refreshed.Username);
+
+        var tokens = await context.RefreshTokens.Where(rt => rt.UserId == userId).ToListAsync();
+        Assert.All(tokens, t => Assert.NotNull(t.Revoked));
+
+        var loginAttempt = await service.Login("deleteuser", pwd, "127.0.0.1");
+        Assert.False(loginAttempt.IsSuccess);
+        Assert.Equal(Application.Results.ServiceErrorCode.InvalidCredentials, loginAttempt.Error!.Code);
+    }
+
+    [Fact]
     // Stale rate-limit entries should be removed after the retention window.
     public async Task RateLimitCleanup_RemovesOldEntries()
     {

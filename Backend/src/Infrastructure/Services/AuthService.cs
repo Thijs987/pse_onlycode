@@ -211,6 +211,14 @@ public class AuthService
             return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
         }
 
+        // prevent login for soft-deleted accounts
+        if (user.IsDeleted)
+        {
+            await _auditService.LogAuthEventAsync("login_attempt", identifier, false, "Account deleted", ipAddress);
+            await _rateLimitService.RecordAttemptAsync(rateLimitKey);
+            return Result<UserDto>.Failure(new ServiceError(ServiceErrorCode.InvalidCredentials, "Invalid credentials."));
+        }
+
         // check if account is locked
         if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
         {
@@ -475,6 +483,59 @@ public class AuthService
 
         await _auditService.LogAuthEventAsync("password_reset", normalized, true, "Password reset completed", null);
 
+        return Result.Success();
+    }
+
+    // Soft-delete a user account: revoke tokens, anonymize PII, and mark as deleted.
+    public async Task<Result> DeleteAccountAsync(Guid userId, string? ipAddress = null)
+    {
+        var user = await _db.Users.Include(u => u.RefreshTokens).FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) return Result.Failure(new ServiceError(ServiceErrorCode.InvalidInput, "User not found."));
+
+        if (user.IsDeleted)
+        {
+            // idempotent
+            await _auditService.LogAuthEventAsync("delete_account", user.Email, true, "Already deleted", ipAddress);
+            return Result.Success();
+        }
+
+        // capture original identifying info for the audit
+        var originalEmail = user.Email;
+        var originalUsername = user.Username;
+
+        // Revoke active refresh tokens
+        var now = DateTime.UtcNow;
+        if (user.RefreshTokens != null)
+        {
+            foreach (var rt in user.RefreshTokens.Where(t => t.Revoked == null))
+            {
+                rt.Revoked = now;
+            }
+        }
+
+        // Anonymize PII and make the account unusable
+        user.Email = $"deleted+{user.Id}@deleted.local";
+        user.Username = $"deleted_{user.Id}";
+        user.PasswordHash = PasswordHasher.Hash(Guid.NewGuid().ToString());
+        user.IsEmailVerified = false;
+        user.VerificationToken = null;
+        user.VerificationTokenExpiry = null;
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpiry = null;
+        user.CurrentLobbyId = null;
+        user.IsDeleted = true;
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            await _auditService.LogAuthEventAsync("delete_account", originalEmail ?? originalUsername, false, $"DB error: {ex.Message}", ipAddress);
+            return Result.Failure(new ServiceError(ServiceErrorCode.InternalError, "Failed to delete user."));
+        }
+
+        await _auditService.LogAuthEventAsync("delete_account", originalEmail ?? originalUsername, true, "User soft-deleted", ipAddress);
         return Result.Success();
     }
 
