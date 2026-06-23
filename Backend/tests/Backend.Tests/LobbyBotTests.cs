@@ -14,7 +14,7 @@ public class LobbyBotTests
     {
         var connectionManager = new ConnectionManager();
         // Pass empty list of card effects since we just test lobby state
-        var matchManager = new MatchManager(new List<ICardEffect>());
+        var matchManager = new MatchManager(Array.Empty<ICardEffect>(), connectionManager);
         var botService = new BotService(matchManager, connectionManager);
 
         return (connectionManager, matchManager, botService);
@@ -37,8 +37,7 @@ public class LobbyBotTests
         Assert.True(matchManager.IsMatchActive(lobbyId));
 
         // Simulate Bot winning
-        botService.CleanUpLobby(lobbyId);
-        connectionManager.RemoveLobby(bot1, matchManager);
+        connectionManager.RemoveLobby(bot1);
 
         Assert.Throws<Exception>(() => connectionManager.GetPlayers(lobbyId));
         Assert.Empty(botService.GetBots(lobbyId));
@@ -64,8 +63,7 @@ public class LobbyBotTests
         Assert.Equal(2, botService.GetBots(lobbyId).Count);
 
         // Simulate Noah winning
-        botService.CleanUpLobby(lobbyId);
-        connectionManager.RemoveLobby(humanId, matchManager);
+        connectionManager.RemoveLobby(humanId);
 
         Assert.Throws<Exception>(() => connectionManager.GetPlayers(lobbyId));
         Assert.Empty(botService.GetBots(lobbyId));
@@ -90,8 +88,7 @@ public class LobbyBotTests
         Assert.Equal(3, botService.GetBots(lobbyId).Count);
 
         // Act - Simulate a Bot winning the game
-        botService.CleanUpLobby(lobbyId);
-        connectionManager.RemoveLobby(bot2, matchManager);
+        connectionManager.RemoveLobby(bot2);
 
         // Assert
         Assert.Throws<Exception>(() => connectionManager.GetPlayers(lobbyId));
@@ -114,8 +111,7 @@ public class LobbyBotTests
         matchManager.StartNewMatch(lobbyId, connectionManager.GetPlayers(lobbyId), new DataInfo());
 
         // Simulate host leaving the game unexpectedly resulting in lobby destruction
-        botService.CleanUpLobby(lobbyId);
-        connectionManager.RemoveLobby(hostId, matchManager);
+        connectionManager.RemoveLobby(hostId);
 
         Assert.Throws<Exception>(() => connectionManager.GetPlayers(lobbyId));
         Assert.Empty(botService.GetBots(lobbyId));

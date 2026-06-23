@@ -16,12 +16,13 @@ public class MatchManager
     private readonly ConcurrentDictionary<string, GameState> _activeMatches = new();
     private readonly Dictionary<string, ICardEffect> _cardRegistry = new();
 
-    public MatchManager(IEnumerable<ICardEffect> allCards)
+    public MatchManager(IEnumerable<ICardEffect> allCards, ConnectionManager connectionManager)
     {
         foreach (var card in allCards)
         {
             _cardRegistry[card.CardId] = card;
         }
+        connectionManager.OnLobbyDestroyed += EndMatch;
     }
 
     public GameState StartNewMatch(string matchId, List<string> players, DataInfo data)

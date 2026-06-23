@@ -25,6 +25,8 @@ public class ConnectionManager
     // Tracks the host of each lobby (LobbyId -> HostId)
     private readonly ConcurrentDictionary<string, string> _lobbyHosts = new();
 
+    public event Action<string>? OnLobbyDestroyed;
+
     public async Task HandleConnectionAsync(string playerId, string lobbyId, WebSocket socket, MessageRouter router, MatchManager matchManager, CancellationToken cancellationToken)
     {
         if (_sockets.TryGetValue(playerId, out var oldSocket))
@@ -149,8 +151,7 @@ public class ConnectionManager
             }
             else if (matchManager.GetActives(lobbyId).Count <= 0)
             {
-                RemoveLobby(playerId, matchManager);
-                router.botService.CleanUpLobby(lobbyId);
+                RemoveLobby(playerId);
             }
             responseData.Message = $"{playerId} disconnected.";
             _sockets.TryRemove(playerId, out _);
@@ -208,9 +209,7 @@ public class ConnectionManager
                 // If empty OR only contains bots (no active sockets), destroy the lobby
                 if (lobbyConnections.IsEmpty || !lobbyConnections.Keys.Any(k => _sockets.ContainsKey(k)))
                 {
-                    _lobbies.TryRemove(lobbyId, out _);
-                    _lobbyHosts.TryRemove(lobbyId, out _);
-                    Log.Information("Lobby {LobbyId} is empty (or only contains bots) and was destroyed.", lobbyId);
+                    DestroyLobby(lobbyId);
                 }
                 else
                 {
@@ -263,12 +262,16 @@ public class ConnectionManager
         }
     }
 
-    public void RemoveLobby(string connectionId, MatchManager matchManager)
+    public void RemoveLobby(string connectionId)
     {
-        if (!_connectionToLobby.TryRemove(connectionId, out string? lobbyId))
+        if (_connectionToLobby.TryGetValue(connectionId, out string? lobbyId) && !string.IsNullOrEmpty(lobbyId))
         {
-            return;
+            DestroyLobby(lobbyId);
         }
+    }
+
+    public void DestroyLobby(string lobbyId)
+    {
         if (string.IsNullOrEmpty(lobbyId))
         {
             return;
@@ -280,8 +283,7 @@ public class ConnectionManager
                 _connectionToLobby.TryRemove(player, out _);
             }
             _lobbyHosts.TryRemove(lobbyId, out _);
-            _lobbies.TryRemove(lobbyId, out _);
-            
+
             foreach (var kvp in _abandonedLobbies)
             {
                 lock (kvp.Value)
@@ -294,7 +296,7 @@ public class ConnectionManager
                 }
             }
             Log.Information("Lobby {LobbyId} is empty and was destroyed.", lobbyId);
-            matchManager.EndMatch(lobbyId);
+            OnLobbyDestroyed?.Invoke(lobbyId);
         }
     }
 
@@ -373,7 +375,7 @@ public class ConnectionManager
         _abandonedLobbies.TryGetValue(playerId, out var abandoned);
 
         return _lobbies
-            .Where(lobby => lobby.Value.ContainsKey(playerId) 
+            .Where(lobby => lobby.Value.ContainsKey(playerId)
                             && matchManager.IsMatchActive(lobby.Key)
                             && (abandoned == null || !abandoned.Contains(lobby.Key)))
             .Select(lobby => new

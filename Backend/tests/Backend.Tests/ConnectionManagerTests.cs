@@ -14,7 +14,7 @@ public class ConnectionManagerTests
     {
         // Arrange
         var connectionManager = new ConnectionManager();
-        var matchManager = new MatchManager(new List<ICardEffect>());
+        var matchManager = new MatchManager(Array.Empty<ICardEffect>(), connectionManager);
 
         string hostId = "gobtest";
         string player2 = "gobtest2";
@@ -30,7 +30,7 @@ public class ConnectionManagerTests
         Assert.Contains(player2, players);
         Assert.True(connectionManager.IsHost(lobbyId, hostId));
 
-        connectionManager.RemoveLobby(hostId, matchManager);
+        connectionManager.RemoveLobby(hostId);
 
         // After removal, GetPlayers should throw because the lobby doesn't exist anymore
         Assert.Throws<Exception>(() => connectionManager.GetPlayers(lobbyId));
