@@ -199,11 +199,34 @@ public class ConnectionManager
             if (_lobbies.TryGetValue(lobbyId, out var lobbyConnections))
             {
                 lobbyConnections.TryRemove(connectionId, out _);
-                if (lobbyConnections.IsEmpty)
+                // If empty OR only contains bots (no active sockets), destroy the lobby
+                if (lobbyConnections.IsEmpty || !lobbyConnections.Keys.Any(k => _sockets.ContainsKey(k)))
                 {
                     _lobbies.TryRemove(lobbyId, out _);
                     _lobbyHosts.TryRemove(lobbyId, out _);
-                    Log.Information("Lobby {LobbyId} is empty and was destroyed.", lobbyId);
+                    Log.Information("Lobby {LobbyId} is empty (or only contains bots) and was destroyed.", lobbyId);
+                }
+                else
+                {
+                    // If the leaving player was the host, transfer host to the next active socket (human player)
+                    if (IsHost(lobbyId, connectionId))
+                    {
+                        var nextHost = lobbyConnections.Keys.FirstOrDefault(k => _sockets.ContainsKey(k));
+                        if (nextHost != null)
+                        {
+                            _lobbyHosts[lobbyId] = nextHost;
+                            Log.Information("Host left. Lobby {LobbyId} host transferred to {NewHost}", lobbyId, nextHost);
+                            
+                            // Broadcast host transfer
+                            var transferMsg = new NetworkMessage
+                            {
+                                Action = "HOST_TRANSFERRED",
+                                PlayerId = nextHost,
+                                Data = new DataInfo { Message = "You are now the host of the lobby!" }
+                            };
+                            _ = BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(transferMsg));
+                        }
+                    }
                 }
             }
         }
@@ -289,7 +312,10 @@ public class ConnectionManager
 
         _lobbies.TryAdd(newLobbyId, new ConcurrentDictionary<string, bool>());
         if (!string.IsNullOrEmpty(hostId))
+        {
+            _lobbyHosts.TryAdd(newLobbyId, hostId);
             Log.Information("Lobby {LobbyId} created by {HostId} via HTTP.", newLobbyId, hostId);
+        }
 
         return newLobbyId;
     }
@@ -304,6 +330,11 @@ public class ConnectionManager
             }
         }
         return false;
+    }
+
+    public bool IsHost(string lobbyId, string playerId)
+    {
+        return _lobbyHosts.TryGetValue(lobbyId, out var host) && host == playerId;
     }
 
     public IEnumerable<object> GetActiveLobbies(MatchManager matchManager)

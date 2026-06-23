@@ -101,15 +101,15 @@ public class GoToCard : ICardEffect
         match.PlayerHands[target].Add(card);
 
         responseData.Target = target;
-        responseData.CardId = card;
 
         // Standard Cleanup
         if (match.PlayerHands.ContainsKey(playerId))
         {
             foreach(var cards in sendCards) {
-                responseData.Cards.Add(cards);
                 match.PlayerHands[playerId].Remove(cards);
+                responseData.Cards.Add(cards);
             }
+            responseData.Cards.Add(card);
         }
         return responseData;
     }

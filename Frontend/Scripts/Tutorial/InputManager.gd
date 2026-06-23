@@ -1,0 +1,42 @@
+extends Node2D
+
+@onready var card_logic_reference = $"../CardLogic"
+@onready var pile_reference = $"../Pile"
+@onready var leader = $"../Leader"
+
+signal left_mouse_pressed
+signal left_mouse_release
+
+const COLLISION_MASK_CARD = 1
+const COLLISION_MASK_PILE = 2
+
+
+# checks for specific input from player and sends signals
+func _input(event):
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.is_pressed():
+			var mask_id = check_at_cursor(true)
+			emit_signal("left_mouse_pressed")
+		else:
+			var mask_id = check_at_cursor(false)
+			emit_signal("left_mouse_release")
+
+# Sends a raycast under the cursor and gives all objects under the cursor.
+# Depending on what the collision mask is, functions will be called
+func check_at_cursor(is_pressed):
+	var space_state = get_world_2d().direct_space_state
+	var parameters = PhysicsPointQueryParameters2D.new()
+	parameters.position = get_global_mouse_position()
+	parameters.collide_with_areas = true
+	var result = space_state.intersect_point(parameters)
+	var result_size = result.size()
+	if result.size() > 0:
+		var result_collision_mask = result[0].collider.collision_mask
+		if result_collision_mask == COLLISION_MASK_CARD and leader.can_play:
+			var card_found = result[0].collider.get_parent()
+			if card_found and "movable" in card_found:
+				if card_found.movable == true and card_found.is_others == false:
+					card_logic_reference.start_dragging(card_found)
+		elif result_collision_mask == COLLISION_MASK_PILE and leader.can_draw:
+			if is_pressed:
+				pile_reference.draw_card()

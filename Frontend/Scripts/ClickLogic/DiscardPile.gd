@@ -14,6 +14,8 @@ func _on_card_played(player_id, card_id):
 	var card = card_scene.instantiate()
 
 	add_child(card)
+	
+	print("Discardpile _on" + card_id)
 
 	card.set_card(card_id)
 	card.movable = false

@@ -73,7 +73,8 @@ public class MessageRouter
 
                 case "KICK_PLAYER":
                     var target = message.Data?.Target;
-                    if (!string.IsNullOrEmpty(target))
+                    // Prevent kicking yourself and ensure you are the host
+                    if (!string.IsNullOrEmpty(target) && target != playerId && connectionManager.IsHost(lobbyId, playerId))
                     {
                         if (botService.IsBot(target, lobbyId))
                         {
@@ -81,9 +82,23 @@ public class MessageRouter
                         }
                         await connectionManager.KickPlayerAsync(target, lobbyId, matchManager);
                     }
+                    else if (target == playerId)
+                    {
+                        Log.Warning("{PlayerId} tried to kick themselves from {LobbyId}", playerId, lobbyId);
+                    }
+                    else if (!connectionManager.IsHost(lobbyId, playerId))
+                    {
+                        Log.Warning("{PlayerId} tried to kick {Target} from {LobbyId} but is not the host", playerId, target, lobbyId);
+                    }
                     break;
 
                 case "START_MATCH":
+                    if (!connectionManager.IsHost(lobbyId, playerId))
+                    {
+                        Log.Warning("{PlayerId} tried to start match in {LobbyId} but is not the host", playerId, lobbyId);
+                        break;
+                    }
+                    
                     // matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
                     // Changed matchId to lobbyId
                     var players = connectionManager.GetPlayers(lobbyId);
@@ -133,11 +148,12 @@ public class MessageRouter
                         {
                             await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         }
-                        
+
                         if (specialCards.Contains(responseData.CardId)) {
                             var dataBroad = new DataInfo {
+                                CardId = responseData.CardId,
                                 Target = responseData.Target,
-                                Cards = responseData.Cards
+                                Cards = [responseData.Cards[0], responseData.Cards[1]]
                             };
                             var broadMessage = MakeMessage(action,playerId, dataBroad);
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
@@ -151,8 +167,7 @@ public class MessageRouter
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
                             await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
                         }
-                        else if (responseData.IsPrivate == false) {
-                            
+                         else if (responseData.IsPrivate == false) {
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
 
@@ -179,7 +194,7 @@ public class MessageRouter
                     // Check for Improved Hardware
                     if (matchManager.GetPlayerHand(lobbyId, playerId).Contains("imp"))
                     {
-                        responseData = new DataInfo { Error = "Hand cotnains imp, cannot draw!"};
+                        responseData = new DataInfo { Error = "Hand contains imp, cannot draw!"};
                         response = MakeMessage("ERROR", playerId, responseData);
                         await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         break;
