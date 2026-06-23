@@ -10,13 +10,6 @@ var turns = null
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	# MATCH_STARTED is received in the lobby scene before this scene loads, so the
-	# signal has already fired by the time we connect below. Read the initial deck
-	# size from the stored last message instead of waiting for a (missed) signal.
-	if controller.Last_Message.get("action") == "MATCH_STARTED":
-		var new_size = controller.Last_Message.get("data", {}).get("deckSize")
-		if new_size != null:
-			card_count = int(new_size)
 	update_card_text()
 	hand_reference.next_turn.connect(_newturn)
 	controller.message_updated.connect(_on_message)
