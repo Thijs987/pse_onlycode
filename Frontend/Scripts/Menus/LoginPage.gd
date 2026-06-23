@@ -19,7 +19,8 @@ const MOCK_FILE_PATH = "user://mock_database.json"
 @onready var register_status: Label = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegisterStatusLabel
 
 # UI REFERENCES - RIGHT (LOGIN)
-@onready var login_email_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginEmailInput
+
+@onready var login_identifier_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginIdentifierInput
 @onready var login_password_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginPasswordInput
 @onready var login_button: Button = $HBoxContainer/RightLoginPanel/LoginVBox/LoginButton
 @onready var login_status: Label = $HBoxContainer/RightLoginPanel/LoginVBox/LoginStatusLabel
@@ -44,7 +45,7 @@ func _ready() -> void:
 func _on_login_button_pressed() -> void:
 	if is_submitting: return
 	
-	var identifier = login_email_input.text.strip_edges()
+	var identifier = login_identifier_input.text.strip_edges()
 	var password = login_password_input.text
 	
 	if identifier == "" or password == "":
