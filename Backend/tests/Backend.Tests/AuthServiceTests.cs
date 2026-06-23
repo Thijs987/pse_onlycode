@@ -661,6 +661,32 @@ public class AuthServiceTests
     }
 
     [Fact]
+    // Login should also succeed with email instead of username.
+    public async Task Login_Succeeds_WithEmailIdentifier()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var password = "Password1!";
+        var passwordHash = Application.PasswordHasher.Hash(password);
+
+        context.Users.Add(new Domain.AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "test@example.com",
+            Username = "testuser",
+            PasswordHash = passwordHash,
+            IsEmailVerified = true
+        });
+        await context.SaveChangesAsync();
+
+        var service = CreateAuthService(context);
+        var result = await service.Login("test@example.com", password, "127.0.0.1");
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal("testuser", result.Value.Username);
+    }
+
+    [Fact]
     // Login should fail when required credentials are missing.
     public async Task Login_ReturnsInvalidInput_WhenMissingRequiredFields()
     {
