@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Application.Services;
 using Application;
 using Infrastructure.Persistence;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -684,6 +685,83 @@ public class AuthServiceTests
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal("testuser", result.Value.Username);
+    }
+
+    [Fact]
+    // Expired and revoked refresh tokens should be removed after the retention period.
+    public async Task RefreshTokenCleanup_RemovesStaleTokensOnly()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = DateTime.UtcNow;
+
+        context.RefreshTokens.Add(new Domain.RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = "expired-hash",
+            Created = now.AddDays(-90),
+            Expires = now.AddDays(-60),
+            Revoked = null,
+            UserId = Guid.NewGuid()
+        });
+
+        context.RefreshTokens.Add(new Domain.RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = "revoked-hash",
+            Created = now.AddDays(-50),
+            Expires = now.AddDays(-20),
+            Revoked = now.AddDays(-40),
+            UserId = Guid.NewGuid()
+        });
+
+        context.RefreshTokens.Add(new Domain.RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = "active-hash",
+            Created = now.AddDays(-1),
+            Expires = now.AddDays(29),
+            Revoked = null,
+            UserId = Guid.NewGuid()
+        });
+
+        await context.SaveChangesAsync();
+
+        var removed = await StaleDataCleanupService.CleanupExpiredRefreshTokensAsync(context, 30);
+
+        Assert.Equal(2, removed);
+        Assert.Single(await context.RefreshTokens.ToListAsync());
+        Assert.Equal("active-hash", (await context.RefreshTokens.SingleAsync()).TokenHash);
+    }
+
+    [Fact]
+    // Stale rate-limit entries should be removed after the retention window.
+    public async Task RateLimitCleanup_RemovesOldEntries()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = DateTime.UtcNow;
+
+        context.RateLimitEntries.Add(new Domain.RateLimitEntry
+        {
+            Id = Guid.NewGuid(),
+            Key = "login:testuser",
+            AttemptedAt = now.AddHours(-48)
+        });
+
+        context.RateLimitEntries.Add(new Domain.RateLimitEntry
+        {
+            Id = Guid.NewGuid(),
+            Key = "login:testuser",
+            AttemptedAt = now.AddHours(-23)
+        });
+
+        await context.SaveChangesAsync();
+
+        var removed = await StaleDataCleanupService.CleanupExpiredRateLimitEntriesAsync(context, 24);
+
+        Assert.Equal(1, removed);
+        var remaining = await context.RateLimitEntries.ToListAsync();
+        Assert.Single(remaining);
+        Assert.Equal(now.AddHours(-23).ToString("o"), remaining[0].AttemptedAt.ToString("o"));
     }
 
     [Fact]

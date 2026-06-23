@@ -114,6 +114,10 @@ else
 // Audit and rate limit services: use persistent database-backed implementations in production
 builder.Services.AddScoped<IAuditService, DbAuditService>();
 builder.Services.AddScoped<IRateLimitService, DbRateLimitService>();
+
+// Clean up old refresh tokens after they have expired or been revoked for a retention window.
+builder.Services.AddHostedService<StaleDataCleanupService>();
+
 var cardTypes = typeof(ICardEffect).Assembly.GetTypes()
     .Where(t => t.IsClass && !t.IsAbstract && typeof(ICardEffect).IsAssignableFrom(t));
 
