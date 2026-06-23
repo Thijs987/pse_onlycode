@@ -222,15 +222,6 @@ public class UserController : ControllerBase
         return Ok(new { success = true });
     }
 
-    [Authorize(Roles = "Admin")]
-    [HttpDelete("users/{id:guid}")]
-    public async Task<IActionResult> DeleteUser(Guid id)
-    {
-        var res = await _auth.DeleteAccountAsync(id, HttpContext.Connection.RemoteIpAddress?.ToString());
-        if (!res.IsSuccess) return BadRequest(res.Error);
-        return Ok(new { success = true });
-    }
-
     private static string GenerateCsrfToken()
     {
         // Generate a random CSRF token (32 bytes, base64url encoded)
