@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bwt1f1f61krv"]
 
 [ext_resource type="Script" uid="uid://x45d2qtogg0g" path="res://Scripts/Menus/LoginPage.gd" id="1_v0vm3"]
+[ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Background/BackgroundPattern.png" id="2_lelg6"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_sq1ca"]
 font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
@@ -13,6 +14,15 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_v0vm3")
+
+[node name="Background" type="TextureRect" parent="." unique_id=2108861819]
+layout_mode = 0
+offset_left = -222.0
+offset_top = -257.0
+offset_right = 1410.0
+offset_bottom = 901.0
+texture = ExtResource("2_lelg6")
+stretch_mode = 1
 
 [node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1737097880]
 

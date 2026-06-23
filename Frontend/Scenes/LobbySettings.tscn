@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://by3u2iwo87g6x"]
 
 [ext_resource type="Script" uid="uid://clxuxqte1tawe" path="res://Scripts/Menus/LobbySettings.gd" id="1_x3fgx"]
+[ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Background/BackgroundPattern.png" id="2_r85ns"]
 
 [node name="LobbySettings" type="Control" unique_id=1787609362]
 layout_mode = 3
@@ -10,6 +11,15 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_x3fgx")
+
+[node name="Background" type="TextureRect" parent="." unique_id=1557005544]
+layout_mode = 0
+offset_left = -222.0
+offset_top = -257.0
+offset_right = 1410.0
+offset_bottom = 901.0
+texture = ExtResource("2_r85ns")
+stretch_mode = 1
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1136707739]
 layout_mode = 0

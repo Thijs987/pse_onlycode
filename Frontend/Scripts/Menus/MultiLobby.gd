@@ -11,6 +11,7 @@ extends Control
 @onready var leave_lobby_button: Button = $MultiLobbyContainer/InLobbyView/HBoxContainer6/LeaveLobby
 @onready var main_menu_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
 @onready var tutorial_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer5/TutorialButton
+@onready var background: TextureRect = $Background
 
 @export var game_scene: StringName = &""
 @export var create_lobby_button: Button
@@ -26,12 +27,14 @@ var match_started = false
 var lobby_id
 var in_lobby_state = false
 var created_lobby = false
+var bg_start_pos
 
 # Called when the node enters the scene tree for the first time.
 var list_container: VBoxContainer
 var add_bot_btn: Button
 
 func _ready() -> void:
+	bg_start_pos = background.position
 	list_container = VBoxContainer.new()
 	list_container.position = Vector2(842, 200)
 	in_lobby_view.add_child(list_container)
@@ -67,6 +70,16 @@ func _ready() -> void:
 
 var rejoin_panel: PanelContainer
 var rejoin_lobby_id: String = ""
+
+func _process(_delta: float) -> void:
+	_move_background()
+		
+func _move_background() -> void:
+	background.position.x -= 0.25
+	background.position.y -= 0.5
+	
+	if background.position.x <= bg_start_pos.x - 80:
+		background.position = bg_start_pos
 
 func _setup_rejoin_dialog() -> void:
 	rejoin_panel = PanelContainer.new()

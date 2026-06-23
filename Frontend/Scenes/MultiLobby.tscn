@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bhv02iytie5b3" path="res://Scripts/Menus/MultiLobby.gd" id="1_tj0e8"]
 [ext_resource type="PackedScene" uid="uid://by3u2iwo87g6x" path="res://Scenes/LobbySettings.tscn" id="2_jlkr6"]
+[ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Background/BackgroundPattern.png" id="3_e2wr0"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_q72hu"]
 font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
@@ -22,14 +23,14 @@ card_setting_button = NodePath("MultiLobbyContainer/BrowserView/VBoxContainer/HB
 multi_lobby_container = NodePath("MultiLobbyContainer")
 lobby_settings = NodePath("LobbySettings")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=107720524]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.9217038, 0.9217038, 0.9217038, 1)
+[node name="Background" type="TextureRect" parent="." unique_id=2019671093]
+layout_mode = 0
+offset_left = -222.0
+offset_top = -257.0
+offset_right = 1410.0
+offset_bottom = 901.0
+texture = ExtResource("3_e2wr0")
+stretch_mode = 1
 
 [node name="MultiLobbyContainer" type="Control" parent="." unique_id=1790962249]
 layout_mode = 1
