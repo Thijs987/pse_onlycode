@@ -38,6 +38,10 @@ func _ready() -> void:
 	
 	login_password_input.secret = true;
 	
+	# Disable BBCode on status labels to prevent injection
+	register_status.bbcode_enabled = false
+	login_status.bbcode_enabled = false
+	
 	register_status.text = ""
 	login_status.text = ""
 

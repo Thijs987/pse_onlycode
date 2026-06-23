@@ -73,6 +73,7 @@ func _update_player_list():
 	for p_id in controller.All_Player_Ids:
 		if not player_labels.has(p_id):
 			var new_label = Label.new()
+			new_label.bbcode_enabled = false  # Disable BBCode to prevent injection
 			new_label.text = "🟢 " + str(p_id)
 			new_label.add_theme_font_size_override("font_size", 24)
 
