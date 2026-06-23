@@ -19,6 +19,12 @@ public static class LobbyEndpoints
             return Results.Ok(rejoinLobbies);
         });
 
+        group.MapPost("/abandon", (ConnectionManager manager, string playerId, string lobbyId) =>
+        {
+            manager.AbandonLobby(playerId, lobbyId);
+            return Results.Ok();
+        });
+
         // POST /api/lobbies/create?hostId=Player_x
         group.MapPost("/create", (HttpContext context, string? hostId, ConnectionManager manager) =>
         {

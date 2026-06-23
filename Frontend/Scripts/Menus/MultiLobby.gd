@@ -127,6 +127,8 @@ func _on_rejoin_confirmed() -> void:
 		controller.Join_Lobby(rejoin_lobby_id, controller.PId)
 
 func _on_rejoin_cancelled() -> void:
+	if rejoin_lobby_id != "":
+		controller.Abandon_Lobby(rejoin_lobby_id, controller.PId)
 	rejoin_panel.visible = false
 	rejoin_lobby_id = ""
 

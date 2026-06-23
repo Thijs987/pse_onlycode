@@ -45,6 +45,10 @@ func Get_Rejoin_Lobbies(Player_Id: String):
 	PId = Player_Id
 	gschttp.Get_Rejoin_Lobbies(PId)
 
+func Abandon_Lobby(Lobby_Id: String, Player_Id: String):
+	PId = Player_Id
+	gschttp.Abandon_Lobby(Lobby_Id, PId)
+
 func Update_Rejoin_Lobbies(lobbies: Array):
 	rejoin_lobbies_updated.emit(lobbies)
 

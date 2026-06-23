@@ -17,6 +17,7 @@ public class ConnectionManager
 
     // Tracks which connections are in which lobby (LobbyId -> Dictionary of ConnectionIds)
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, bool>> _lobbies = new();
+    private readonly ConcurrentDictionary<string, HashSet<string>> _abandonedLobbies = new();
 
     // Tracks which lobby a connection is currently in (ConnectionId -> LobbyId) for cleanup
     private readonly ConcurrentDictionary<string, string> _connectionToLobby = new();
@@ -280,6 +281,18 @@ public class ConnectionManager
             }
             _lobbyHosts.TryRemove(lobbyId, out _);
             _lobbies.TryRemove(lobbyId, out _);
+            
+            foreach (var kvp in _abandonedLobbies)
+            {
+                lock (kvp.Value)
+                {
+                    kvp.Value.Remove(lobbyId);
+                }
+                if (kvp.Value.Count == 0)
+                {
+                    _abandonedLobbies.TryRemove(kvp.Key, out _);
+                }
+            }
             Log.Information("Lobby {LobbyId} is empty and was destroyed.", lobbyId);
             matchManager.EndMatch(lobbyId);
         }
@@ -357,13 +370,26 @@ public class ConnectionManager
     }
     public IEnumerable<object> RejoinLobbies(string playerId, MatchManager matchManager)
     {
+        _abandonedLobbies.TryGetValue(playerId, out var abandoned);
+
         return _lobbies
-            .Where(lobby => lobby.Value.ContainsKey(playerId) && matchManager.IsMatchActive(lobby.Key))
+            .Where(lobby => lobby.Value.ContainsKey(playerId) 
+                            && matchManager.IsMatchActive(lobby.Key)
+                            && (abandoned == null || !abandoned.Contains(lobby.Key)))
             .Select(lobby => new
             {
                 LobbyId = lobby.Key,
                 PlayerCount = lobby.Value.Count,
                 Capacity = MaxPlayersPerLobby
             });
+    }
+
+    public void AbandonLobby(string playerId, string lobbyId)
+    {
+        var set = _abandonedLobbies.GetOrAdd(playerId, _ => new HashSet<string>());
+        lock (set)
+        {
+            set.Add(lobbyId);
+        }
     }
 }

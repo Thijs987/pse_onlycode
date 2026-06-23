@@ -56,6 +56,24 @@ func Get_Rejoin_Lobbies(PId: String):
 	else:
 		print("Get_Rejoin_Lobbies request started successfully!")
 
+func Abandon_Lobby(LobbyId: String, PId: String):
+	print("Abandoning lobby ", LobbyId)
+	var request = HTTPRequest.new()
+	add_child(request)
+	
+	request.set_tls_options(TLSOptions.client_unsafe())
+	request.request_completed.connect(func(_res, _code, _headers, _body): request.queue_free())
+	
+	var headers = auth_manager.get_auth_headers()
+	var err = request.request(
+		"%s/api/lobbies/abandon?playerId=%s&lobbyId=%s" % [BASE_URL, PId, LobbyId],
+		headers,
+		HTTPClient.METHOD_POST,
+		""
+	)
+	if err != OK:
+		print("HTTPRequest failed to start in Abandon_Lobby: ", err)
+
 func _On_Rejoin_Lobbies_Received(result, response_code, headers, body):
 	print("_On_Rejoin_Lobbies_Received called. Result: ", result, ", Response Code: ", response_code)
 	if response_code != 200:
