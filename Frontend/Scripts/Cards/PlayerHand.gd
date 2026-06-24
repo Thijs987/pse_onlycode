@@ -21,6 +21,8 @@ var player_amount = 0
 var center_screen_y
 var center_screen_x
 
+var turn
+
 signal next_turn(player)
 
 
@@ -62,24 +64,19 @@ func _on_message(msg):
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
 				next_turn.emit(player)
+				turn = player
 				if turn_label != null:
 					turn_label.text = str(player)
-
-				if player == controller.PId:
-					turn_timer.start()
-				else:
-					turn_timer.stop()
+				turn_timer.start()
 
 		if msg["action"] == "CARD_PLAYED":
 			var next_player = msg.get("data", {}).get("nextPlayer")
 			if next_player != "" and next_player != null:
 				next_turn.emit(next_player)
+				turn = next_player
 				if turn_label != null:
 					turn_label.text = str(next_player)
-				if next_player == controller.PId:
-					turn_timer.start()
-				else:
-					turn_timer.stop()
+				turn_timer.start()
 
 			var blanco = ["nocom", "goto", "inf", "vibe"]
 			# For goto/blanco cards[0-1] are played cards[2] is the given card
@@ -169,7 +166,8 @@ func _on_message(msg):
 
 
 func _on_timeout():
-	controller.Draw_Card(controller.PId)
+	if turn == controller.PId:
+		controller.Draw_Card(controller.PId)
 
 func add_new_card(card_id, player_number):
 	var card_scene = preload(CARD_SCENE_PATH)
