@@ -93,3 +93,10 @@ script = ExtResource("9_hxa32")
 [node name="TutorialLabel" type="Label" parent="Leader" unique_id=298529425]
 offset_right = 40.0
 offset_bottom = 23.0
+
+[node name="ExitButton" type="Button" parent="Leader" unique_id=1980228947]
+offset_left = 951.0
+offset_top = 29.0
+offset_right = 1110.0
+offset_bottom = 81.0
+text = "Exit"

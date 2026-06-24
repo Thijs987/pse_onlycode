@@ -7,6 +7,7 @@ extends Node2D
 @onready var hand_reference = $"../PlayerHand"
 @onready var card_logic = $"../CardLogic"
 @onready var pile_reference = $"../Pile"
+@onready var exit_button = $"ExitButton"
 
 var player_list
 var turns
@@ -25,6 +26,7 @@ func _ready() -> void:
 	card_logic.card_played.connect(_on_card_played)
 	card_logic.card_hovered.connect(_on_card_hovered)
 	pile_reference.card_drawn.connect(_on_card_drawn)
+	exit_button.pressed.connect(_on_exit_button)
 	if turn_label != null:
 		turn_label.text = str(player_list[0])
 	if tutorial_label != null:
@@ -62,6 +64,9 @@ func _input(event):
 
 func do_play_card(card):
 	card_logic.play_card(card)
+
+func _on_exit_button():
+	SceneLoader.load_scene("uid://ctined7qq8dh2") #StartMenu.tscn uid
 
 func run_tutorial():
 	tutorial_label.text = "Welcome to the tutorial"
