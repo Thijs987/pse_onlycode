@@ -3,6 +3,9 @@ extends Node2D
 @onready var discard_pile = $"../DiscardPile"
 @onready var hand_reference = $"../PlayerHand"
 @onready var pile_node = $"../Pile"
+@onready var instruction_label = $"../InstructionLabel"
+
+
 const ATTACK_SCENE = preload("res://Scenes/Attack.tscn")
 const OS_MENU_SCENE = preload("res://Scenes/OSMenu.tscn")
 
@@ -41,6 +44,7 @@ func _newturn(player):
 	if player != null:
 		turns = player
 		update_hand_playability()
+		update_instruction_text()
 
 func play_card(card):
 	if controller.interaction_disabled:
@@ -85,6 +89,7 @@ func play_card(card):
 					first_combo_card.position.y -= 30
 					first_combo_card.position.x -= 200
 					first_combo_card.movable = false
+					update_instruction_text()
 
 					return true
 				else:
@@ -134,6 +139,7 @@ func play_card(card):
 
 			print("Choose a card to give to player")
 			trojan_selecting_gift = true
+			update_instruction_text()
 
 			return true
 
@@ -149,6 +155,7 @@ func play_card(card):
 			else: # Choose another card
 				print("Chose card to play without effect")
 				imp_hardware_active = true
+				update_instruction_text()
 
 			return true
 
@@ -190,8 +197,31 @@ func play_card(card):
 
 		controller.Play_Card(controller.PId, data)
 		update_hand_playability()
+		update_instruction_text()
 		return true
 	return false
+
+
+func update_instruction_text() -> void:
+	if instruction_label == null:
+		return
+		
+	# Als het niet jouw beurt is, toon je niks
+	var my_turn = (controller.PId == turns) and not controller.interaction_disabled
+	if not my_turn:
+		instruction_label.display_message("")
+		return
+		
+	# Check de actieve fases en toon de pop-up instructie tekst via de nieuwe functie
+	if trojan_selecting_gift:
+		instruction_label.display_message("TROJAN HORSE: Choose a card from your hand to give away!")
+	elif imp_hardware_active:
+		instruction_label.display_message("IMPROVED HARDWARE: Choose a card to play without effect!")
+	elif first_combo_card != null:
+		instruction_label.display_message("COMBO: Play a matching blank card or a GOTO card to finish your combo!")
+	else:
+		# Standaard beurt, geen speciale instructie nodig -> verbergen
+		instruction_label.display_message("")
 
 # De opgeschoonde versie voor onderaan cardlogic.gd
 
@@ -308,6 +338,7 @@ func start_dragging(card):
 		# Delete card from your hand
 		hand_reference.remove_card_from_hand(card, 0)
 		card.queue_free()
+		update_instruction_text()
 		var target_id = await sql_attack() 
 		
 		var data = {cardId = "trojan",
@@ -316,10 +347,12 @@ func start_dragging(card):
 		
 		#var played_cards = ["trojan", gift_card_id]
 		controller.Play_Card(controller.PId, data)
+		update_instruction_text()
 		return
 		
 	if imp_hardware_active:
 		imp_hardware_active = false
+		update_instruction_text()
 		
 		var sacrifice_card_id = card.own_card_id
 		print("Chosen card: ", sacrifice_card_id)

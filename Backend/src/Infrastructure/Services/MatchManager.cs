@@ -78,16 +78,16 @@ public class MatchManager
             {"ddos", 0},
             {"err", 0},
             {"garb", 0},
-            {"goto", 0},
-            {"imp", 0},
+            {"goto", 10},
+            {"imp", 10},
             {"inf", 0},
             {"merge", 0},
             {"miracle", 0},
             {"nocom", 0},
             {"sql", 0},
-            {"trojan", 0},
+            {"trojan", 10},
             {"vibe", 0},
-            {"os", 30},
+            {"os", 0},
             {"test", 0}
         };
 

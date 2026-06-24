@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://Scripts/GodotToServer/Controller.gd" id="10_8r6kd"]
 [ext_resource type="Script" uid="uid://ltey2a6xnpbk" path="res://Scripts/Menus/GameUI.gd" id="11_gameui"]
 [ext_resource type="Script" uid="uid://h003qqnoqrym" path="res://Scenes/turn_timer.gd" id="12_3so38"]
+[ext_resource type="PackedScene" uid="uid://dmjddxec02b16" path="res://Scenes/InstructionLabel.tscn" id="13_3cx6b"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
@@ -104,3 +105,5 @@ autoplay = true
 wait_time = 30.0
 ignore_time_scale = true
 script = ExtResource("12_3so38")
+
+[node name="InstructionLabel" parent="." unique_id=439611559 instance=ExtResource("13_3cx6b")]
