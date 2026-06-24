@@ -11,6 +11,7 @@ extends Node2D
 @onready var card_logic = $"../CardLogic"
 @onready var pile_reference = $"../Pile"
 @onready var discard_reference = $"../DiscardPile"
+@onready var bg_params: ColorRect = $"../Background/CanvasLayer/ColorRect"
 
 var player_list
 var turns

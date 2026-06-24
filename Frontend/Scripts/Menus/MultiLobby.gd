@@ -10,6 +10,7 @@ extends Control
 @onready var in_lobby_view: Control = $MultiLobbyContainer/InLobbyView
 @onready var main_menu_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
 @onready var tutorial_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer5/TutorialButton
+@onready var background: TextureRect = $"Background/CanvasLayer/Background"
 @onready var card_setting_box: BoxContainer = $MultiLobbyContainer/InLobbyView/VBoxContainer/CardSettingsBox
 
 @export var game_scene: StringName = &""
@@ -27,12 +28,16 @@ var match_started = false
 var lobby_id
 var in_lobby_state = false
 var created_lobby = false
+var rejoin_panel: PanelContainer
+var rejoin_lobby_id: String = ""
+var bg_start_pos
 
 # Called when the node enters the scene tree for the first time.
 var list_container: VBoxContainer
 var add_bot_btn: Button
 
 func _ready() -> void:
+	bg_start_pos = background.position
 	list_container = VBoxContainer.new()
 	list_container.position = Vector2(842, 200)
 	in_lobby_view.add_child(list_container)
@@ -66,8 +71,16 @@ func _ready() -> void:
 	update_views()
 	controller.Get_Lobbies()
 
-var rejoin_panel: PanelContainer
-var rejoin_lobby_id: String = ""
+func _process(delta: float) -> void:
+	_move_background()
+	
+# Creates the moving background
+func _move_background() -> void:
+	background.position.x -= 0.15
+	background.position.y -= 0.3
+	
+	if background.position.x <= bg_start_pos.x - 80:
+		background.position = bg_start_pos
 
 func _setup_rejoin_dialog() -> void:
 	rejoin_panel = PanelContainer.new()

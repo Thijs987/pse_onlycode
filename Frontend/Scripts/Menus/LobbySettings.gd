@@ -16,6 +16,7 @@ extends Control
 @onready var SubmitButton = $VBoxContainer/HBoxContainer11/SubmitButton
 @onready var ResetButton = $VBoxContainer/HBoxContainer11/ResetButton
 @onready var BackButton = $VBoxContainer/HBoxContainer12/BackButton
+@onready var background: TextureRect = $Background/CanvasLayer/Background
 
 signal change_vis
 
@@ -34,10 +35,12 @@ var StanSet = { "CM" : 4,
 var CusSet = StanSet.duplicate()
 
 var Fields = {}
+var bg_start_pos
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	bg_start_pos = background.position
 	Fields = { "CM": CM,
 			   "Ddos": Ddos,
 			   "SQL": SQL,
@@ -62,6 +65,17 @@ func _ready() -> void:
 	
 	if get_parent().has_method("change_set"):
 		get_parent().signal_connect(self)
+
+func _process(delta: float) -> void:
+	_move_background()
+		
+# Creates the moving background
+func _move_background() -> void:
+	background.position.x -= 0.15
+	background.position.y -= 0.3
+	
+	if background.position.x <= bg_start_pos.x - 80:
+		background.position = bg_start_pos
 
 func _on_submit():
 	var total := 0
