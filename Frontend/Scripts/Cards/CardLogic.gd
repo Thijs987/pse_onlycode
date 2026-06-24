@@ -201,26 +201,24 @@ func play_card(card):
 		return true
 	return false
 
-
+# Gives you instruction for what to do after playing a card when needed
 func update_instruction_text() -> void:
 	if instruction_label == null:
 		return
-		
-	# Als het niet jouw beurt is, toon je niks
+
+	# Not your turm
 	var my_turn = (controller.PId == turns) and not controller.interaction_disabled
 	if not my_turn:
 		instruction_label.display_message("")
 		return
 		
-	# Check de actieve fases en toon de pop-up instructie tekst via de nieuwe functie
 	if trojan_selecting_gift:
 		instruction_label.display_message("TROJAN HORSE: Choose a card from your hand to give away!")
 	elif imp_hardware_active:
 		instruction_label.display_message("IMPROVED HARDWARE: Choose a card to play without effect!")
 	elif first_combo_card != null:
-		instruction_label.display_message("COMBO: Play a matching blank card or a GOTO card to finish your combo!")
+		instruction_label.display_message("COMBO: Play a matching, GOTO or other blank card to finish your combo!")
 	else:
-		# Standaard beurt, geen speciale instructie nodig -> verbergen
 		instruction_label.display_message("")
 
 # De opgeschoonde versie voor onderaan cardlogic.gd
