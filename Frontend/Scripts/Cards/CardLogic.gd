@@ -328,7 +328,6 @@ func start_dragging(card):
 		# mag je de kaart wél oppakken/klikken!
 		if not (trojan_selecting_gift or imp_hardware_active):
 			print("Deze kaart mag je nu niet spelen!")
-			return
 
 		# TROJAN HORSE
 	if trojan_selecting_gift:
