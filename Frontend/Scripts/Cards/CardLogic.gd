@@ -32,6 +32,8 @@ func _ready() -> void:
 	$"../InputManager".connect("left_mouse_release", on_left_mouse_release)
 	card_tooltip = tooltip_scene.instantiate()
 	add_child(card_tooltip)
+	
+	# Start the game with correct card visuality
 	await get_tree().create_timer(0.2).timeout
 	update_hand_playability()
 	update_instruction_text()
