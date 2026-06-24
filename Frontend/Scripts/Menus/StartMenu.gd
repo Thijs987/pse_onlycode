@@ -5,6 +5,7 @@ extends Control
 @onready var welcome_label: Label = $ButtonContainer/LoginContainer/LoginLayout/WelcomeLabel
 @onready var mute_button: Button = $ButtonContainer/MuteButtonContainer/HBoxContainer/MuteButton
 @onready var background: TextureRect = $Background
+@onready var press_start_sound := AudioStreamPlayer.new()
 
 @export var multi_lobby: StringName = &""
 @export var main_menu_buttons: MarginContainer
@@ -24,6 +25,9 @@ var is_muted: bool = false
 func _ready() -> void:
 	press_start_animation.play("PressStartAnimation")
 	bg_start_pos = background.position
+
+	add_child(press_start_sound)
+	press_start_sound.stream = preload("res://Sounds/menu.mp3")
 	
 	login_button.pressed.connect(_on_login_pressed)
 	mute_button.pressed.connect(_on_mute_pressed)
@@ -36,6 +40,7 @@ func _process(delta: float) -> void:
 	
 func _input(event: InputEvent) -> void:
 	if !in_main_menu and event.is_pressed():
+			press_start_sound.play()
 			press_start_animation.play("PressStartPressed")
 			await press_start_animation.animation_finished
 			main_menu_buttons.visible = true
