@@ -50,8 +50,8 @@ func _ready() -> void:
 			var hand_size = controller.Hand_Sizes.get(p_id, 5)
 			for j in range(hand_size):
 				add_new_card("achterkant", i)
-
-func _process(_delta: float) -> void:
+	
+func _process(_delta: float) -> void:	
 	if card_logic and card_logic.dragging_card != null:
 		sort_hand()
 

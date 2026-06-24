@@ -7,6 +7,7 @@ extends Node2D
 @onready var hand_reference = $"../PlayerHand"
 @onready var card_logic = $"../CardLogic"
 @onready var pile_reference = $"../Pile"
+@onready var bg_params: ColorRect = $"../Background/CanvasLayer/ColorRect"
 
 var player_list
 var turns

@@ -1,5 +1,7 @@
 extends Node2D
 
+@onready var bg_params: ColorRect = $"../Background/CanvasLayer2/ColorRect"
+
 var card_limit_label: Label
 var player_labels = {}
 
@@ -14,9 +16,14 @@ func _ready() -> void:
 	add_child(player_list_container)
 	
 	_update_player_list()
-	if controller.Last_Message.get("action") == "HAND":
+	if controller.Last_Message.get("action") == "HAND" or controller.Last_Message.get("action") == "MATCH_STARTED":
 		var turn_player = controller.Last_Message.get("data", {}).get("nextPlayer", "")
-		_highlight_turn(turn_player)
+		if turn_player != null:
+			_highlight_turn(turn_player)
+			if turn_player == controller.PId:
+				bg_params.setAlpha(0.1)
+			else:
+				bg_params.setAlpha(0.5)
 
 func _setup_card_limit_label() -> void:
 	card_limit_label = Label.new()
@@ -59,9 +66,14 @@ func _on_message(msg):
 		var rejoined_player = msg.get("playerId", "")
 		_set_player_reconnected(rejoined_player)
 
-	if action == "NEXT_TURN":
-		var current_turn_player = msg.get("playerId", "")
-		_highlight_turn(current_turn_player)
+	if action == "NEXT_TURN" or action == "CARD_PLAYED":
+		var current_turn_player = msg.get("data", {}).get("nextPlayer")
+		if current_turn_player != null:
+			_highlight_turn(current_turn_player)
+			if current_turn_player == controller.PId:
+				bg_params.setAlpha(0.1)
+			else:
+				bg_params.setAlpha(0.5)
 
 	if action == "PLAYER_LEFT" or action == "PLAYER_DISCONNECTED":
 		var left_player = msg.get("playerId", "")
