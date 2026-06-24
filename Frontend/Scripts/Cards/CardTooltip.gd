@@ -3,6 +3,9 @@ extends Control
 @onready var panel = $Panel
 @onready var label = $Panel/Label
 
+func _ready():
+	panel.hide()
+
 func show_tooltip(card_id):
 	tooltip_text(card_id)
 	label.reset_size()
