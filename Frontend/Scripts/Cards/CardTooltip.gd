@@ -25,6 +25,8 @@ func tooltip_text(card_id):
 			label.text = "This card is unplayable\nLose it by using cards their effects"
 		"goto":
 			label.text = "Give the top card of the drawing pile to a player\nYou can use this card as a joker for any other bad coding habit"
+		"imp":
+			label.text = "Remove a card from your hand\nDoes nothing when your hand is empty\nShould always be played first"
 		"inf":
 			label.text = "Give the top card of the drawing pile to a player\nYou need 2 of this card to play them"
 		"merge":
