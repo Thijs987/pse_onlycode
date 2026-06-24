@@ -19,7 +19,8 @@ const MOCK_FILE_PATH = "user://mock_database.json"
 @onready var register_status: Label = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegisterStatusLabel
 
 # UI REFERENCES - RIGHT (LOGIN)
-@onready var login_email_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginEmailInput
+
+@onready var login_identifier_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginIdentifierInput
 @onready var login_password_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginPasswordInput
 @onready var login_button: Button = $HBoxContainer/RightLoginPanel/LoginVBox/LoginButton
 @onready var login_status: Label = $HBoxContainer/RightLoginPanel/LoginVBox/LoginStatusLabel
@@ -44,10 +45,10 @@ func _ready() -> void:
 func _on_login_button_pressed() -> void:
 	if is_submitting: return
 	
-	var email = login_email_input.text.strip_edges()
+	var identifier = login_identifier_input.text.strip_edges()
 	var password = login_password_input.text
 	
-	if email == "" or password == "":
+	if identifier == "" or password == "":
 		login_status.text = "Please fill in all fields."
 		return
 		
@@ -55,9 +56,9 @@ func _on_login_button_pressed() -> void:
 	
 	var success: bool
 	if USE_LOCAL_MOCK:
-		success = await _handle_local_mock_auth(LOGIN_ENDPOINT, {"email": email, "password": password}, login_status)
+		success = await _handle_local_mock_auth(LOGIN_ENDPOINT, {"username": identifier, "password": password}, login_status)
 	else:
-		success = await _send_auth_request(LOGIN_ENDPOINT, {"email": email, "password": password}, login_status)
+		success = await _send_auth_request(LOGIN_ENDPOINT, {"username": identifier, "password": password}, login_status)
 		
 	set_loading_state(false, "login")
 	

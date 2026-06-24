@@ -84,7 +84,7 @@ public class InfiniteForLoopCard : ICardEffect
             match.TableCards = [];
             var rand = new Random();
             match.Deck = match.Deck.OrderBy(_ => rand.Next()).ToList();
-            responseData.Message = "deck regenarated";
+            responseData.DeckRefilled = true;
         }
 
         // No top card, not possible

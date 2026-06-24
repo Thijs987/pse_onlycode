@@ -21,12 +21,14 @@ var player_amount = 0
 var center_screen_y
 var center_screen_x
 
+var turn
+
 signal next_turn(player)
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	if controller.Last_Message.has("action") and controller.Last_Message["action"] == "MATCH_STARTED":
+	if controller.Last_Message.has("action") and (controller.Last_Message["action"] == "MATCH_STARTED" or controller.Last_Message["action"] == "HAND"):
 		var player = controller.Last_Message.get("data", {}).get("nextPlayer")
 		if player != null:
 			next_turn.emit(player)
@@ -44,8 +46,12 @@ func _ready() -> void:
 	center_screen_y = get_viewport().size.y / 2
 	for card_id in controller.Player_Hand:
 		add_new_card(card_id, 0)
-		for i in range(1,4):
-			if controller.player_list[i] != "":
+
+	for i in range(1, 4):
+		var p_id = controller.player_list[i]
+		if p_id != "":
+			var hand_size = controller.Hand_Sizes.get(p_id, 5)
+			for j in range(hand_size):
 				add_new_card("achterkant", i)
 
 func _process(_delta: float) -> void:
@@ -54,29 +60,23 @@ func _process(_delta: float) -> void:
 
 func _on_message(msg):
 	if msg != null:
-
 		if msg["action"] == "NEXT_TURN":
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
 				next_turn.emit(player)
+				turn = player
 				if turn_label != null:
 					turn_label.text = str(player)
-
-				if player == controller.PId:
-					turn_timer.start()
-				else:
-					turn_timer.stop()
+				turn_timer.start()
 
 		if msg["action"] == "CARD_PLAYED":
 			var next_player = msg.get("data", {}).get("nextPlayer")
 			if next_player != "" and next_player != null:
 				next_turn.emit(next_player)
+				turn = next_player
 				if turn_label != null:
 					turn_label.text = str(next_player)
-				if next_player == controller.PId:
-					turn_timer.start()
-				else:
-					turn_timer.stop()
+				turn_timer.start()
 
 			var blanco = ["nocom", "goto", "inf", "vibe"]
 			# For goto/blanco cards[0-1] are played cards[2] is the given card
@@ -86,7 +86,9 @@ func _on_message(msg):
 					var cards = msg.get("data", {}).get("cards")
 					if target == controller.PId && cards != null && cards.size() == 3:
 						add_new_card(cards[2], 0)
-				
+					if target != controller.PId:
+						add_new_card("achterkant", controller.player_list.find(target))
+
 			# Trojan horse puts the sent card in cards[0].
 			if msg.get("data", {}).get("cardId") == "trojan":
 				var target = msg.get("data", {}).get("target")
@@ -94,7 +96,9 @@ func _on_message(msg):
 					var cards = msg.get("data", {}).get("cards")
 					if target == controller.PId && cards != null:
 						add_new_card(cards[0], 0)
-			
+					if target != controller.PId:
+						add_new_card("achterkant", controller.player_list.find(target))
+
 			if msg.get("playerId") == controller.PId:
 				var played_id = msg.get("data", {}).get("cardId")
 				for i in range(player_hands[0].size()):
@@ -107,12 +111,46 @@ func _on_message(msg):
 
 			else:
 				#Remove card from the other player that played a card
+				var cardId = msg.get("data", {}).get("cardId")
 				var player_number = controller.player_list.find(msg.get("playerId"))
 				print(player_number)
-				var card = player_hands[player_number][0]
-				player_hands[player_number].remove_at(0)
-				card.queue_free()
-				update_card_hand_position(player_number)
+				if player_number != -1:
+					if cardId in blanco or cardId == "trojan":
+						var target = msg.get("data", {}).get("target")
+						if player_hands[player_number].size() > 0:
+							var card = player_hands[player_number][0]
+							player_hands[player_number].remove_at(0)
+							card.queue_free()
+							update_card_hand_position(player_number)
+						if player_hands[player_number].size() > 0:
+							var card = player_hands[player_number][0]
+							player_hands[player_number].remove_at(0)
+							card.queue_free()
+							update_card_hand_position(player_number)
+					elif cardId == "os":
+						var take_or = msg.get("data", {}).get("target")
+						if take_or == "top":
+							if player_hands[player_number].size() > 0:
+								var card = player_hands[player_number][0]
+								player_hands[player_number].remove_at(0)
+								card.queue_free()
+								update_card_hand_position(player_number)
+					#improved hardware can put down 1 or 2 cards
+					#based on if hand is empty if card is picked up
+					elif cardId == "imp":
+						var cards = msg.get("data", {}).get("cards")
+						for c in cards:
+							if player_hands[player_number].size() > 0:
+								var card = player_hands[player_number][0]
+								player_hands[player_number].remove_at(0)
+								card.queue_free()
+								update_card_hand_position(player_number)
+					else:
+						if player_hands[player_number].size() > 0:
+							var card = player_hands[player_number][0]
+							player_hands[player_number].remove_at(0)
+							card.queue_free()
+							update_card_hand_position(player_number)
 
 		if msg["action"] == "ERROR":
 			if msg.get("playerId") == controller.PId:
@@ -128,7 +166,8 @@ func _on_message(msg):
 
 
 func _on_timeout():
-	controller.Draw_Card(controller.PId)
+	if turn == controller.PId:
+		controller.Draw_Card(controller.PId)
 
 func add_new_card(card_id, player_number):
 	var card_scene = preload(CARD_SCENE_PATH)
@@ -138,7 +177,7 @@ func add_new_card(card_id, player_number):
 
 	new_card.name = "Card"
 	new_card.set_card(card_id)
-	var pile_pos = $"../Pile/PileArea/Pile".global_position
+	var pile_pos = $"../Pile/PileArea".global_position
 	new_card.global_position = pile_pos
 	if player_number == 0:
 		new_card.is_others = false
@@ -154,7 +193,6 @@ func add_new_card(card_id, player_number):
 	animate_draw_card(new_card)
 
 func animate_draw_card(card):
-
 	card.scale = Vector2(0.5, 0.5)
 
 	var tween = get_tree().create_tween()
@@ -250,17 +288,28 @@ func move_to_position(card, position):
 	tween.tween_property(card, "position", position, 0.2)
 
 func change_player_list():
-	var player_amount = 0
-	for player in controller.player_list:
-		if player != "":
-			player_amount += 1
-	var new_list = ["", "", "", ""]
-	if player_amount == 2:
-		new_list[0] = controller.player_list[0]
-		new_list[2] = controller.player_list[1]
-		controller.player_list = new_list
-	elif player_amount == 3:
-		new_list[0] = controller.player_list[0]
-		new_list[1] = controller.player_list[1]
-		new_list[3] = controller.player_list[2]
-		controller.player_list = new_list
+	var number_of_players = controller.All_Player_Ids.size()
+	if number_of_players == 0:
+		return
+
+	var local_idx = controller.All_Player_Ids.find(controller.PId)
+	if local_idx == -1:
+		return
+
+	var relative_list = ["", "", "", ""]
+	for i in range(number_of_players):
+		relative_list[i] = controller.All_Player_Ids[(local_idx + i) % number_of_players]
+
+	var final_list = ["", "", "", ""]
+	if number_of_players == 2:
+		final_list[0] = relative_list[0]
+		final_list[2] = relative_list[1]
+	elif number_of_players == 3:
+		final_list[0] = relative_list[0]
+		final_list[1] = relative_list[1]
+		final_list[3] = relative_list[2]
+	elif number_of_players >= 4:
+		for i in range(4):
+			final_list[i] = relative_list[i]
+
+	controller.player_list = final_list

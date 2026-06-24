@@ -2,7 +2,6 @@
 
 [ext_resource type="Texture2D" uid="uid://ddi0wy7qoyp4c" path="res://Sprites/Table.jpeg" id="1_71axn"]
 [ext_resource type="Script" uid="uid://bkjjiqdqugih7" path="res://Scripts/ClickLogic/Pile.gd" id="2_dahhg"]
-[ext_resource type="Texture2D" uid="uid://bglcmj03jm8lb" path="res://Sprites/Card_deck_sprite.png" id="3_3so38"]
 [ext_resource type="Script" uid="uid://uchns3vel8n1" path="res://Scripts/ClickLogic/DiscardPile.gd" id="4_3cx6b"]
 [ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://Scripts/Cards/CardLogic.gd" id="5_wxwew"]
 [ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://Scripts/Cards/PlayerHand.gd" id="6_acvyw"]
@@ -29,46 +28,46 @@ scale = Vector2(2.1893203, 2.1893206)
 texture = ExtResource("1_71axn")
 
 [node name="TurnLabel" type="Label" parent="Background" unique_id=110888612]
-offset_left = 576.0
-offset_top = 324.0
-offset_right = 658.0
-offset_bottom = 347.0
+offset_left = 534.0
+offset_top = 317.0
+offset_right = 616.0
+offset_bottom = 340.0
+horizontal_alignment = 1
 
 [node name="TimeLabel" type="Label" parent="Background" unique_id=430175237]
-offset_left = 676.0
-offset_top = 324.0
-offset_right = 758.0
-offset_bottom = 347.0
+offset_left = 532.0
+offset_top = 338.0
+offset_right = 614.0
+offset_bottom = 361.0
 justification_flags = 131
 
 [node name="Pile" type="Node2D" parent="." unique_id=738463849]
 script = ExtResource("2_dahhg")
 
 [node name="PileArea" type="Area2D" parent="Pile" unique_id=1734952556]
-position = Vector2(576, 324)
+position = Vector2(700, 325)
 collision_mask = 2
-
-[node name="Pile" type="Sprite2D" parent="Pile/PileArea" unique_id=337770192]
-scale = Vector2(0.08100327, 0.08100327)
-texture = ExtResource("3_3so38")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Pile/PileArea" unique_id=875606098]
 shape = SubResource("RectangleShape2D_1bvp3")
 
 [node name="CounterLabel" type="Label" parent="Pile/PileArea" unique_id=293749745]
-offset_right = 40.0
-offset_bottom = 23.0
+offset_left = -16.0
+offset_top = -127.0
+offset_right = 24.0
+offset_bottom = -104.0
 metadata/_edit_use_anchors_ = true
 
 [node name="DiscardPile" type="Node2D" parent="." unique_id=231680211]
 script = ExtResource("4_3cx6b")
 
 [node name="DiscardPileArea" type="Area2D" parent="DiscardPile" unique_id=1594361609]
-position = Vector2(576, 324)
+position = Vector2(428, 322)
 collision_layer = 4
 collision_mask = 3
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DiscardPile/DiscardPileArea" unique_id=403654840]
+position = Vector2(150.99998, 16.999939)
 scale = Vector2(0.8, 0.8)
 shape = SubResource("RectangleShape2D_efxa6")
 
@@ -96,6 +95,9 @@ script = ExtResource("10_8r6kd")
 
 [node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
 script = ExtResource("11_gameui")
+
+[node name="Card Play" type="AudioStreamPlayer2D" parent="." unique_id=1269714596]
+autoplay = true
 
 [node name="TurnTimer" type="Timer" parent="." unique_id=2082152117]
 wait_time = 30.0

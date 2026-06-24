@@ -17,12 +17,15 @@ public class ConnectionManager
 
     // Tracks which connections are in which lobby (LobbyId -> Dictionary of ConnectionIds)
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, bool>> _lobbies = new();
+    private readonly ConcurrentDictionary<string, HashSet<string>> _abandonedLobbies = new();
 
     // Tracks which lobby a connection is currently in (ConnectionId -> LobbyId) for cleanup
     private readonly ConcurrentDictionary<string, string> _connectionToLobby = new();
 
     // Tracks the host of each lobby (LobbyId -> HostId)
     private readonly ConcurrentDictionary<string, string> _lobbyHosts = new();
+
+    public event Action<string>? OnLobbyDestroyed;
 
     public async Task HandleConnectionAsync(string playerId, string lobbyId, WebSocket socket, MessageRouter router, MatchManager matchManager, CancellationToken cancellationToken)
     {
@@ -51,12 +54,32 @@ public class ConnectionManager
         string action;
         string message;
 
+        foreach (var existingPlayer in existingPlayers)
+        {
+            if (existingPlayer != playerId)
+            {
+                var existingPlayerMessage = new NetworkMessage
+                {
+                    Action = "PLAYER_JOINED",
+                    PlayerId = existingPlayer,
+                    Data = new DataInfo
+                    {
+                        Message = $"{existingPlayer} is in the game!"
+                    }
+                };
+                await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(existingPlayerMessage));
+            }
+        }
+
         if (rejoin == true)
         {
             matchManager.Rejoin(playerId);
             var responseData = new DataInfo
             {
-                Cards = matchManager.GetPlayerHand(lobbyId, playerId)
+                Cards = matchManager.GetPlayerHand(lobbyId, playerId),
+                NextPlayer = matchManager.GetCurrentTurnPlayer(lobbyId),
+                Players = matchManager.GetPlayerOrder(lobbyId),
+                HandSizes = matchManager.GetPlayerHandSizes(lobbyId)
             };
             var response = router.MakeMessage("HAND", playerId, responseData);
             await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(response));
@@ -83,23 +106,6 @@ public class ConnectionManager
             }
         };
         await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(joinMessage));
-
-        foreach (var existingPlayer in existingPlayers)
-        {
-            if (existingPlayer != playerId)
-            {
-                var existingPlayerMessage = new NetworkMessage
-                {
-                    Action = "PLAYER_JOINED",
-                    PlayerId = existingPlayer,
-                    Data = new DataInfo
-                    {
-                        Message = $"{existingPlayer} is in the game!"
-                    }
-                };
-                await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(existingPlayerMessage));
-            }
-        }
 
         var buffer = new byte[1024 * 4];
 
@@ -145,8 +151,7 @@ public class ConnectionManager
             }
             else if (matchManager.GetActives(lobbyId).Count <= 0)
             {
-                RemoveLobby(playerId, matchManager);
-                router.botService.CleanUpLobby(lobbyId);
+                RemoveLobby(playerId);
             }
             responseData.Message = $"{playerId} disconnected.";
             _sockets.TryRemove(playerId, out _);
@@ -167,8 +172,10 @@ public class ConnectionManager
                 Log.Information("Adding bot for disconnected player {PlayerId} in lobby {LobbyId}", playerId, lobbyId);
                 await router.botService.AddBotAsync(lobbyId, playerId);
                 if (matchManager.GetCurrentTurnPlayer(lobbyId) == playerId)
-                    await router.botService.DrawCard(lobbyId, playerId);
-                // router.CheckBotTurn(lobbyId, matchManager, )
+                {
+                    var botTurnData = new DataInfo { NextPlayer = playerId };
+                    await router.CheckBotTurn(lobbyId, this, matchManager, botTurnData);
+                }
             }
         }
     }
@@ -202,9 +209,7 @@ public class ConnectionManager
                 // If empty OR only contains bots (no active sockets), destroy the lobby
                 if (lobbyConnections.IsEmpty || !lobbyConnections.Keys.Any(k => _sockets.ContainsKey(k)))
                 {
-                    _lobbies.TryRemove(lobbyId, out _);
-                    _lobbyHosts.TryRemove(lobbyId, out _);
-                    Log.Information("Lobby {LobbyId} is empty (or only contains bots) and was destroyed.", lobbyId);
+                    DestroyLobby(lobbyId);
                 }
                 else
                 {
@@ -216,7 +221,7 @@ public class ConnectionManager
                         {
                             _lobbyHosts[lobbyId] = nextHost;
                             Log.Information("Host left. Lobby {LobbyId} host transferred to {NewHost}", lobbyId, nextHost);
-                            
+
                             // Broadcast host transfer
                             var transferMsg = new NetworkMessage
                             {
@@ -257,12 +262,16 @@ public class ConnectionManager
         }
     }
 
-    public void RemoveLobby(string connectionId, MatchManager matchManager)
+    public void RemoveLobby(string connectionId)
     {
-        if (!_connectionToLobby.TryRemove(connectionId, out string? lobbyId))
+        if (_connectionToLobby.TryGetValue(connectionId, out string? lobbyId) && !string.IsNullOrEmpty(lobbyId))
         {
-            return;
+            DestroyLobby(lobbyId);
         }
+    }
+
+    public void DestroyLobby(string lobbyId)
+    {
         if (string.IsNullOrEmpty(lobbyId))
         {
             return;
@@ -273,8 +282,21 @@ public class ConnectionManager
             {
                 _connectionToLobby.TryRemove(player, out _);
             }
+            _lobbyHosts.TryRemove(lobbyId, out _);
+
+            foreach (var kvp in _abandonedLobbies)
+            {
+                lock (kvp.Value)
+                {
+                    kvp.Value.Remove(lobbyId);
+                }
+                if (kvp.Value.Count == 0)
+                {
+                    _abandonedLobbies.TryRemove(kvp.Key, out _);
+                }
+            }
             Log.Information("Lobby {LobbyId} is empty and was destroyed.", lobbyId);
-            matchManager.EndMatch(lobbyId);
+            OnLobbyDestroyed?.Invoke(lobbyId);
         }
     }
 
@@ -347,5 +369,29 @@ public class ConnectionManager
                 PlayerCount = lobby.Value.Count,
                 Capacity = MaxPlayersPerLobby
             });
+    }
+    public IEnumerable<object> RejoinLobbies(string playerId, MatchManager matchManager)
+    {
+        _abandonedLobbies.TryGetValue(playerId, out var abandoned);
+
+        return _lobbies
+            .Where(lobby => lobby.Value.ContainsKey(playerId)
+                            && matchManager.IsMatchActive(lobby.Key)
+                            && (abandoned == null || !abandoned.Contains(lobby.Key)))
+            .Select(lobby => new
+            {
+                LobbyId = lobby.Key,
+                PlayerCount = lobby.Value.Count,
+                Capacity = MaxPlayersPerLobby
+            });
+    }
+
+    public void AbandonLobby(string playerId, string lobbyId)
+    {
+        var set = _abandonedLobbies.GetOrAdd(playerId, _ => new HashSet<string>());
+        lock (set)
+        {
+            set.Add(lobbyId);
+        }
     }
 }

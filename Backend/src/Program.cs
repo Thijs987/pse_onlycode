@@ -15,6 +15,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Reflection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Http.Features;
+using Api;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,9 +26,34 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .CreateLogger();
 
+var maxRequestBodySizeBytes = builder.Configuration.GetValue<long?>("AppSettings:MaxRequestBodySizeBytes") ?? 10L * 1024 * 1024;
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = maxRequestBodySizeBytes;
+});
+
 builder.Host.UseSerilog();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidateModelAttribute>();
+})
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.MaxDepth = 32;
+    options.JsonSerializerOptions.DefaultBufferSize = 4096;
+    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    options.JsonSerializerOptions.AllowTrailingCommas = false;
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.MaxDepth = 32;
+    options.SerializerOptions.DefaultBufferSize = 4096;
+    options.SerializerOptions.PropertyNameCaseInsensitive = true;
+    options.SerializerOptions.AllowTrailingCommas = false;
+});
 
 // CORS: allow only configured origins
 var allowedOrigins = builder.Configuration.GetSection("AppSettings:AllowedOrigins").Get<string[]>();
@@ -87,6 +114,10 @@ else
 // Audit and rate limit services: use persistent database-backed implementations in production
 builder.Services.AddScoped<IAuditService, DbAuditService>();
 builder.Services.AddScoped<IRateLimitService, DbRateLimitService>();
+
+// Clean up old refresh tokens after they have expired or been revoked for a retention window.
+builder.Services.AddHostedService<StaleDataCleanupService>();
+
 var cardTypes = typeof(ICardEffect).Assembly.GetTypes()
     .Where(t => t.IsClass && !t.IsAbstract && typeof(ICardEffect).IsAssignableFrom(t));
 
@@ -214,6 +245,24 @@ if (forwardedHeadersEnabled)
 }
 
 app.UseSerilogRequestLogging();
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.ContentLength.HasValue && context.Request.ContentLength.Value > maxRequestBodySizeBytes)
+    {
+        context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
+        await context.Response.WriteAsync("Request body too large.");
+        return;
+    }
+
+    var maxFeature = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
+    if (maxFeature != null && !maxFeature.IsReadOnly)
+    {
+        maxFeature.MaxRequestBodySize = maxRequestBodySizeBytes;
+    }
+
+    await next();
+});
 
 // Security headers middleware: defense-in-depth for API and any served frontend
 app.Use(async (context, next) =>

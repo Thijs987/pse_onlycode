@@ -9,7 +9,6 @@ public class AppDbContext : DbContext
         : base(options) { }
 
     public DbSet<AppUser> Users => Set<AppUser>();
-    public DbSet<Lobby> Lobbies => Set<Lobby>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<RateLimitEntry> RateLimitEntries => Set<RateLimitEntry>();

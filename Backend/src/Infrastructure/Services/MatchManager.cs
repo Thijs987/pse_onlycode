@@ -16,12 +16,13 @@ public class MatchManager
     private readonly ConcurrentDictionary<string, GameState> _activeMatches = new();
     private readonly Dictionary<string, ICardEffect> _cardRegistry = new();
 
-    public MatchManager(IEnumerable<ICardEffect> allCards)
+    public MatchManager(IEnumerable<ICardEffect> allCards, ConnectionManager connectionManager)
     {
         foreach (var card in allCards)
         {
             _cardRegistry[card.CardId] = card;
         }
+        connectionManager.OnLobbyDestroyed += EndMatch;
     }
 
     public GameState StartNewMatch(string matchId, List<string> players, DataInfo data)
@@ -38,23 +39,26 @@ public class MatchManager
             newState.PlayerStatuses[player] = PlayerStatus.Active;
         }
 
-        var pileCards = new List <int> {};
+        var pileCards = new List<int> { };
 
-        if (data == null || data.Cards == null || data.Cards.Count != 15) {
-            pileCards = new List <int> {2,4,4,2,0,4,4,4,2,4,4,4,4,4,8};
+        if (data == null || data.Cards == null || data.Cards.Count != 15)
+        {
+            pileCards = new List<int> { 2, 4, 4, 2, 0, 4, 4, 4, 2, 4, 4, 4, 4, 4, 8 };
         }
 
-        if (data != null && data.Cards != null) {
-            foreach(var card in data.Cards) {
-            int x;
-
-            if (!Int32.TryParse(card, out x))
+        if (data != null && data.Cards != null)
+        {
+            foreach (var card in data.Cards)
             {
-                Log.Warning("Match {MatchId} initialization failed - invalid card data.", matchId);
-                newState.Deck = new List<string>{};
-                return newState;
-            }
-            pileCards.Add(x);
+                int x;
+
+                if (!Int32.TryParse(card, out x))
+                {
+                    Log.Warning("Match {MatchId} initialization failed - invalid card data.", matchId);
+                    newState.Deck = new List<string> { };
+                    return newState;
+                }
+                pileCards.Add(x);
             }
         }
 
@@ -66,10 +70,10 @@ public class MatchManager
             // {"err", 0},
             // {"garb", 0},
             // {"goto", 0},
-            // {"imp", 0},
+            // {"imp", 10},
             // {"inf", 0},
             // {"merge", 0},
-            // {"miracle", 0},
+             // {"miracle", 0},
             // {"nocom", 0},
             // {"sql", 0},
             // {"trojan", 0},
@@ -108,8 +112,9 @@ public class MatchManager
         int impcards = newState.Deck.Count(card => card == "imp");
         int playerCount = players.Count;
 
-        if ((size-impcards) < (playerCount*initialHandSize) ||
-            size < ((newState.CardLimit+1)*playerCount)) {
+        if ((size - impcards) < (playerCount * initialHandSize) ||
+            size < ((newState.CardLimit + 1) * playerCount))
+        {
             Log.Warning("Match {MatchId} initialization failed - insufficient cards (size={Size}, impcards={ImpCards}, players={Players}).", matchId, size, impcards, playerCount);
             newState.Deck = new List<string> { };
             return newState;
@@ -355,7 +360,9 @@ public class MatchManager
             // Refill deck
             Log.Warning("Deck empty for match {MatchId}, regenerating.", match.MatchId);
             GenerateDeck(match);
-            responseData.Message = "1";
+            // Use a dedicated flag so it is not clobbered by the card-type message
+            // (e.g. when the card drawn after the refill is "imp").
+            responseData.DeckRefilled = true;
         }
 
         // No top card, not possible
@@ -450,7 +457,7 @@ public class MatchManager
         return new List<string>();
     }
 
-    public DataInfo CheckCardLimit(string matchId, string playerId, string newLimit)
+    public DataInfo CheckCardLimit(string matchId, string playerId, bool deckRefilled)
     {
         // hands.TryGetValue(playerId, out var hand);
         // var count = hand.Count;
@@ -476,15 +483,21 @@ public class MatchManager
         {
             // remove from cycle
             match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
-            if (match.CurrentTurnPlayerId == playerId) 
+            if (match.CurrentTurnPlayerId == playerId)
             {
                 match.NTurns = 0;
+            }
+            // return the eliminated player's cards to the discard pile so they stay in
+            // circulation and are counted in future draw-pile refills (matches RemoveFromMatch).
+            foreach (var card in hand)
+            {
+                match.TableCards.Add(card);
             }
             // remove hand from dict
             match.PlayerHands.Remove(playerId);
             responseData.Message = "Removed";
         }
-        if (newLimit == "1")
+        if (deckRefilled)
         {
             match.CardLimit--;
         }
@@ -564,7 +577,8 @@ public class MatchManager
         }
 
         //adjust status based on if player is elimanted or not.
-        if(match.PlayerStatuses[playerId] == PlayerStatus.Eliminated) {
+        if (match.PlayerStatuses[playerId] == PlayerStatus.Eliminated)
+        {
             match.PlayerStatuses[playerId] = PlayerStatus.DisconnectedEliminated;
         }
         else if (match.PlayerStatuses[playerId] == PlayerStatus.Active)
@@ -595,8 +609,10 @@ public class MatchManager
             return false;
         }
         //adjust status based on if player is elimanted or not.
-        if (match.PlayerStatuses.TryGetValue(playerId, out var status)) {
-            if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedEliminated) {
+        if (match.PlayerStatuses.TryGetValue(playerId, out var status))
+        {
+            if (match.PlayerStatuses[playerId] == PlayerStatus.DisconnectedEliminated)
+            {
                 match.PlayerStatuses[playerId] = PlayerStatus.Eliminated;
                 if (match.CurrentTurnPlayerId == playerId)
                 {
@@ -625,7 +641,7 @@ public class MatchManager
         return _activeMatches.ContainsKey(matchId);
     }
 
-// Check if there is a winner and return winner
+    // Check if there is a winner and return winner
     public string GetWinner(string matchId)
     {
         if (!_activeMatches.TryGetValue(matchId, out var match))
@@ -646,7 +662,8 @@ public class MatchManager
     }
 
     // Get active players and bot players
-    public List<string> GetActive(GameState match) {
+    public List<string> GetActive(GameState match)
+    {
         var activePlayers = match.PlayerIds
             .Where(id =>
                 match.PlayerStatuses.TryGetValue(id, out var status) &&
@@ -655,7 +672,8 @@ public class MatchManager
     }
 
     //get active players which are not bots
-    public List<string> GetActives(string matchId) {
+    public List<string> GetActives(string matchId)
+    {
         if (!_activeMatches.TryGetValue(matchId, out var match))
         {
             return new List<string> { };
@@ -667,12 +685,51 @@ public class MatchManager
         return activePlayers;
     }
 
+    public List<string> GetPlayerOrder(string matchId)
+    {
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            return new List<string> { };
+        }
+        return match.PlayerIds.ToList();
+    }
+
+    public Dictionary<string, int> GetPlayerHandSizes(string matchId)
+    {
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+        {
+            return new Dictionary<string, int>();
+        }
+        return match.PlayerHands.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Count);
+    }
+
     // Get the current deck size
-    public int GetDeckSize(string matchId) {
+    public int GetDeckSize(string matchId)
+    {
         if (!_activeMatches.TryGetValue(matchId, out var match))
             return 0;
 
         return match.Deck.Count;
+    }
+
+    // Get the current hand-size limit for the match.
+    public int GetCardLimit(string matchId)
+    {
+        if (!_activeMatches.TryGetValue(matchId, out var match))
+            return 0;
+
+        return match.CardLimit;
+    }
+
+    // Lowers the match-wide card limit by one. Used when the draw pile is exhausted and
+    // reshuffled on a draw that does not end the player's turn (e.g. drawing Improved Hardware),
+    // so the limit-decrement normally done in CheckCardLimit still happens.
+    public void LowerCardLimit(string matchId)
+    {
+        if (_activeMatches.TryGetValue(matchId, out var match))
+        {
+            match.CardLimit--;
+        }
     }
 
     // Removes a match from active tracking to prevent memory leaks when a game ends or is abandoned
