@@ -1,6 +1,6 @@
 extends Node2D
 
-
+@onready var LobbySettings = $"../Menus/LobbySettings"
 
 # In order to make use of this signal put
 # "Controller.message_updated.connect(_on_message)" in _ready()

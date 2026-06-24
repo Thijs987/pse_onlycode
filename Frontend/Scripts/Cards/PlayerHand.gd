@@ -34,10 +34,7 @@ func _ready() -> void:
 			next_turn.emit(player)
 			if turn_label != null:
 				turn_label.text = str(player)
-			if player == controller.PId:
-				turn_timer.start()
-			else:
-				turn_timer.stop()
+			turn_timer.start()
 
 	change_player_list()
 	turn_timer.timeout.connect(_on_timeout)
