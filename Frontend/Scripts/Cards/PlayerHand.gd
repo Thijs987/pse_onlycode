@@ -173,9 +173,9 @@ func _on_timeout():
 		controller.Draw_Card(controller.PId)
 		return
 
-	# --- 1. BLANCO / COMBO RESETTEN ---
+	# If a blanco card is played
 	if card_logic.first_combo_card != null:
-		print("TIMER OUT: Combo niet afgemaakt. Kaart terugnemen in hand.")
+		print("TIMER OUT: Didnt finish combo, take card(s) back.")
 		var card_to_reset = card_logic.first_combo_card
 		card_logic.first_combo_card = null
 		
@@ -185,73 +185,68 @@ func _on_timeout():
 		controller.Draw_Card(controller.PId)
 		return
 
-	# --- 2. TROJAN HORSE / KEUZE RESETTEN ---
+	# Trojan horse
 	if card_logic.trojan_selecting_gift:
-		print("TIMER OUT: Keuzefase verlopen na spelen van Trojan. Schermen opruimen.")
+		print("TIMER OUT: Choise fase over. Cleaning screen")
 		card_logic.trojan_selecting_gift = false
 		
-		# Zoek en verwijder het attack/target selectiescherm uit de root
+		# Remove attack screen
 		var attack_node = get_tree().root.get_node_or_null("Attack")
 		if attack_node:
-			print("Attack scherm gevonden en verwijderd.")
+			print("Attack screen found and deleted.")
 			attack_node.queue_free()
 			
 		get_tree().paused = false
 		controller.Draw_Card(controller.PId)
 		return
 
-	# --- 3. IMPROVED HARDWARE KEUZE FORCEREN ---
+	# Improved hardware
 	if card_logic.imp_hardware_active:
-		print("TIMER OUT: Geen kaart gekozen voor Improved Hardware. Automatische selectie start.")
+		print("TIMER OUT: No card chosen for automatic selection. Automatic choice")
 		card_logic.imp_hardware_active = false
 		
 		var chosen_card = null
-		var strafkaarten = ["blue", "err", "merge"]
+		var bricks = ["blue", "err", "merge"]
 		var hand_cards = player_hands[0]
-		
+
 		if hand_cards.size() > 0:
-			# Stap A: Zoek eerst naar een van de strafkaarten
+			# First check for bricks
 			for card in hand_cards:
-				if card.own_card_id in strafkaarten:
+				if card.own_card_id in bricks:
 					chosen_card = card
 					break
-			
-			# Stap B: Als er geen strafkaart is, pak een willekeurige (random) kaart
+
 			if chosen_card == null:
 				var random_index = randi() % hand_cards.size()
 				chosen_card = hand_cards[random_index]
 		
-		# Als we een kaart hebben gevonden om te forceren
+		# Found card to force
 		if chosen_card != null:
 			var sacrifice_id = chosen_card.own_card_id
-			print("Geforceerde kaart voor Improved Hardware: ", sacrifice_id)
-			
-			# Verwijder de kaart fysiek uit de hand van de speler
+			print("Forced card for Improved Hardware: ", sacrifice_id)
+
 			remove_card_from_hand(chosen_card, 0)
 			chosen_card.queue_free()
-			
-			# Stuur de data naar de server
+
 			var data = {cardId = sacrifice_id}
 			controller.Play_Card(controller.PId, data)
-			
-			# Update de visuals en instructies zodat alles weer netjes staat
+
 			card_logic.update_hand_playability()
 			card_logic.update_instruction_text()
 		else:
-			# Mocht de hand toch leeg zijn, beëindig dan de beurt
 			controller.Draw_Card(controller.PId)
 			
 		return
 
-	# --- 4. OPEN SOURCE RESETTEN ---
+	# Open source
 	if card_logic.os_active:
-		print("TIMER OUT: Geen keuze gemaakt in Open Source. Menu sluiten.")
+		print("TIMER OUT: No choice make. Closing menu")
 		card_logic.os_active = false
 		
-		# Zoek en verwijder het OSMenu uit de root
+		# Searche and delete os screen
 		var os_node = get_tree().root.get_node_or_null("OSMenu")
 		if os_node:
-			print("OSMenu gevonden en verwijderd.")
+			print("OSMenu found and deleted")
 			if os_node.has_signal("choice_selected"):
 				os_node.choice_selected.emit("keep") 
 			os_node.queue_free()
@@ -259,15 +254,14 @@ func _on_timeout():
 		get_tree().paused = false
 		return
 
-	# --- EXTRA VEILIGHEIDSCHECK ---
-	# Mocht er om een andere vage reden nog een attack scherm openstaan, sluit hem
+	# Close other screens just in case
 	var backup_attack = get_tree().root.get_node_or_null("Attack")
 	if backup_attack:
 		backup_attack.queue_free()
 		get_tree().paused = false
 
-	# --- DEFAULT: Normale beurt verloopt ---
-	print("TIMER OUT: Normale beurt verlopen. Kaart trekken.")
+	# Default
+	print("TIMER OUT: End turn.")
 	controller.Draw_Card(controller.PId)
 
 func add_new_card(card_id, player_number):
