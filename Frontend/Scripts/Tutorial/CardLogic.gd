@@ -32,6 +32,8 @@ func _process(_delta: float) -> void:
 
 ### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
 func play_card(card):
+	if leader.can_play == false:
+		return
 	if discard_pile == null:
 		print("Error: DiscardPile node not found!")
 		return
@@ -110,7 +112,7 @@ func hovered_away_card(card):
 
 # Will highlight the card if mouse is hovering over it
 func highlight_card(card, hovered):
-	if hovered and leader.can_play:
+	if hovered and leader.can_hover:
 		if "is_others" in card:
 			if card.is_others == false:
 				card_hovered.emit()

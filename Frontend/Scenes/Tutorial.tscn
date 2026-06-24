@@ -24,6 +24,22 @@ size = Vector2(89, 88)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rlm2d"]
 size = Vector2(421.5, 218)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hxa32"]
+bg_color = Color(0, 0, 0, 0.60784316)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 1, 0, 0.8509804)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+expand_margin_left = 8.0
+expand_margin_top = 4.0
+expand_margin_right = 8.0
+expand_margin_bottom = 4.0
+
 [node name="Tutorial" type="Node2D" unique_id=1466140711]
 
 [node name="Background" type="Node2D" parent="." unique_id=1148183018]
@@ -62,6 +78,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("3_sgy12")
 
 [node name="Pile" type="Node2D" parent="." unique_id=712988398]
@@ -116,6 +133,20 @@ script = ExtResource("5_rlm2d")
 [node name="Leader" type="Node2D" parent="." unique_id=1404215155]
 script = ExtResource("9_hxa32")
 
-[node name="TutorialLabel" type="Label" parent="Leader" unique_id=298529425]
+[node name="ExitButton" type="Button" parent="Leader" unique_id=1980228947]
+offset_left = 951.0
+offset_top = 29.0
+offset_right = 1110.0
+offset_bottom = 81.0
+text = "Exit"
+
+[node name="TutorialPanel" type="Panel" parent="Leader" unique_id=262777299]
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hxa32")
+
+[node name="TutorialLabel" type="Label" parent="Leader/TutorialPanel" unique_id=1259266932]
+layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
