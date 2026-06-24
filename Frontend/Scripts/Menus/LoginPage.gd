@@ -121,8 +121,6 @@ func _send_auth_request(endpoint: String, data: Dictionary, status_label: Label)
 	var response_code = response[1]
 	var response_body = response[3].get_string_from_utf8()
 	var json_data = JSON.parse_string(response_body)
-	print("Response code: ", response_code)
-	print("Response body: ", response_body)
 	
 	if response_code == 200:
 		if endpoint == LOGIN_ENDPOINT and json_data:
