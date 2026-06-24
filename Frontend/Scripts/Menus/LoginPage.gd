@@ -28,7 +28,7 @@ const MOCK_FILE_PATH = "user://mock_database.json"
 # GENERAL NODES
 @onready var return_button: Button = $MarginContainer/ReturnButton
 @onready var http_request: HTTPRequest = $HTTPRequest
-@onready var background: TextureRect = $Background
+@onready var background: TextureRect = $"Background/CanvasLayer/Background"
 
 var is_submitting: bool = false
 var bg_start_pos
@@ -49,10 +49,10 @@ func _process(delta: float) -> void:
 	
 # Creates the moving background
 func _move_background() -> void:
-	background.position.x -= 0.25
-	background.position.y -= 0.5
+	background.position.x -= 0.15
+	background.position.y -= 0.3
 	
-	if background.position.x == bg_start_pos.x - 80:
+	if background.position.x <= bg_start_pos.x - 80:
 		background.position = bg_start_pos
 
 # LOGIN

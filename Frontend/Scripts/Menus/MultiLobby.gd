@@ -11,7 +11,7 @@ extends Control
 @onready var leave_lobby_button: Button = $MultiLobbyContainer/InLobbyView/HBoxContainer6/LeaveLobby
 @onready var main_menu_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
 @onready var tutorial_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer5/TutorialButton
-@onready var background: TextureRect = $Background
+@onready var background: TextureRect = $"Background/CanvasLayer/Background"
 
 @export var game_scene: StringName = &""
 @export var create_lobby_button: Button
@@ -27,6 +27,8 @@ var match_started = false
 var lobby_id
 var in_lobby_state = false
 var created_lobby = false
+var rejoin_panel: PanelContainer
+var rejoin_lobby_id: String = ""
 var bg_start_pos
 
 # Called when the node enters the scene tree for the first time.
@@ -68,15 +70,13 @@ func _ready() -> void:
 	update_views()
 	controller.Get_Lobbies()
 
-var rejoin_panel: PanelContainer
-var rejoin_lobby_id: String = ""
-
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_move_background()
-		
+	
+# Creates the moving background
 func _move_background() -> void:
-	background.position.x -= 0.25
-	background.position.y -= 0.5
+	background.position.x -= 0.15
+	background.position.y -= 0.3
 	
 	if background.position.x <= bg_start_pos.x - 80:
 		background.position = bg_start_pos

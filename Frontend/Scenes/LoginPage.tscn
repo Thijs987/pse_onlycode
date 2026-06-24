@@ -15,8 +15,16 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_v0vm3")
 
-[node name="Background" type="TextureRect" parent="." unique_id=2108861819]
-layout_mode = 0
+[node name="Background" type="Control" parent="." unique_id=1934492503]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="Background" unique_id=639655116]
+layer = -1
+
+[node name="Background" type="TextureRect" parent="Background/CanvasLayer" unique_id=2086110690]
+z_index = -1
 offset_left = -222.0
 offset_top = -257.0
 offset_right = 1410.0

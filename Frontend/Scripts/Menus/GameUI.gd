@@ -1,5 +1,7 @@
 extends Node2D
 
+@onready var bg_params: ColorRect = $"../Background/CanvasLayer2/ColorRect"
+
 var card_limit_label: Label
 var player_labels = {}
 
@@ -59,9 +61,13 @@ func _on_message(msg):
 		var rejoined_player = msg.get("playerId", "")
 		_set_player_reconnected(rejoined_player)
 
-	if action == "NEXT_TURN":
+	if action == "NEXT_TURN" or action == "MATCH_STARTED":
 		var current_turn_player = msg.get("playerId", "")
 		_highlight_turn(current_turn_player)
+		if current_turn_player == controller.PId:
+			bg_params.setAlpha(0.5)
+		else:
+			bg_params.setAlpha(0.1)
 
 	if action == "PLAYER_LEFT" or action == "PLAYER_DISCONNECTED":
 		var left_player = msg.get("playerId", "")

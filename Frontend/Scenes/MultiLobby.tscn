@@ -23,8 +23,16 @@ card_setting_button = NodePath("MultiLobbyContainer/BrowserView/VBoxContainer/HB
 multi_lobby_container = NodePath("MultiLobbyContainer")
 lobby_settings = NodePath("LobbySettings")
 
-[node name="Background" type="TextureRect" parent="." unique_id=2019671093]
-layout_mode = 0
+[node name="Background" type="Control" parent="." unique_id=1331400674]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="Background" unique_id=773271127]
+layer = -1
+
+[node name="Background" type="TextureRect" parent="Background/CanvasLayer" unique_id=299963968]
+z_index = -1
 offset_left = -222.0
 offset_top = -257.0
 offset_right = 1410.0
