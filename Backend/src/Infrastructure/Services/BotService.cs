@@ -45,6 +45,7 @@ public class BotService
     {
         _matchManager = matchManager;
         _connectionManager = connectionManager;
+        _connectionManager.OnLobbyDestroyed += CleanUpLobby;
     }
 
     // Registers a new bot in the lobby. Because StartNewMatch builds its
@@ -352,7 +353,7 @@ public class BotService
 
         if (responseData.CardId == "imp")
         {
-            await NextPlayer(lobbyId, botId, "0");
+            await NextPlayer(lobbyId, botId, false);
         }
 
         if (responseData.IsPrivate == true)
@@ -362,6 +363,17 @@ public class BotService
         else
         {
             await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
+        }
+
+        // goto/vibe/inf/nocom draw a card from the deck without sending CARD_DRAWN; re-sync the
+        // clients' deck counter and drop the card limit if the draw exhausted and refilled the pile.
+        if (responseData.CardId != null && ComboCardOptions.ContainsKey(responseData.CardId))
+        {
+            if (responseData.DeckRefilled == true)
+            {
+                _matchManager.LowerCardLimit(lobbyId);
+            }
+            await BroadcastDeckSize(lobbyId, botId);
         }
     }
 
@@ -380,17 +392,33 @@ public class BotService
         var response = MakeMessage("CARD_DRAWN", botId, publicData);
         await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
 
-        if (responseData.CardId != "imp")
+        var deckRefilled = responseData.DeckRefilled == true;
+
+        // Drawing Improved Hardware does not end the bot's turn, but if this draw refilled the
+        // pile we still lower the card limit and report the new deck size to all clients.
+        if (responseData.CardId == "imp")
         {
-            await NextPlayer(lobbyId, botId, responseData.Message);
+            if (deckRefilled)
+            {
+                _matchManager.LowerCardLimit(lobbyId);
+                await BroadcastDeckSize(lobbyId, botId);
+            }
+            return;
         }
+
+        await NextPlayer(lobbyId, botId, deckRefilled);
     }
 
-    private async Task NextPlayer(string lobbyId, string botId, string newLimit)
+    private async Task NextPlayer(string lobbyId, string botId, bool deckRefilled)
     {
         var responseData = _matchManager.NextTurn(lobbyId, botId);
 
-        var end = _matchManager.CheckCardLimit(lobbyId, botId, newLimit);
+        var end = _matchManager.CheckCardLimit(lobbyId, botId, deckRefilled);
+
+        if (deckRefilled)
+        {
+            await BroadcastDeckSize(lobbyId, botId);
+        }
         if (end.Error != "")
         {
             var errorMessage = MakeMessage("ERROR", botId, end);
@@ -409,14 +437,26 @@ public class BotService
                 var winnerData = new DataInfo { NextPlayer = winnerId };
                 var gameOverMessage = MakeMessage("GAME_OVER", winnerId, winnerData);
                 await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(gameOverMessage));
-                _matchManager.EndMatch(lobbyId);
-                CleanUpLobby(lobbyId);
-                return; // Stop broadcasting NEXT_TURN
+                _connectionManager.RemoveLobby(botId);
+                return; // Stop processing further for this bot
             }
         }
 
         var response = MakeMessage("NEXT_TURN", botId, responseData);
         await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
+    }
+
+    // Broadcasts the current draw-pile size and card limit to every player in the lobby.
+    private async Task BroadcastDeckSize(string lobbyId, string botId)
+    {
+        var deckSize = _matchManager.GetDeckSize(lobbyId);
+        var message = new DataInfo
+        {
+            Message = $"{deckSize}",
+            CardLimit = _matchManager.GetCardLimit(lobbyId)
+        };
+        var deckSizeMessage = MakeMessage("DECK_SIZE", botId, message);
+        await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(deckSizeMessage));
     }
 
     private static NetworkMessage MakeMessage(string action, string playerId, DataInfo data)

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Application.Services;
 using Application;
 using Infrastructure.Persistence;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -263,6 +264,47 @@ public class AuthServiceTests
     }
 
     [Fact]
+    // Full request + reset password workflow (unit-test style using in-memory DB)
+    public async Task RequestAndResetPassword_Workflow()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = CreateAuthService(context);
+
+        var email = $"test-reset-{Guid.NewGuid():N}@example.com";
+        var username = ($"testuser{Guid.NewGuid():N}").Substring(0, 12);
+        var oldPassword = "OldP@ssword1";
+
+        var reg = await service.Register(email, username, oldPassword, "127.0.0.1");
+        System.IO.File.AppendAllText("/tmp/pwreset_debug.txt", $"Register: Success={reg.IsSuccess} Error={reg.Error?.Message}\n");
+        Assert.True(reg.IsSuccess);
+
+        var req = await service.RequestPasswordResetAsync(email);
+        System.IO.File.AppendAllText("/tmp/pwreset_debug.txt", $"Request: Success={req.IsSuccess} ErrorCode={req.Error?.Code} ErrorMsg={req.Error?.Message}\n");
+        Assert.True(req.IsSuccess, $"RequestPasswordResetAsync failed: Code={req.Error?.Code} Message={req.Error?.Message}");
+
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        Assert.NotNull(user);
+        Assert.NotNull(user!.PasswordResetToken);
+        Assert.NotNull(user!.PasswordResetTokenExpiry);
+
+        // For test, set a known token and hash it so we can call ResetPasswordAsync with the plaintext
+        var tokenBytes = new byte[48];
+        System.Security.Cryptography.RandomNumberGenerator.Create().GetBytes(tokenBytes);
+        var token = Convert.ToBase64String(tokenBytes).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+        user.PasswordResetToken = Application.PasswordHasher.Hash(token);
+        user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+        await context.SaveChangesAsync();
+
+        var newPassword = "NewP@ssword1";
+        var reset = await service.ResetPasswordAsync(email, token, newPassword);
+        System.IO.File.AppendAllText("/tmp/pwreset_debug.txt", $"Reset: Success={reset.IsSuccess} ErrorCode={reset.Error?.Code} ErrorMsg={reset.Error?.Message}\n");
+        Assert.True(reset.IsSuccess, $"ResetPasswordAsync failed: Code={reset.Error?.Code} Message={reset.Error?.Message}");
+
+        var updated = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        Assert.True(Application.PasswordHasher.Verify(newPassword, updated!.PasswordHash));
+    }
+
+    [Fact]
     // Resend verification email updates the token and sends a new email for unverified users.
     public async Task ResendVerificationEmailAsync_Succeeds_ForUnverifiedUser()
     {
@@ -460,6 +502,32 @@ public class AuthServiceTests
         Assert.Equal(shouldSucceed, result.IsSuccess);
     }
 
+    [Fact]
+    // Username may not contain an @ sign.
+    public async Task Register_ReturnsInvalidInput_WhenUsernameContainsAtSign()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = CreateAuthService(context);
+
+        var result = await service.Register("test@example.com", "user@example.com", "Password1!", "127.0.0.1");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(Application.Results.ServiceErrorCode.InvalidInput, result.Error!.Code);
+    }
+
+    [Fact]
+    // Username may not contain whitespace.
+    public async Task Register_ReturnsInvalidInput_WhenUsernameContainsWhitespace()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = CreateAuthService(context);
+
+        var result = await service.Register("test@example.com", "user name", "Password1!", "127.0.0.1");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(Application.Results.ServiceErrorCode.InvalidInput, result.Error!.Code);
+    }
+
     [Theory]
     // Password policy edge-cases
     [InlineData("password1!", false)] // no upper
@@ -612,11 +680,161 @@ public class AuthServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login("test@example.com", password, "127.0.0.1");
+        var result = await service.Login("testuser", password, "127.0.0.1");
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal("test@example.com", result.Value.Email);
+    }
+
+    [Fact]
+    // Login should also succeed with email instead of username.
+    public async Task Login_Succeeds_WithEmailIdentifier()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var password = "Password1!";
+        var passwordHash = Application.PasswordHasher.Hash(password);
+
+        context.Users.Add(new Domain.AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "test@example.com",
+            Username = "testuser",
+            PasswordHash = passwordHash,
+            IsEmailVerified = true
+        });
+        await context.SaveChangesAsync();
+
+        var service = CreateAuthService(context);
+        var result = await service.Login("test@example.com", password, "127.0.0.1");
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal("testuser", result.Value.Username);
+    }
+
+    [Fact]
+    // Expired and revoked refresh tokens should be removed after the retention period.
+    public async Task RefreshTokenCleanup_RemovesStaleTokensOnly()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = DateTime.UtcNow;
+
+        context.RefreshTokens.Add(new Domain.RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = "expired-hash",
+            Created = now.AddDays(-90),
+            Expires = now.AddDays(-60),
+            Revoked = null,
+            UserId = Guid.NewGuid()
+        });
+
+        context.RefreshTokens.Add(new Domain.RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = "revoked-hash",
+            Created = now.AddDays(-50),
+            Expires = now.AddDays(-20),
+            Revoked = now.AddDays(-40),
+            UserId = Guid.NewGuid()
+        });
+
+        context.RefreshTokens.Add(new Domain.RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = "active-hash",
+            Created = now.AddDays(-1),
+            Expires = now.AddDays(29),
+            Revoked = null,
+            UserId = Guid.NewGuid()
+        });
+
+        await context.SaveChangesAsync();
+
+        var removed = await StaleDataCleanupService.CleanupExpiredRefreshTokensAsync(context, 30);
+
+        Assert.Equal(2, removed);
+        Assert.Single(await context.RefreshTokens.ToListAsync());
+        Assert.Equal("active-hash", (await context.RefreshTokens.SingleAsync()).TokenHash);
+    }
+
+    [Fact]
+    // Deleting an account should revoke refresh tokens, anonymize PII and prevent further login.
+    public async Task DeleteAccount_SoftDeletesUser_RevokeTokensAndPreventsLogin()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var pwd = "Password1!";
+        var userId = Guid.NewGuid();
+
+        var user = new Domain.AppUser
+        {
+            Id = userId,
+            Email = "delete-me@example.com",
+            Username = "deleteuser",
+            PasswordHash = Application.PasswordHasher.Hash(pwd),
+            IsEmailVerified = true
+        };
+        context.Users.Add(user);
+
+        context.RefreshTokens.Add(new Domain.RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            TokenHash = "active-token",
+            Created = DateTime.UtcNow,
+            Expires = DateTime.UtcNow.AddDays(30),
+            Revoked = null,
+            UserId = userId
+        });
+
+        await context.SaveChangesAsync();
+
+        var service = CreateAuthService(context);
+        var res = await service.DeleteAccountAsync(userId, "127.0.0.1");
+        Assert.True(res.IsSuccess);
+
+        var refreshed = await context.Users.FirstAsync(u => u.Id == userId);
+        Assert.True(refreshed.IsDeleted);
+        Assert.StartsWith("deleted+", refreshed.Email);
+        Assert.StartsWith("deleted_", refreshed.Username);
+
+        var tokens = await context.RefreshTokens.Where(rt => rt.UserId == userId).ToListAsync();
+        Assert.All(tokens, t => Assert.NotNull(t.Revoked));
+
+        var loginAttempt = await service.Login("deleteuser", pwd, "127.0.0.1");
+        Assert.False(loginAttempt.IsSuccess);
+        Assert.Equal(Application.Results.ServiceErrorCode.InvalidCredentials, loginAttempt.Error!.Code);
+    }
+
+    [Fact]
+    // Stale rate-limit entries should be removed after the retention window.
+    public async Task RateLimitCleanup_RemovesOldEntries()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = DateTime.UtcNow;
+
+        context.RateLimitEntries.Add(new Domain.RateLimitEntry
+        {
+            Id = Guid.NewGuid(),
+            Key = "login:testuser",
+            AttemptedAt = now.AddHours(-48)
+        });
+
+        context.RateLimitEntries.Add(new Domain.RateLimitEntry
+        {
+            Id = Guid.NewGuid(),
+            Key = "login:testuser",
+            AttemptedAt = now.AddHours(-23)
+        });
+
+        await context.SaveChangesAsync();
+
+        var removed = await StaleDataCleanupService.CleanupExpiredRateLimitEntriesAsync(context, 24);
+
+        Assert.Equal(1, removed);
+        var remaining = await context.RateLimitEntries.ToListAsync();
+        Assert.Single(remaining);
+        Assert.Equal(now.AddHours(-23).ToString("o"), remaining[0].AttemptedAt.ToString("o"));
     }
 
     [Fact]
@@ -654,28 +872,28 @@ public class AuthServiceTests
 
         for (var i = 0; i < 5; i++)
         {
-            var attempt = await service.Login("test@example.com", "WrongPassword1!", "127.0.0.1");
+            var attempt = await service.Login("testuser", "WrongPassword1!", "127.0.0.1");
             Assert.False(attempt.IsSuccess);
             Assert.Equal(Application.Results.ServiceErrorCode.InvalidCredentials, attempt.Error!.Code);
         }
 
-        var final = await service.Login("test@example.com", "WrongPassword1!", "127.0.0.1");
+        var final = await service.Login("testuser", "WrongPassword1!", "127.0.0.1");
         Assert.False(final.IsSuccess);
         Assert.NotNull(final.Error);
         Assert.Equal(Application.Results.ServiceErrorCode.RateLimited, final.Error!.Code);
     }
 
     [Fact]
-    // Login should trim and lowercase the email before lookup.
-    public async Task Login_TrimsAndNormalizesEmail()
+    // Login should trim the username before lookup (username lookup is case-insensitive).
+    public async Task Login_TrimsAndHandlesUsername()
     {
         using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
         var pwd = "Password1!";
-        context.Users.Add(new Domain.AppUser { Id = Guid.NewGuid(), Email = "test@example.com", Username = "tu", PasswordHash = Application.PasswordHasher.Hash(pwd), IsEmailVerified = true });
+        context.Users.Add(new Domain.AppUser { Id = Guid.NewGuid(), Email = "test@example.com", Username = "testuser", PasswordHash = Application.PasswordHasher.Hash(pwd), IsEmailVerified = true });
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login(" TEST@Example.com ", pwd, "127.0.0.1");
+        var result = await service.Login(" TestUser ", pwd, "127.0.0.1");
 
         Assert.True(result.IsSuccess);
     }
@@ -687,22 +905,22 @@ public class AuthServiceTests
         using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateAuthService(context);
 
-        var result = await service.Login("doesnotexist@example.com", "Password1!", "127.0.0.1");
+        var result = await service.Login("nonexistentuser", "Password1!", "127.0.0.1");
         Assert.False(result.IsSuccess);
         Assert.Equal(Application.Results.ServiceErrorCode.InvalidCredentials, result.Error!.Code);
     }
 
     [Theory]
-    // Login with invalid email formats should return InvalidCredentials and not throw.
-    [InlineData("not-an-email")]
-    [InlineData("space in@domain.com")]
-    [InlineData("user@@domain.com")]
-    public async Task Login_InvalidEmailFormat_ReturnsInvalidCredentials(string badEmail)
+    // Login with invalid/non-existent usernames should return InvalidCredentials and not throw.
+    [InlineData("nonexistentuser1")]
+    [InlineData("bad@user")]
+    [InlineData("user@@domain")]
+    public async Task Login_InvalidUsername_ReturnsInvalidCredentials(string badUsername)
     {
         using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
         var service = CreateAuthService(context);
 
-        var result = await service.Login(badEmail, "Password1!", "127.0.0.1");
+        var result = await service.Login(badUsername, "Password1!", "127.0.0.1");
         Assert.False(result.IsSuccess);
         Assert.Equal(Application.Results.ServiceErrorCode.InvalidCredentials, result.Error!.Code);
     }
@@ -718,7 +936,7 @@ public class AuthServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login("test@example.com", pwd, "127.0.0.1");
+        var result = await service.Login("tu", pwd, "127.0.0.1");
 
         Assert.True(result.IsSuccess);
         var refreshed = await context.Users.FirstAsync(u => u.Email == "test@example.com");
@@ -746,14 +964,14 @@ public class AuthServiceTests
         var service = CreateAuthService(context);
         for (var i = 0; i < 5; i++)
         {
-            var attempt = await service.Login("test@example.com", "WrongPassword1!", "127.0.0.1");
+            var attempt = await service.Login("testuser", "WrongPassword1!", "127.0.0.1");
             Assert.False(attempt.IsSuccess);
             Assert.Equal(Application.Results.ServiceErrorCode.InvalidCredentials, attempt.Error!.Code);
         }
 
         // The account should now be locked; using a fresh rate limiter avoids the rate-limit path.
         var retryService = new AuthService(context, new InMemoryAuditService(), new InMemoryRateLimitService(), new ConsoleEmailService());
-        var lockedAttempt = await retryService.Login("test@example.com", "Password1!", "127.0.0.1");
+        var lockedAttempt = await retryService.Login("testuser", "Password1!", "127.0.0.1");
         Assert.False(lockedAttempt.IsSuccess);
         Assert.Equal(Application.Results.ServiceErrorCode.AccountLocked, lockedAttempt.Error!.Code);
 
@@ -775,14 +993,14 @@ public class AuthServiceTests
         var service = new AuthService(context, new InMemoryAuditService(), rateLimitService, new ConsoleEmailService());
 
         // one failed attempt
-        var fail = await service.Login("test@example.com", "WrongPass1!", "127.0.0.1");
+        var fail = await service.Login("tu", "WrongPass1!", "127.0.0.1");
         Assert.False(fail.IsSuccess);
 
         // successful login resets rate limit
-        var ok = await service.Login("test@example.com", pwd, "127.0.0.1");
+        var ok = await service.Login("tu", pwd, "127.0.0.1");
         Assert.True(ok.IsSuccess);
 
-        var allowed = await rateLimitService.IsAllowedAsync("login:test@example.com", 5, TimeSpan.FromMinutes(15));
+        var allowed = await rateLimitService.IsAllowedAsync("login:tu", 5, TimeSpan.FromMinutes(15));
         Assert.True(allowed);
     }
 
@@ -804,7 +1022,7 @@ public class AuthServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login("test@example.com", "WrongPassword1!", "127.0.0.1");
+        var result = await service.Login("testuser", "WrongPassword1!", "127.0.0.1");
 
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
@@ -830,7 +1048,7 @@ public class AuthServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login("test@example.com", "Password1!", "127.0.0.1");
+        var result = await service.Login("testuser", "Password1!", "127.0.0.1");
 
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);
@@ -855,7 +1073,7 @@ public class AuthServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateAuthService(context);
-        var result = await service.Login("test@example.com", "Password1!", "127.0.0.1");
+        var result = await service.Login("testuser", "Password1!", "127.0.0.1");
 
         Assert.False(result.IsSuccess);
         Assert.NotNull(result.Error);

@@ -32,4 +32,22 @@ public class DataInfo
     // Determines if this message should only be sent to the specific player
     [JsonPropertyName("isPrivate")]
     public bool? IsPrivate { get; set; } = false;
+
+    // Number of cards remaining in the draw pile (sent on match start)
+    [JsonPropertyName("deckSize")]
+    public int? DeckSize { get; set; }
+
+    // True when this draw exhausted the draw pile and reshuffled it from the discard pile
+    [JsonPropertyName("deckRefilled")]
+    public bool? DeckRefilled { get; set; }
+
+    // Current hand-size limit for the match (starts at 5, drops by 1 each time the pile empties)
+    [JsonPropertyName("cardLimit")]
+    public int? CardLimit { get; set; }
+
+    [JsonPropertyName("players")]
+    public List<string>? Players { get; set; } = new();
+
+    [JsonPropertyName("handSizes")]
+    public Dictionary<string, int>? HandSizes { get; set; } = new();
 }
