@@ -169,6 +169,105 @@ func _on_message(msg):
 
 
 func _on_timeout():
+	if card_logic == null:
+		controller.Draw_Card(controller.PId)
+		return
+
+	# --- 1. BLANCO / COMBO RESETTEN ---
+	if card_logic.first_combo_card != null:
+		print("TIMER OUT: Combo niet afgemaakt. Kaart terugnemen in hand.")
+		var card_to_reset = card_logic.first_combo_card
+		card_logic.first_combo_card = null
+		
+		card_to_reset.movable = true
+		add_card_to_hand(card_to_reset, 0)
+		
+		controller.Draw_Card(controller.PId)
+		return
+
+	# --- 2. TROJAN HORSE / KEUZE RESETTEN ---
+	if card_logic.trojan_selecting_gift:
+		print("TIMER OUT: Keuzefase verlopen na spelen van Trojan. Schermen opruimen.")
+		card_logic.trojan_selecting_gift = false
+		
+		# Zoek en verwijder het attack/target selectiescherm uit de root
+		var attack_node = get_tree().root.get_node_or_null("Attack")
+		if attack_node:
+			print("Attack scherm gevonden en verwijderd.")
+			attack_node.queue_free()
+			
+		get_tree().paused = false
+		controller.Draw_Card(controller.PId)
+		return
+
+	# --- 3. IMPROVED HARDWARE KEUZE FORCEREN ---
+	if card_logic.imp_hardware_active:
+		print("TIMER OUT: Geen kaart gekozen voor Improved Hardware. Automatische selectie start.")
+		card_logic.imp_hardware_active = false
+		
+		var chosen_card = null
+		var strafkaarten = ["blue", "err", "merge"]
+		var hand_cards = player_hands[0]
+		
+		if hand_cards.size() > 0:
+			# Stap A: Zoek eerst naar een van de strafkaarten
+			for card in hand_cards:
+				if card.own_card_id in strafkaarten:
+					chosen_card = card
+					break
+			
+			# Stap B: Als er geen strafkaart is, pak een willekeurige (random) kaart
+			if chosen_card == null:
+				var random_index = randi() % hand_cards.size()
+				chosen_card = hand_cards[random_index]
+		
+		# Als we een kaart hebben gevonden om te forceren
+		if chosen_card != null:
+			var sacrifice_id = chosen_card.own_card_id
+			print("Geforceerde kaart voor Improved Hardware: ", sacrifice_id)
+			
+			# Verwijder de kaart fysiek uit de hand van de speler
+			remove_card_from_hand(chosen_card, 0)
+			chosen_card.queue_free()
+			
+			# Stuur de data naar de server
+			var data = {cardId = sacrifice_id}
+			controller.Play_Card(controller.PId, data)
+			
+			# Update de visuals en instructies zodat alles weer netjes staat
+			card_logic.update_hand_playability()
+			card_logic.update_instruction_text()
+		else:
+			# Mocht de hand toch leeg zijn, beëindig dan de beurt
+			controller.Draw_Card(controller.PId)
+			
+		return
+
+	# --- 4. OPEN SOURCE RESETTEN ---
+	if card_logic.os_active:
+		print("TIMER OUT: Geen keuze gemaakt in Open Source. Menu sluiten.")
+		card_logic.os_active = false
+		
+		# Zoek en verwijder het OSMenu uit de root
+		var os_node = get_tree().root.get_node_or_null("OSMenu")
+		if os_node:
+			print("OSMenu gevonden en verwijderd.")
+			if os_node.has_signal("choice_selected"):
+				os_node.choice_selected.emit("keep") 
+			os_node.queue_free()
+			
+		get_tree().paused = false
+		return
+
+	# --- EXTRA VEILIGHEIDSCHECK ---
+	# Mocht er om een andere vage reden nog een attack scherm openstaan, sluit hem
+	var backup_attack = get_tree().root.get_node_or_null("Attack")
+	if backup_attack:
+		backup_attack.queue_free()
+		get_tree().paused = false
+
+	# --- DEFAULT: Normale beurt verloopt ---
+	print("TIMER OUT: Normale beurt verlopen. Kaart trekken.")
 	controller.Draw_Card(controller.PId)
 
 func add_new_card(card_id, player_number):
