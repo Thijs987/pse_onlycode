@@ -1,10 +1,48 @@
 [gd_scene format=3 uid="uid://bwt1f1f61krv"]
 
 [ext_resource type="Script" uid="uid://x45d2qtogg0g" path="res://Scripts/Menus/LoginPage.gd" id="1_v0vm3"]
-[ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Background/BackgroundPattern.png" id="2_lelg6"]
+[ext_resource type="Texture2D" uid="uid://davr8ph0ymqbb" path="res://Sprites/Login/LoginBackground.png" id="2_lelg6"]
+[ext_resource type="Texture2D" uid="uid://c2p5pse03r8ie" path="res://Sprites/Login/LoginButtons.png" id="3_x3lit"]
+[ext_resource type="Texture2D" uid="uid://bufvc1f3aqotc" path="res://Sprites/BackButton.png" id="4_3gsyq"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_sq1ca"]
 font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3gsyq"]
+texture = ExtResource("3_x3lit")
+region_rect = Rect2(0, -1, 200, 60)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o136v"]
+texture = ExtResource("3_x3lit")
+region_rect = Rect2(0, 120, 200, 59)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_d5dr1"]
+texture = ExtResource("3_x3lit")
+region_rect = Rect2(2, -2, 198, 61)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_x3lit"]
+texture = ExtResource("3_x3lit")
+region_rect = Rect2(0, 241, 200, 55)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_kjdre"]
+texture = ExtResource("3_x3lit")
+region_rect = Rect2(2, 361, 196, 58)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3744d"]
+texture = ExtResource("3_x3lit")
+region_rect = Rect2(6, 240, 187, 59)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_h6kmm"]
+texture = ExtResource("4_3gsyq")
+region_rect = Rect2(-18, 0, 236, 58)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_86001"]
+texture = ExtResource("4_3gsyq")
+region_rect = Rect2(-2, 58, 205, 62)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_q3u1h"]
+texture = ExtResource("4_3gsyq")
+region_rect = Rect2(2, 0, 195, 57)
 
 [node name="LoginPage" type="Control" unique_id=884357330]
 layout_mode = 3
@@ -41,6 +79,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="LeftRegisterPanel" type="MarginContainer" parent="HBoxContainer" unique_id=1842646288]
+custom_minimum_size = Vector2(225, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -87,12 +126,22 @@ custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 
+[node name="Control" type="Control" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=945007012]
+custom_minimum_size = Vector2(60, 23)
+layout_mode = 2
+
 [node name="RegisterButton" type="Button" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1289735244]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-text = "Register"
+theme_override_styles/normal = SubResource("StyleBoxTexture_3gsyq")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_o136v")
+theme_override_styles/hover = SubResource("StyleBoxTexture_d5dr1")
 
 [node name="RegisterStatusLabel" type="Label" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1944538550]
+layout_mode = 2
+
+[node name="Control" type="Control" parent="HBoxContainer" unique_id=1628499423]
+custom_minimum_size = Vector2(60, -5.81)
 layout_mode = 2
 
 [node name="RightLoginPanel" type="MarginContainer" parent="HBoxContainer" unique_id=287964335]
@@ -101,6 +150,7 @@ size_flags_horizontal = 8
 size_flags_vertical = 4
 
 [node name="LoginVBox" type="VBoxContainer" parent="HBoxContainer/RightLoginPanel" unique_id=537876617]
+custom_minimum_size = Vector2(225, 0)
 layout_mode = 2
 size_flags_horizontal = 8
 
@@ -132,10 +182,16 @@ custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 
+[node name="Control" type="Control" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=715938028]
+custom_minimum_size = Vector2(60, 85)
+layout_mode = 2
+
 [node name="LoginButton" type="Button" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=626939730]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-text = "Log in"
+theme_override_styles/normal = SubResource("StyleBoxTexture_x3lit")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_kjdre")
+theme_override_styles/hover = SubResource("StyleBoxTexture_3744d")
 
 [node name="LoginStatusLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=2001705787]
 layout_mode = 2
@@ -148,5 +204,8 @@ theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 
 [node name="ReturnButton" type="Button" parent="MarginContainer" unique_id=780424951]
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
-text = "Back"
+theme_override_styles/normal = SubResource("StyleBoxTexture_h6kmm")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_86001")
+theme_override_styles/hover = SubResource("StyleBoxTexture_q3u1h")

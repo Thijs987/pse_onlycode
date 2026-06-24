@@ -77,7 +77,7 @@ func _process(_delta: float) -> void:
 		
 func _move_background() -> void:
 	background.position.x -= 0.25
-	background.position.y -= 0.5
+	background.position.y -= 0
 	
 	if background.position.x <= bg_start_pos.x - 80:
 		background.position = bg_start_pos

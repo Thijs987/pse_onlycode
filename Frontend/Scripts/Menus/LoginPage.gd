@@ -49,10 +49,10 @@ func _process(delta: float) -> void:
 	
 # Creates the moving background
 func _move_background() -> void:
-	background.position.x -= 0.25
-	background.position.y -= 0.5
+	background.position.x -= 0
+	background.position.y += 0.5
 	
-	if background.position.x == bg_start_pos.x - 80:
+	if background.position.y == bg_start_pos.y + 80:
 		background.position = bg_start_pos
 
 # LOGIN

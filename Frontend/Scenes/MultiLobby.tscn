@@ -1,8 +1,47 @@
 [gd_scene format=3 uid="uid://bdxchheqi80lr"]
 
 [ext_resource type="Script" uid="uid://bhv02iytie5b3" path="res://Scripts/Menus/MultiLobby.gd" id="1_tj0e8"]
+[ext_resource type="Texture2D" uid="uid://c4s68mgugurgf" path="res://Sprites/Lobby/BackgroundPlay.png" id="2_8i1ja"]
 [ext_resource type="PackedScene" uid="uid://by3u2iwo87g6x" path="res://Scenes/LobbySettings.tscn" id="2_jlkr6"]
-[ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Background/BackgroundPattern.png" id="3_e2wr0"]
+[ext_resource type="Texture2D" uid="uid://bufvc1f3aqotc" path="res://Sprites/BackButton.png" id="3_alc0g"]
+[ext_resource type="Texture2D" uid="uid://dwi83y2rurxgq" path="res://Sprites/Lobby/Tutorial.png" id="3_sbkco"]
+[ext_resource type="Texture2D" uid="uid://hokr04xcwdri" path="res://Sprites/Lobby/BackButton.png" id="4_8i1ja"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yj5nb"]
+texture = ExtResource("3_sbkco")
+region_rect = Rect2(0, 0, 200, 56)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5und6"]
+texture = ExtResource("3_sbkco")
+region_rect = Rect2(0, 57, 200, 63)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_wnw1e"]
+texture = ExtResource("3_sbkco")
+region_rect = Rect2(2, -2, 193, 60)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_8i1ja"]
+texture = ExtResource("3_alc0g")
+region_rect = Rect2(0, 0, 200, 58)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_sbkco"]
+texture = ExtResource("3_alc0g")
+region_rect = Rect2(3, 57, 194, 63)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0ark7"]
+texture = ExtResource("3_alc0g")
+region_rect = Rect2(8, 0, 185, 58)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_mxyc5"]
+texture = ExtResource("4_8i1ja")
+region_rect = Rect2(-28, -5, 355, 85)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ji2ea"]
+texture = ExtResource("4_8i1ja")
+region_rect = Rect2(-14, 78, 329, 82)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_kbg2r"]
+texture = ExtResource("4_8i1ja")
+region_rect = Rect2(-3, -4, 306, 85)
 
 [sub_resource type="LabelSettings" id="LabelSettings_q72hu"]
 font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
@@ -30,7 +69,7 @@ offset_left = -222.0
 offset_top = -257.0
 offset_right = 1410.0
 offset_bottom = 901.0
-texture = ExtResource("3_e2wr0")
+texture = ExtResource("2_8i1ja")
 stretch_mode = 1
 
 [node name="MultiLobbyContainer" type="Control" parent="." unique_id=1790962249]
@@ -100,7 +139,9 @@ custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-text = "Tutorial"
+theme_override_styles/normal = SubResource("StyleBoxTexture_yj5nb")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5und6")
+theme_override_styles/hover = SubResource("StyleBoxTexture_wnw1e")
 
 [node name="MainMenuHBox" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=2043749616]
 layout_mode = 2
@@ -110,7 +151,9 @@ size_flags_vertical = 4
 [node name="MainMenuButton" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox" unique_id=360365469]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-text = "Back"
+theme_override_styles/normal = SubResource("StyleBoxTexture_8i1ja")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_sbkco")
+theme_override_styles/hover = SubResource("StyleBoxTexture_0ark7")
 
 [node name="LobbyItemList" type="ItemList" parent="MultiLobbyContainer/BrowserView" unique_id=1164717918]
 layout_mode = 1
@@ -132,7 +175,9 @@ offset_top = -100.0
 offset_right = 350.0
 offset_bottom = -50.0
 grow_vertical = 0
-text = "Refresh Lobbies"
+theme_override_styles/normal = SubResource("StyleBoxTexture_mxyc5")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_ji2ea")
+theme_override_styles/hover = SubResource("StyleBoxTexture_kbg2r")
 
 [node name="InLobbyView" type="Control" parent="MultiLobbyContainer" unique_id=2000424944]
 visible = false
