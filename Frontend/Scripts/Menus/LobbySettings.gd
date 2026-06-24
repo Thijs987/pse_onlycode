@@ -110,8 +110,7 @@ func _on_submit():
 
 	Result.text = "Settings Accepted"
 
-	controller.custom_set = CusSet.duplicate()
-
+	controller.custom_set = CusSet
 
 func _on_reset():
 	CusSet = StanSet.duplicate()

@@ -2,8 +2,23 @@
 
 [ext_resource type="Script" uid="uid://d1b8u13a4jtfn" path="res://Scripts/Cards/CardTooltip.gd" id="1_mk5vh"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mk5vh"]
+bg_color = Color(0, 0, 0, 0.60784316)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 1, 0, 0.8509804)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+expand_margin_left = 8.0
+expand_margin_top = 4.0
+expand_margin_right = 8.0
+expand_margin_bottom = 4.0
+
 [node name="CardTooltip" type="Control" unique_id=1432163798]
-modulate = Color(0, 1, 0, 1)
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -13,12 +28,13 @@ grow_vertical = 2
 script = ExtResource("1_mk5vh")
 
 [node name="Panel" type="Panel" parent="." unique_id=1511131624]
-visible = false
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_mk5vh")
 
 [node name="Label" type="Label" parent="Panel" unique_id=1214597946]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
