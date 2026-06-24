@@ -18,9 +18,9 @@ func tooltip_text(card_id):
 		"blue":
 			label.text = "This card is unplayable\nLose it via effects from other cards"
 		"cm":
-			label.text = "End your turn without drawing a card"
+			label.text = "Ends your turn without drawing a card"
 		"ddos":
-			label.text = "End your turn without drawing a card\nNext player has to take two turns (stackable)"
+			label.text = "Ends your turn without drawing a card\nNext player has to take two turns (stackable)"
 		"err":
 			label.text = "This card is unplayable\nLose it via effects from other cards"
 		"goto":
@@ -40,7 +40,7 @@ func tooltip_text(card_id):
 		"test":
 			label.text = "Oops, this card shouldn't be here\nThis card is for tests!"
 		"trojan":
-			label.text = "Choose a player to give a card from your hand"
+			label.text = "Give a card from your own hand to a player of choice"
 		"vibe":
 			label.text = "Give the top card of the drawing pile to a player\nYou need 2 of this card to play them"
 		_:

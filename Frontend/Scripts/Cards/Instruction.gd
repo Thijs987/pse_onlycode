@@ -6,6 +6,7 @@ func _ready() -> void:
 	layer = 100
 	visible = false
 
+# Display the message after placing down a card
 func display_message(new_text: String) -> void:
 	if label == null:
 		return

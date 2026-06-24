@@ -32,6 +32,9 @@ func _ready() -> void:
 	$"../InputManager".connect("left_mouse_release", on_left_mouse_release)
 	card_tooltip = tooltip_scene.instantiate()
 	add_child(card_tooltip)
+	await get_tree().create_timer(0.2).timeout
+	update_hand_playability()
+	update_instruction_text()
 
 # Runs every frame, card is set to current mouse position with offset
 func _process(_delta: float) -> void:
