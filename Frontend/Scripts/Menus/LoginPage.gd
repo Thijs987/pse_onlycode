@@ -1,13 +1,14 @@
 extends Control
 
 # Zet op false bij testen met server ipv local
-const USE_LOCAL_MOCK = false 
+const USE_LOCAL_MOCK = false
 
 # Automatically use localhost in Godot Editor, and the actual server for exported builds
 var BASE_URL: String = "https://localhost:6969" if OS.has_feature("editor") else "https://codegreen-uva.ddns.net"
 
 const REGISTER_ENDPOINT = "/api/auth/register"
 const LOGIN_ENDPOINT = "/api/auth/login"
+const FORGOT_PASSWORD_ENDPOINT = "/api/auth/forgot-password"
 
 const MOCK_FILE_PATH = "user://mock_database.json"
 
@@ -19,11 +20,11 @@ const MOCK_FILE_PATH = "user://mock_database.json"
 @onready var register_status: Label = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegisterStatusLabel
 
 # UI REFERENCES - RIGHT (LOGIN)
-
 @onready var login_identifier_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginIdentifierInput
 @onready var login_password_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginPasswordInput
 @onready var login_button: Button = $HBoxContainer/RightLoginPanel/LoginVBox/LoginButton
 @onready var login_status: Label = $HBoxContainer/RightLoginPanel/LoginVBox/LoginStatusLabel
+@onready var forgot_password_link: LinkButton = $HBoxContainer/RightLoginPanel/LoginVBox/ForgotPasswordButton
 
 # GENERAL NODES
 @onready var return_button: Button = $MarginContainer/ReturnButton
@@ -36,7 +37,9 @@ func _ready() -> void:
 	login_button.pressed.connect(_on_login_button_pressed)
 	return_button.pressed.connect(_on_return_button_pressed)
 	
-	login_password_input.secret = true;
+	forgot_password_link.pressed.connect(_on_forgot_password_link_pressed)
+	
+	login_password_input.secret = true
 	
 	register_status.text = ""
 	login_status.text = ""
@@ -65,6 +68,53 @@ func _on_login_button_pressed() -> void:
 	if success:
 		login_status.text = "Login successful!"
 		SceneLoader.load_scene("uid://ctined7qq8dh2")
+
+# Forgot password
+func _on_forgot_password_link_pressed() -> void:
+	if is_submitting: return
+	
+	var email = login_identifier_input.text.strip_edges()
+	
+	if email == "":
+		login_status.text = "Please enter your email address first."
+		return
+		
+	set_loading_state(true, "login")
+	login_status.text = "Sending reset instructions..."
+	
+	if USE_LOCAL_MOCK:
+		await get_tree().create_timer(0.5).timeout
+		login_status.text = "Mock: Reset link sent to " + email
+		set_loading_state(false, "login")
+	else:
+		var url = BASE_URL + FORGOT_PASSWORD_ENDPOINT
+		var headers = ["Content-Type: application/json"]
+		var body = JSON.stringify({"email": email})
+		
+		http_request.set_tls_options(TLSOptions.client_unsafe())
+		var send_error = http_request.request(url, headers, HTTPClient.METHOD_POST, body)
+		
+		if send_error != OK:
+			login_status.text = "Network error while connecting."
+			set_loading_state(false, "login")
+			return
+			
+		var response = await http_request.request_completed
+		var response_code = response[1]
+		var response_body = response[3].get_string_from_utf8()
+		var json_data = JSON.parse_string(response_body)
+		
+		set_loading_state(false, "login")
+		
+		if response_code == 200:
+			login_status.text = "Reset instructions sent to your email!"
+		elif response_code == 404:
+			login_status.text = "Server route not found (404). Endpoint pending on backend."
+		else:
+			if json_data and json_data.has("message"):
+				login_status.text = json_data["message"]
+			else:
+				login_status.text = "Failed to send reset link (" + str(response_code) + ")."
 
 # REGISTER
 func _on_register_button_pressed() -> void:
@@ -104,7 +154,6 @@ func _on_return_button_pressed() -> void:
 	if not is_submitting:
 		SceneLoader.load_scene("uid://ctined7qq8dh2")
 
-# --- REAL SERVER NETWORK FUNCTION ---
 func _send_auth_request(endpoint: String, data: Dictionary, status_label: Label) -> bool:
 	var url = BASE_URL + endpoint
 	var headers = ["Content-Type: application/json"]
@@ -124,16 +173,13 @@ func _send_auth_request(endpoint: String, data: Dictionary, status_label: Label)
 	
 	if response_code == 200:
 		if endpoint == LOGIN_ENDPOINT and json_data:
-			# Login response contains: { user: {...}, token: "...", expires: "..." }
 			if json_data.has("token"):
 				var user_data = json_data.get("user", {})
 				auth_manager.set_auth(json_data["token"], user_data)
 				if json_data.has("expires"):
 					auth_manager.set_token_expires(str(json_data["expires"]))
-				# Set player ID from user data
 				controller.PId = str(user_data.get("username", ""))
 			elif json_data.has("username"):
-				# Fallback: no JWT configured on server
 				controller.PId = str(json_data["username"])
 		elif json_data and json_data.has("username"):
 			controller.PId = str(json_data["username"])
@@ -181,7 +227,7 @@ func _handle_local_mock_auth(endpoint: String, data: Dictionary, status_label: L
 		return true
 		
 	elif endpoint == LOGIN_ENDPOINT:
-		var email = data["email"]
+		var email = data["username"]
 		if not local_db.has(email):
 			status_label.text = "Email not found."
 			return false
@@ -201,6 +247,7 @@ func set_loading_state(busy: bool, mode: String) -> void:
 	register_button.disabled = busy
 	login_button.disabled = busy
 	return_button.disabled = busy
+	forgot_password_link.disabled = busy
 	
 	if busy:
 		if mode == "login": login_status.text = "Logging in..."

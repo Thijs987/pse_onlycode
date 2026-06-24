@@ -127,6 +127,10 @@ custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Log in"
 
+[node name="ForgotPasswordButton" type="LinkButton" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=432390050]
+layout_mode = 2
+text = "Reset Password?"
+
 [node name="LoginStatusLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=2001705787]
 layout_mode = 2
 
