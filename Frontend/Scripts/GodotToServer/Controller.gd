@@ -12,7 +12,7 @@ signal lobbies_updated(lobbies)
 signal lobby_join_failed()
 signal lobby_left()
 
-var PId := "KEVINWHOOO"
+var PId := ""
 var player_list = ["", "", "", ""]
 
 var Last_Message := {}
