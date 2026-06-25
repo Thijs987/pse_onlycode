@@ -365,7 +365,17 @@ public class MessageRouter
 
     private bool lobbyHasHuman(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
     {
-        bool hasHuman = connectionManager.GetPlayers(lobbyId).Any(p => !botService.IsBot(p, lobbyId));
+        List<string> players;
+        try
+        {
+            players = connectionManager.GetPlayers(lobbyId);
+        }
+        catch
+        {
+            return false;
+        }
+
+        bool hasHuman = players.Any(p => !botService.IsBot(p, lobbyId));
         if (!hasHuman)
         {
             Log.Debug("Only bots in lobby {LobbyId}", lobbyId);

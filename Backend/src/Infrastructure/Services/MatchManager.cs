@@ -194,6 +194,11 @@ public class MatchManager
             return new DataInfo { Error = "You have been eliminated or are not in the game." };
         }
 
+        if (!string.IsNullOrEmpty(cardData.Target) && match.PlayerIds.Contains(cardData.Target) && !match.PlayerHands.ContainsKey(cardData.Target))
+        {
+            return new DataInfo { Error = "Target player has been eliminated." };
+        }
+
         // Look up the card in registry
         if (!_cardRegistry.TryGetValue(cardData.CardId, out var cardEffect))
         {
