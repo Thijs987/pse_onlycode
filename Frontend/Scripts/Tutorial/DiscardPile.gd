@@ -9,7 +9,12 @@ func _ready():
 	card_logic.card_played.connect(_on_card_played)
 
 func _on_card_played(player_id, card_id):
+	if card_id is String:
+		card_id = [card_id]
+	for id in card_id:
+		play_card(player_id, id)
 
+func play_card(player_id, card_id):
 	var card_scene = preload("uid://dlb3crw3qdkv2")
 	var card = card_scene.instantiate()
 

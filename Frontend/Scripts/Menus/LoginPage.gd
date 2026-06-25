@@ -13,20 +13,24 @@ const RESET_PASSWORD_ENDPOINT = "/api/auth/reset-password"
 
 const MOCK_FILE_PATH = "user://mock_database.json"
 
-# UI REFERENCES - LEFT (REGISTER)
-@onready var reg_email_input: LineEdit = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegEmailInput
-@onready var reg_username_input: LineEdit = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegUserInput
-@onready var reg_password_input: LineEdit = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegPasswordInput
-@onready var register_button: Button = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegisterButton
-@onready var register_status: Label = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegisterStatusLabel
+# UI REFERENCES - REGISTER
+@onready var register_panel: MarginContainer = $"HBoxContainer/RegisterPanel"
+@onready var reg_email_input: LineEdit = $HBoxContainer/RegisterPanel/RegisterVBox/RegEmailInput
+@onready var reg_username_input: LineEdit = $HBoxContainer/RegisterPanel/RegisterVBox/RegUserInput
+@onready var reg_password_input: LineEdit = $HBoxContainer/RegisterPanel/RegisterVBox/RegPasswordInput
+@onready var register_button: Button = $HBoxContainer/RegisterPanel/RegisterVBox/RegisterButton
+@onready var switch_to_login_button: Button = $"HBoxContainer/RegisterPanel/RegisterVBox/SwitchLoginButton"
+@onready var register_status: Label = $HBoxContainer/RegisterPanel/RegisterVBox/RegisterStatusLabel
 
-# UI REFERENCES - RIGHT (LOGIN)
-@onready var login_identifier_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginIdentifierInput
-@onready var login_password_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginPasswordInput
-@onready var login_button: Button = $HBoxContainer/RightLoginPanel/LoginVBox/LoginButton
-@onready var login_status: Label = $HBoxContainer/RightLoginPanel/LoginVBox/LoginStatusLabel
-@onready var forgot_password_link: LinkButton = $HBoxContainer/RightLoginPanel/LoginVBox/ForgotPasswordButton
-@onready var reset_token_button: LinkButton = $HBoxContainer/RightLoginPanel/LoginVBox/ResetTokenButton
+# UI REFERENCES - LOGIN
+@onready var login_panel: MarginContainer = $"HBoxContainer/LoginPanel"
+@onready var login_identifier_input: LineEdit = $HBoxContainer/LoginPanel/LoginVBox/LoginIdentifierInput
+@onready var login_password_input: LineEdit = $HBoxContainer/LoginPanel/LoginVBox/LoginPasswordInput
+@onready var login_button: Button = $HBoxContainer/LoginPanel/LoginVBox/LoginButton
+@onready var switch_to_register_button: Button = $"HBoxContainer/LoginPanel/LoginVBox/SwitchRegisterButton"
+@onready var login_status: Label = $HBoxContainer/LoginPanel/LoginVBox/LoginStatusLabel
+@onready var forgot_password_link: LinkButton = $HBoxContainer/LoginPanel/LoginVBox/ForgotPasswordButton
+@onready var reset_token_button: LinkButton = $HBoxContainer/LoginPanel/LoginVBox/ResetTokenButton
 
 # Reset token UI
 @onready var reset_password_popup: WindowDialog = $ResetPasswordPopup
@@ -39,24 +43,39 @@ const MOCK_FILE_PATH = "user://mock_database.json"
 # GENERAL NODES
 @onready var return_button: Button = $MarginContainer/ReturnButton
 @onready var http_request: HTTPRequest = $HTTPRequest
+@onready var background: TextureRect = $"Background/CanvasLayer/Background"
 
 var is_submitting: bool = false
+var bg_start_pos
 
 func _ready() -> void:
 	register_button.pressed.connect(_on_register_button_pressed)
 	login_button.pressed.connect(_on_login_button_pressed)
 	return_button.pressed.connect(_on_return_button_pressed)
-	
+	switch_to_login_button.pressed.connect(_switch_to_login)
+	switch_to_register_button.pressed.connect(_switch_to_register)
 	forgot_password_link.pressed.connect(_on_forgot_password_link_pressed)
 	reset_token_button.pressed.connect(_on_reset_token_button_pressed)
 	reset_password_submit_button.pressed.connect(_on_reset_password_submit_pressed)
-	
+
 	login_password_input.secret = true
 	reset_new_password_input.secret = true
-	
+
 	register_status.text = ""
 	login_status.text = ""
 	reset_password_status_label.text = ""
+	bg_start_pos = background.position
+
+func _process(delta: float) -> void:
+	_move_background()
+
+# Creates the moving background
+func _move_background() -> void:
+	background.position.x -= 0.15
+	background.position.y -= 0.3
+
+	if background.position.x <= bg_start_pos.x - 80:
+		background.position = bg_start_pos
 
 # LOGIN
 func _on_login_button_pressed() -> void:
@@ -204,6 +223,17 @@ func _on_reset_password_submit_pressed() -> void:
 		reset_password_status_label.text = "Password reset successfully! You can now log in."
 		reset_password_popup.hide()
 
+# --- SWITCH TO LOGIN SCREEN ---
+func _switch_to_login():
+	register_panel.visible = false
+	login_panel.visible = true
+
+# --- SWITCH TO REGISTER SCREEN ---
+func _switch_to_register():
+	login_panel.visible = false
+	register_panel.visible = true
+
+# --- REAL SERVER NETWORK FUNCTION ---
 func _send_auth_request(endpoint: String, data: Dictionary, status_label: Label) -> bool:
 	var url = BASE_URL + endpoint
 	var headers = ["Content-Type: application/json"]

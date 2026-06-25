@@ -1,95 +1,106 @@
 [gd_scene format=3 uid="uid://15klgveacs0r"]
 
 [ext_resource type="Texture2D" uid="uid://ddi0wy7qoyp4c" path="res://Sprites/Table.jpeg" id="1_m35rq"]
-[ext_resource type="Script" uid="uid://l8hl0gyra0em" path="res://Scripts/Tutorial/Pile.gd" id="2_uo1fs"]
+[ext_resource type="Script" uid="uid://bkjjiqdqugih7" path="res://Scripts/ClickLogic/Pile.gd" id="2_m35rq"]
 [ext_resource type="Texture2D" uid="uid://bglcmj03jm8lb" path="res://Sprites/Card_deck_sprite.png" id="3_5gw1s"]
-[ext_resource type="Script" uid="uid://dsxn481hq1afa" path="res://Scripts/Tutorial/DiscardPile.gd" id="4_7bloo"]
-[ext_resource type="Script" uid="uid://dq1qq7wsoepde" path="res://Scripts/Tutorial/TurnTimer.gd" id="5_rlm2d"]
-[ext_resource type="Script" uid="uid://w4glwalulqb3" path="res://Scripts/Tutorial/PlayerHand.gd" id="6_x7a1n"]
-[ext_resource type="Script" uid="uid://clkc0y2w4i6u2" path="res://Scripts/Tutorial/CardLogic.gd" id="7_vv0ms"]
-[ext_resource type="Script" uid="uid://ccxvg0uo4vgo2" path="res://Scripts/Tutorial/InputManager.gd" id="8_vv0ms"]
-[ext_resource type="Script" uid="uid://bki53kmrqcrjb" path="res://Scripts/Tutorial/Leader.gd" id="9_hxa32"]
+[ext_resource type="Script" uid="uid://uchns3vel8n1" path="res://Scripts/ClickLogic/DiscardPile.gd" id="4_sgy12"]
+[ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://Scripts/Cards/CardLogic.gd" id="5_5gw1s"]
+[ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://Scripts/Cards/PlayerHand.gd" id="6_brn58"]
+[ext_resource type="Script" uid="uid://dis0yyp8e3chk" path="res://Scripts/ClickLogic/InputManager.gd" id="7_fx2vl"]
+[ext_resource type="Script" uid="uid://br3mo8m8v4kiw" path="res://Scripts/GodotToServer/GSHTTP.gd" id="8_mqud2"]
+[ext_resource type="Script" uid="uid://dg8okmsqxxyxb" path="res://Scripts/GodotToServer/GSCWS.gd" id="9_sswaw"]
+[ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://Scripts/GodotToServer/Controller.gd" id="10_kpk71"]
+[ext_resource type="Script" uid="uid://ltey2a6xnpbk" path="res://Scripts/Menus/GameUI.gd" id="11_8nvbb"]
+[ext_resource type="Script" uid="uid://h003qqnoqrym" path="res://Scenes/turn_timer.gd" id="12_orlbv"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_2o727"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_rlm2d"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_efxa6"]
 size = Vector2(421.5, 218)
 
-[node name="Tutorial" type="Node2D" unique_id=1466140711]
+[node name="Game" type="Node2D" unique_id=1499448830]
 
-[node name="Background" type="Node2D" parent="." unique_id=1148183018]
+[node name="Background" type="Node2D" parent="." unique_id=234779892]
 
-[node name="Table" type="Sprite2D" parent="Background" unique_id=954604565]
+[node name="Table" type="Sprite2D" parent="Background" unique_id=950271474]
 position = Vector2(576, 324)
 scale = Vector2(2.1893203, 2.1893206)
 texture = ExtResource("1_m35rq")
 
-[node name="TurnLabel" type="Label" parent="Background" unique_id=1031097960]
-offset_left = 626.0
+[node name="TurnLabel" type="Label" parent="Background" unique_id=110888612]
+offset_left = 576.0
 offset_top = 324.0
-offset_right = 708.0
+offset_right = 658.0
 offset_bottom = 347.0
 
-[node name="TimeLabel" type="Label" parent="Background" unique_id=367852581]
+[node name="TimeLabel" type="Label" parent="Background" unique_id=430175237]
 offset_left = 676.0
 offset_top = 324.0
 offset_right = 758.0
 offset_bottom = 347.0
 justification_flags = 131
 
-[node name="Pile" type="Node2D" parent="." unique_id=712988398]
-script = ExtResource("2_uo1fs")
+[node name="Pile" type="Node2D" parent="." unique_id=738463849]
+script = ExtResource("2_m35rq")
 
-[node name="PileArea" type="Area2D" parent="Pile" unique_id=14196806]
+[node name="PileArea" type="Area2D" parent="Pile" unique_id=1734952556]
 position = Vector2(576, 324)
 collision_mask = 2
 
-[node name="Pile" type="Sprite2D" parent="Pile/PileArea" unique_id=1461804171]
+[node name="Pile" type="Sprite2D" parent="Pile/PileArea" unique_id=337770192]
 scale = Vector2(0.08100327, 0.08100327)
 texture = ExtResource("3_5gw1s")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Pile/PileArea" unique_id=1644466139]
-shape = SubResource("RectangleShape2D_2o727")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Pile/PileArea" unique_id=875606098]
+shape = SubResource("RectangleShape2D_1bvp3")
 
-[node name="CounterLabel" type="Label" parent="Pile/PileArea" unique_id=1466490003]
+[node name="CounterLabel" type="Label" parent="Pile/PileArea" unique_id=293749745]
 offset_right = 40.0
 offset_bottom = 23.0
 metadata/_edit_use_anchors_ = true
 
-[node name="DiscardPile" type="Node2D" parent="." unique_id=216175722]
-script = ExtResource("4_7bloo")
+[node name="DiscardPile" type="Node2D" parent="." unique_id=231680211]
+script = ExtResource("4_sgy12")
 
-[node name="DiscardPileArea" type="Area2D" parent="DiscardPile" unique_id=1832435201]
+[node name="DiscardPileArea" type="Area2D" parent="DiscardPile" unique_id=1594361609]
 position = Vector2(576, 324)
 collision_layer = 4
 collision_mask = 3
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DiscardPile/DiscardPileArea" unique_id=1737739993]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DiscardPile/DiscardPileArea" unique_id=403654840]
 scale = Vector2(0.8, 0.8)
-shape = SubResource("RectangleShape2D_rlm2d")
+shape = SubResource("RectangleShape2D_efxa6")
 
-[node name="DiscardPileLocation" type="Area2D" parent="DiscardPile" unique_id=2095009073]
+[node name="DiscardPileLocation" type="Area2D" parent="DiscardPile" unique_id=2028668179]
 position = Vector2(426, 324)
 collision_layer = 8
 
-[node name="PlayerHand" type="Node2D" parent="." unique_id=493740220]
-script = ExtResource("6_x7a1n")
+[node name="CardLogic" type="Node2D" parent="." unique_id=1659768658]
+script = ExtResource("5_5gw1s")
 
-[node name="CardLogic" type="Node2D" parent="." unique_id=1153382252]
-script = ExtResource("7_vv0ms")
+[node name="PlayerHand" type="Node2D" parent="." unique_id=1343786011]
+script = ExtResource("6_brn58")
 
-[node name="InputManager" type="Node2D" parent="." unique_id=225008625]
-script = ExtResource("8_vv0ms")
+[node name="InputManager" type="Node2D" parent="." unique_id=174033307]
+script = ExtResource("7_fx2vl")
 
-[node name="TurnTimer" type="Timer" parent="." unique_id=40858803]
+[node name="GSCHTTP" type="Node2D" parent="." unique_id=1025658604]
+script = ExtResource("8_mqud2")
+
+[node name="GSCWS" type="Node2D" parent="." unique_id=195162327]
+script = ExtResource("9_sswaw")
+
+[node name="Controller" type="Node2D" parent="." unique_id=989713340]
+script = ExtResource("10_kpk71")
+
+[node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
+script = ExtResource("11_8nvbb")
+
+[node name="Card Play" type="AudioStreamPlayer2D" parent="." unique_id=1269714596]
+autoplay = true
+
+[node name="TurnTimer" type="Timer" parent="." unique_id=2082152117]
 wait_time = 30.0
 ignore_time_scale = true
-script = ExtResource("5_rlm2d")
-
-[node name="Leader" type="Node2D" parent="." unique_id=1404215155]
-script = ExtResource("9_hxa32")
-
-[node name="TutorialLabel" type="Label" parent="Leader" unique_id=298529425]
-offset_right = 40.0
-offset_bottom = 23.0
+script = ExtResource("12_orlbv")

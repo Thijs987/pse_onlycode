@@ -1,182 +1,106 @@
 [gd_scene format=3 uid="uid://by3u2iwo87g6x"]
 
-[ext_resource type="Script" uid="uid://clxuxqte1tawe" path="res://Scripts/Menus/LobbySettings.gd" id="1_x3fgx"]
+[ext_resource type="Texture2D" uid="uid://ddi0wy7qoyp4c" path="res://Sprites/Table.jpeg" id="1_7ptow"]
+[ext_resource type="Script" uid="uid://bkjjiqdqugih7" path="res://Scripts/ClickLogic/Pile.gd" id="2_y6xs8"]
+[ext_resource type="Texture2D" uid="uid://bglcmj03jm8lb" path="res://Sprites/Card_deck_sprite.png" id="3_qcv1o"]
+[ext_resource type="Script" uid="uid://uchns3vel8n1" path="res://Scripts/ClickLogic/DiscardPile.gd" id="4_w8648"]
+[ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://Scripts/Cards/CardLogic.gd" id="5_crfdm"]
+[ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://Scripts/Cards/PlayerHand.gd" id="6_urxhi"]
+[ext_resource type="Script" uid="uid://dis0yyp8e3chk" path="res://Scripts/ClickLogic/InputManager.gd" id="7_1rg7m"]
+[ext_resource type="Script" uid="uid://br3mo8m8v4kiw" path="res://Scripts/GodotToServer/GSHTTP.gd" id="8_0yswt"]
+[ext_resource type="Script" uid="uid://dg8okmsqxxyxb" path="res://Scripts/GodotToServer/GSCWS.gd" id="9_ywrdl"]
+[ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://Scripts/GodotToServer/Controller.gd" id="10_bibrh"]
+[ext_resource type="Script" uid="uid://ltey2a6xnpbk" path="res://Scripts/Menus/GameUI.gd" id="11_608of"]
+[ext_resource type="Script" uid="uid://h003qqnoqrym" path="res://Scenes/turn_timer.gd" id="12_dn0ua"]
 
-[node name="LobbySettings" type="Control" unique_id=1787609362]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("1_x3fgx")
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
+size = Vector2(89, 88)
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1136707739]
-layout_mode = 0
-offset_left = -24.0
-offset_top = -14.0
-offset_right = 1184.0
-offset_bottom = 681.0
-color = Color(0.9217038, 0.9217038, 0.9217038, 1)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_efxa6"]
+size = Vector2(421.5, 218)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=706943334]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -161.0
-offset_top = 3.0
-offset_right = 71.0
-offset_bottom = 361.0
-grow_horizontal = 2
+[node name="Game" type="Node2D" unique_id=1499448830]
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1706499621]
-layout_mode = 2
-size_flags_horizontal = 8
+[node name="Background" type="Node2D" parent="." unique_id=234779892]
 
-[node name="ClenMerge" type="Label" parent="VBoxContainer/HBoxContainer" unique_id=866766237]
-modulate = Color(0.105882354, 0.17254902, 0.8156863, 1)
-layout_mode = 2
-text = "Clean Merge:"
+[node name="Table" type="Sprite2D" parent="Background" unique_id=950271474]
+position = Vector2(576, 324)
+scale = Vector2(2.1893203, 2.1893206)
+texture = ExtResource("1_7ptow")
 
-[node name="NoCleanMerge" type="LineEdit" parent="VBoxContainer/HBoxContainer" unique_id=1219871496]
-layout_mode = 2
+[node name="TurnLabel" type="Label" parent="Background" unique_id=110888612]
+offset_left = 576.0
+offset_top = 324.0
+offset_right = 658.0
+offset_bottom = 347.0
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer" unique_id=216536139]
-layout_mode = 2
-size_flags_horizontal = 8
+[node name="TimeLabel" type="Label" parent="Background" unique_id=430175237]
+offset_left = 676.0
+offset_top = 324.0
+offset_right = 758.0
+offset_bottom = 347.0
+justification_flags = 131
 
-[node name="Ddos" type="Label" parent="VBoxContainer/HBoxContainer2" unique_id=1458654599]
-modulate = Color(0.7058824, 0.31764707, 0, 1)
-layout_mode = 2
-text = "Ddos Attack:"
+[node name="Pile" type="Node2D" parent="." unique_id=738463849]
+script = ExtResource("2_y6xs8")
 
-[node name="NoDdos" type="LineEdit" parent="VBoxContainer/HBoxContainer2" unique_id=842320415]
-layout_mode = 2
+[node name="PileArea" type="Area2D" parent="Pile" unique_id=1734952556]
+position = Vector2(576, 324)
+collision_mask = 2
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer" unique_id=635341371]
-layout_mode = 2
-size_flags_horizontal = 8
+[node name="Pile" type="Sprite2D" parent="Pile/PileArea" unique_id=337770192]
+scale = Vector2(0.08100327, 0.08100327)
+texture = ExtResource("3_qcv1o")
 
-[node name="SQL" type="Label" parent="VBoxContainer/HBoxContainer3" unique_id=84563493]
-modulate = Color(0.7058824, 0.31764707, 0, 1)
-layout_mode = 2
-text = "SQL Injection:"
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Pile/PileArea" unique_id=875606098]
+shape = SubResource("RectangleShape2D_1bvp3")
 
-[node name="NoSQL" type="LineEdit" parent="VBoxContainer/HBoxContainer3" unique_id=1841877653]
-layout_mode = 2
+[node name="CounterLabel" type="Label" parent="Pile/PileArea" unique_id=293749745]
+offset_right = 40.0
+offset_bottom = 23.0
+metadata/_edit_use_anchors_ = true
 
-[node name="HBoxContainer4" type="HBoxContainer" parent="VBoxContainer" unique_id=249324033]
-layout_mode = 2
-size_flags_horizontal = 8
+[node name="DiscardPile" type="Node2D" parent="." unique_id=231680211]
+script = ExtResource("4_w8648")
 
-[node name="Sort" type="Label" parent="VBoxContainer/HBoxContainer4" unique_id=1390265553]
-modulate = Color(2.2481499, 2.0345097, 0, 1)
-layout_mode = 2
-text = "Miracle Sort:"
+[node name="DiscardPileArea" type="Area2D" parent="DiscardPile" unique_id=1594361609]
+position = Vector2(576, 324)
+collision_layer = 4
+collision_mask = 3
 
-[node name="NoSort" type="LineEdit" parent="VBoxContainer/HBoxContainer4" unique_id=847647951]
-layout_mode = 2
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DiscardPile/DiscardPileArea" unique_id=403654840]
+scale = Vector2(0.8, 0.8)
+shape = SubResource("RectangleShape2D_efxa6")
 
-[node name="HBoxContainer5" type="HBoxContainer" parent="VBoxContainer" unique_id=55506419]
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
+[node name="DiscardPileLocation" type="Area2D" parent="DiscardPile" unique_id=2028668179]
+position = Vector2(426, 324)
+collision_layer = 8
 
-[node name="Err" type="Label" parent="VBoxContainer/HBoxContainer5" unique_id=703735325]
-modulate = Color(0.5246153, 0.48773906, 0.45086282, 1)
-layout_mode = 2
-text = "Bad Coding Habbits:"
+[node name="CardLogic" type="Node2D" parent="." unique_id=1659768658]
+script = ExtResource("5_crfdm")
 
-[node name="NoErr" type="LineEdit" parent="VBoxContainer/HBoxContainer5" unique_id=794023555]
-layout_mode = 2
+[node name="PlayerHand" type="Node2D" parent="." unique_id=1343786011]
+script = ExtResource("6_urxhi")
 
-[node name="HBoxContainer6" type="HBoxContainer" parent="VBoxContainer" unique_id=1708951221]
-layout_mode = 2
-size_flags_horizontal = 8
+[node name="InputManager" type="Node2D" parent="." unique_id=174033307]
+script = ExtResource("7_1rg7m")
 
-[node name="Goto" type="Label" parent="VBoxContainer/HBoxContainer6" unique_id=1592571919]
-modulate = Color(0.5254902, 0.4862745, 0.4509804, 1)
-layout_mode = 2
-text = "Goto:"
+[node name="GSCHTTP" type="Node2D" parent="." unique_id=1025658604]
+script = ExtResource("8_0yswt")
 
-[node name="NoGoto" type="LineEdit" parent="VBoxContainer/HBoxContainer6" unique_id=922428253]
-layout_mode = 2
+[node name="GSCWS" type="Node2D" parent="." unique_id=195162327]
+script = ExtResource("9_ywrdl")
 
-[node name="HBoxContainer7" type="HBoxContainer" parent="VBoxContainer" unique_id=1496493381]
-layout_mode = 2
-size_flags_horizontal = 8
+[node name="Controller" type="Node2D" parent="." unique_id=989713340]
+script = ExtResource("10_bibrh")
 
-[node name="Hardware" type="Label" parent="VBoxContainer/HBoxContainer7" unique_id=1285796560]
-modulate = Color(0.26577386, 0.25445575, 0.23936495, 1)
-layout_mode = 2
-text = "Improved Hardware:"
+[node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
+script = ExtResource("11_608of")
 
-[node name="NoHardware" type="LineEdit" parent="VBoxContainer/HBoxContainer7" unique_id=2088099031]
-layout_mode = 2
+[node name="Card Play" type="AudioStreamPlayer2D" parent="." unique_id=1269714596]
+autoplay = true
 
-[node name="HBoxContainer8" type="HBoxContainer" parent="VBoxContainer" unique_id=218658209]
-layout_mode = 2
-size_flags_horizontal = 8
-
-[node name="Unplayable" type="Label" parent="VBoxContainer/HBoxContainer8" unique_id=1386180003]
-modulate = Color(0.41960785, 0.627451, 0.33333334, 1)
-layout_mode = 2
-text = "Errors:"
-
-[node name="NoUnplayable" type="LineEdit" parent="VBoxContainer/HBoxContainer8" unique_id=1384043325]
-layout_mode = 2
-
-[node name="HBoxContainer9" type="HBoxContainer" parent="VBoxContainer" unique_id=1346331501]
-layout_mode = 2
-size_flags_horizontal = 8
-
-[node name="Trojan" type="Label" parent="VBoxContainer/HBoxContainer9" unique_id=1309213978]
-modulate = Color(0, 0, 0, 1)
-layout_mode = 2
-text = "Trojan Horse:"
-
-[node name="NoTrojan" type="LineEdit" parent="VBoxContainer/HBoxContainer9" unique_id=70923554]
-layout_mode = 2
-
-[node name="HBoxContainer10" type="HBoxContainer" parent="VBoxContainer" unique_id=1244606008]
-layout_mode = 2
-size_flags_horizontal = 8
-
-[node name="OpenSource" type="Label" parent="VBoxContainer/HBoxContainer10" unique_id=1671693536]
-modulate = Color(0.103128485, 0.06153397, 0.47747913, 1)
-layout_mode = 2
-text = "Open Source:"
-
-[node name="NoOpenSource" type="LineEdit" parent="VBoxContainer/HBoxContainer10" unique_id=1475457404]
-layout_mode = 2
-
-[node name="HBoxContainer11" type="HBoxContainer" parent="VBoxContainer" unique_id=1058243639]
-layout_mode = 2
-
-[node name="SubmitButton" type="Button" parent="VBoxContainer/HBoxContainer11" unique_id=20016244]
-layout_mode = 2
-size_flags_horizontal = 8
-text = "Submit Game Settings"
-
-[node name="ResetButton" type="Button" parent="VBoxContainer/HBoxContainer11" unique_id=1128986941]
-layout_mode = 2
-text = "Reset"
-
-[node name="HBoxContainer12" type="HBoxContainer" parent="VBoxContainer" unique_id=1152611294]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="BackButton" type="Button" parent="VBoxContainer/HBoxContainer12" unique_id=1198213998]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-text = "Return to Lobby"
-
-[node name="HBoxContainer13" type="HBoxContainer" parent="VBoxContainer" unique_id=1743366819]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="Result" type="Label" parent="VBoxContainer/HBoxContainer13" unique_id=798784450]
-modulate = Color(0.91764706, 0, 0.12156863, 1)
-layout_mode = 2
+[node name="TurnTimer" type="Timer" parent="." unique_id=2082152117]
+wait_time = 30.0
+ignore_time_scale = true
+script = ExtResource("12_dn0ua")

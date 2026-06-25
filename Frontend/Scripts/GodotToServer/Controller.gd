@@ -1,7 +1,5 @@
 extends Node2D
 
-@onready var LobbySettings = $"../LobbySettings"
-
 # In order to make use of this signal put
 # "Controller.message_updated.connect(_on_message)" in _ready()
 # Then create the function "_on_message" or any other name as long as it
