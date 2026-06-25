@@ -1,106 +1,240 @@
 [gd_scene format=3 uid="uid://bwt1f1f61krv"]
 
-[ext_resource type="Texture2D" uid="uid://ddi0wy7qoyp4c" path="res://Sprites/Table.jpeg" id="1_6yofy"]
-[ext_resource type="Script" uid="uid://bkjjiqdqugih7" path="res://Scripts/ClickLogic/Pile.gd" id="2_042y3"]
-[ext_resource type="Texture2D" uid="uid://bglcmj03jm8lb" path="res://Sprites/Card_deck_sprite.png" id="3_nlch1"]
-[ext_resource type="Script" uid="uid://uchns3vel8n1" path="res://Scripts/ClickLogic/DiscardPile.gd" id="4_n73g4"]
-[ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://Scripts/Cards/CardLogic.gd" id="5_x4dow"]
-[ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://Scripts/Cards/PlayerHand.gd" id="6_r67tb"]
-[ext_resource type="Script" uid="uid://dis0yyp8e3chk" path="res://Scripts/ClickLogic/InputManager.gd" id="7_m16kq"]
-[ext_resource type="Script" uid="uid://br3mo8m8v4kiw" path="res://Scripts/GodotToServer/GSHTTP.gd" id="8_twr8j"]
-[ext_resource type="Script" uid="uid://dg8okmsqxxyxb" path="res://Scripts/GodotToServer/GSCWS.gd" id="9_j2mrx"]
-[ext_resource type="Script" uid="uid://bb627jh3g5wj5" path="res://Scripts/GodotToServer/Controller.gd" id="10_l06f1"]
-[ext_resource type="Script" uid="uid://ltey2a6xnpbk" path="res://Scripts/Menus/GameUI.gd" id="11_sx0vj"]
-[ext_resource type="Script" uid="uid://h003qqnoqrym" path="res://Scenes/turn_timer.gd" id="12_w3sb0"]
+[ext_resource type="Script" uid="uid://x45d2qtogg0g" path="res://Scripts/Menus/LoginPage.gd" id="1_v0vm3"]
+[ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Background/BackgroundPattern.png" id="2_lelg6"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
-size = Vector2(89, 88)
+[sub_resource type="LabelSettings" id="LabelSettings_sq1ca"]
+font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_efxa6"]
-size = Vector2(421.5, 218)
+[node name="LoginPage" type="Control" unique_id=884357330]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_v0vm3")
 
-[node name="Game" type="Node2D" unique_id=1499448830]
-
-[node name="Background" type="Node2D" parent="." unique_id=234779892]
-
-[node name="Table" type="Sprite2D" parent="Background" unique_id=950271474]
-position = Vector2(576, 324)
-scale = Vector2(2.1893203, 2.1893206)
-texture = ExtResource("1_6yofy")
-
-[node name="TurnLabel" type="Label" parent="Background" unique_id=110888612]
-offset_left = 576.0
-offset_top = 324.0
-offset_right = 658.0
-offset_bottom = 347.0
-
-[node name="TimeLabel" type="Label" parent="Background" unique_id=430175237]
-offset_left = 676.0
-offset_top = 324.0
-offset_right = 758.0
-offset_bottom = 347.0
-justification_flags = 131
-
-[node name="Pile" type="Node2D" parent="." unique_id=738463849]
-script = ExtResource("2_042y3")
-
-[node name="PileArea" type="Area2D" parent="Pile" unique_id=1734952556]
-position = Vector2(576, 324)
-collision_mask = 2
-
-[node name="Pile" type="Sprite2D" parent="Pile/PileArea" unique_id=337770192]
-scale = Vector2(0.08100327, 0.08100327)
-texture = ExtResource("3_nlch1")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Pile/PileArea" unique_id=875606098]
-shape = SubResource("RectangleShape2D_1bvp3")
-
-[node name="CounterLabel" type="Label" parent="Pile/PileArea" unique_id=293749745]
+[node name="Background" type="Control" parent="." unique_id=1934492503]
+anchors_preset = 0
 offset_right = 40.0
-offset_bottom = 23.0
-metadata/_edit_use_anchors_ = true
+offset_bottom = 40.0
 
-[node name="DiscardPile" type="Node2D" parent="." unique_id=231680211]
-script = ExtResource("4_n73g4")
+[node name="CanvasLayer" type="CanvasLayer" parent="Background" unique_id=639655116]
+layer = -1
 
-[node name="DiscardPileArea" type="Area2D" parent="DiscardPile" unique_id=1594361609]
-position = Vector2(576, 324)
-collision_layer = 4
-collision_mask = 3
+[node name="Background" type="TextureRect" parent="Background/CanvasLayer" unique_id=2086110690]
+z_index = -1
+offset_left = -222.0
+offset_top = -257.0
+offset_right = 1410.0
+offset_bottom = 901.0
+texture = ExtResource("2_lelg6")
+stretch_mode = 1
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DiscardPile/DiscardPileArea" unique_id=403654840]
-scale = Vector2(0.8, 0.8)
-shape = SubResource("RectangleShape2D_efxa6")
+[node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1737097880]
 
-[node name="DiscardPileLocation" type="Area2D" parent="DiscardPile" unique_id=2028668179]
-position = Vector2(426, 324)
-collision_layer = 8
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=938573725]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -202.0
+offset_top = -131.5
+offset_right = 202.0
+offset_bottom = 131.5
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="CardLogic" type="Node2D" parent="." unique_id=1659768658]
-script = ExtResource("5_x4dow")
+[node name="RegisterPanel" type="MarginContainer" parent="HBoxContainer" unique_id=1842646288]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
 
-[node name="PlayerHand" type="Node2D" parent="." unique_id=1343786011]
-script = ExtResource("6_r67tb")
+[node name="RegisterVBox" type="VBoxContainer" parent="HBoxContainer/RegisterPanel" unique_id=1306938269]
+layout_mode = 2
 
-[node name="InputManager" type="Node2D" parent="." unique_id=174033307]
-script = ExtResource("7_m16kq")
+[node name="RegisterTitle" type="Label" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=914890401]
+layout_mode = 2
+text = "Create Account"
+label_settings = SubResource("LabelSettings_sq1ca")
+horizontal_alignment = 1
 
-[node name="GSCHTTP" type="Node2D" parent="." unique_id=1025658604]
-script = ExtResource("8_twr8j")
+[node name="RegEmailLabel" type="Label" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1800732917]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Email"
+horizontal_alignment = 1
 
-[node name="GSCWS" type="Node2D" parent="." unique_id=195162327]
-script = ExtResource("9_j2mrx")
+[node name="RegEmailInput" type="LineEdit" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1431110833]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
 
-[node name="Controller" type="Node2D" parent="." unique_id=989713340]
-script = ExtResource("10_l06f1")
+[node name="RegUserLabel" type="Label" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=363630638]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Username"
+horizontal_alignment = 1
 
-[node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
-script = ExtResource("11_sx0vj")
+[node name="RegUserInput" type="LineEdit" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=27414220]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
 
-[node name="Card Play" type="AudioStreamPlayer2D" parent="." unique_id=1269714596]
-autoplay = true
+[node name="RegPasswordLabel" type="Label" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1434411266]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Password"
+horizontal_alignment = 1
 
-[node name="TurnTimer" type="Timer" parent="." unique_id=2082152117]
-wait_time = 30.0
-ignore_time_scale = true
-script = ExtResource("12_w3sb0")
+[node name="RegPasswordInput" type="LineEdit" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1626466714]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="RegisterButton" type="Button" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1289735244]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Register"
+
+[node name="SwitchLoginButton" type="Button" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=2055691338]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Already registered?"
+
+[node name="RegisterStatusLabel" type="Label" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1944538550]
+layout_mode = 2
+
+[node name="LoginPanel" type="MarginContainer" parent="HBoxContainer" unique_id=287964335]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
+
+[node name="LoginVBox" type="VBoxContainer" parent="HBoxContainer/LoginPanel" unique_id=537876617]
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="LoginTitle" type="Label" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=1747927484]
+layout_mode = 2
+text = "Log in"
+label_settings = SubResource("LabelSettings_sq1ca")
+horizontal_alignment = 1
+
+[node name="LoginIdentifierLabel" type="Label" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=1442675738]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Username/Email"
+horizontal_alignment = 1
+
+[node name="LoginIdentifierInput" type="LineEdit" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=472526710]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="LoginPasswordLabel" type="Label" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=113834122]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Password"
+horizontal_alignment = 1
+
+[node name="LoginPasswordInput" type="LineEdit" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=322138422]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="LoginButton" type="Button" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=626939730]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Log in"
+
+[node name="SwitchRegisterButton" type="Button" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=2038771003]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Not registered?"
+
+[node name="LoginStatusLabel" type="Label" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=2001705787]
+layout_mode = 2
+
+[node name="ResetPasswordButton" type="Button" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=1055973285]
+layout_mode = 2
+
+[node name="ResetPanel" type="MarginContainer" parent="HBoxContainer" unique_id=1782666267]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
+
+[node name="ResetVBox" type="VBoxContainer" parent="HBoxContainer/ResetPanel" unique_id=1410728688]
+layout_mode = 2
+
+[node name="ResetTitle" type="Label" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=532718753]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Reset your password"
+horizontal_alignment = 1
+
+[node name="ResetEmailLabel" type="Label" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=1124750853]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Email"
+horizontal_alignment = 1
+
+[node name="ResetEmailInput" type="LineEdit" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=645016849]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="ResetTokenLabel" type="Label" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=852963112]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Reset token"
+horizontal_alignment = 1
+
+[node name="ResetTokenInput" type="LineEdit" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=1064320204]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="ResetPasswordLabel" type="Label" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=144253413]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "New password"
+horizontal_alignment = 1
+
+[node name="ResetPasswordInput" type="LineEdit" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=1161026470]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="ResetPasswordSubmitButton" type="Button" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=1287011349]
+layout_mode = 2
+text = "Submit"
+
+[node name="ResetPasswordStatusLabel" type="Label" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=1569233994]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+
+[node name="HBoxContainer_RightLoginPanel_LoginVBox#ForgotPasswordButton" type="LinkButton" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=851965596]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Reset Password?"
+
+[node name="HBoxContainer_RightLoginPanel_LoginVBox#ResetTokenButton" type="LinkButton" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=2028961301]
+modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+text = "Enter reset token"
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=342874477]
+layout_mode = 0
+offset_right = 59.0
+offset_bottom = 59.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+
+[node name="ReturnButton" type="Button" parent="MarginContainer" unique_id=780424951]
+layout_mode = 2
+text = "Back"
