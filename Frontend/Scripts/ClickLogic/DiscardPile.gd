@@ -9,12 +9,11 @@ func _ready():
 	gscws.card_played.connect(_on_card_played)
 
 func _on_card_played(player_id, card_id):
-
 	var card_scene = preload("uid://dlb3crw3qdkv2")
 	var card = card_scene.instantiate()
 
 	add_child(card)
-	
+
 	print("Discardpile _on" + card_id)
 
 	card.set_card(card_id)
@@ -22,7 +21,7 @@ func _on_card_played(player_id, card_id):
 
 	card.get_node("Area2D").monitoring = false
 	card.get_node("Area2D").monitorable = false
-	
+
 	Add_Card(card)
 
 func Add_Card(card):

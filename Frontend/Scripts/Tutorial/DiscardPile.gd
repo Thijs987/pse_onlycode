@@ -8,7 +8,7 @@ var discarded_cards = []
 
 func _ready():
 	add_child(play_sound)
-	play_sound.stream = preload("res://Sounds/PlayCard.mp3")
+	play_sound.stream = preload("res://Sounds/click.mp3")
 	card_logic.card_played.connect(_on_card_played)
 
 func _on_card_played(player_id, card_id):
@@ -28,7 +28,7 @@ func play_card(player_id, card_id):
 
 	card.get_node("Area2D").monitoring = false
 	card.get_node("Area2D").monitorable = false
-	
+
 	Add_Card(card)
 
 func Add_Card(card):

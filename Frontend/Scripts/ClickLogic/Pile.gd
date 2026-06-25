@@ -14,11 +14,16 @@ var pending_update := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	if typeof(controller.Last_Message) == TYPE_DICTIONARY and controller.Last_Message.get("action") == "MATCH_STARTED":
+		var new_size = controller.Last_Message.get("data", {}).get("deckSize")
+		if new_size != null:
+			card_count = int(new_size)
+
 	update_card_text()
 	create_visual_pile()
 
 	add_child(draw_sound)
-	draw_sound.stream = preload("res://Sounds/PlayCard.mp3")
+	draw_sound.stream = preload("res://Sounds/click.mp3")
 
 	hand_reference.next_turn.connect(_newturn)
 	controller.message_updated.connect(_on_message)
@@ -71,9 +76,8 @@ func setup_draw_pile_card(card, index):
 	)
 
 	card.z_index = index
-	
-func update_visual_pile():
 
+func update_visual_pile():
 	if updating_pile:
 		# A refresh is already running (awaiting a removal tween). Remember to run
 		# once more afterwards so updates arriving mid-tween aren't dropped.
@@ -133,7 +137,6 @@ func update_visual_pile():
 		update_visual_pile()
 
 
-
 func _on_message(msg):
 	if msg.get("action") == "MATCH_STARTED":
 		var new_size = msg.get("data", {}).get("deckSize")
@@ -154,7 +157,7 @@ func _on_message(msg):
 			card_count -= 1
 			update_card_text()
 			update_visual_pile()
-		
+
 		if msg.get("playerId") == controller.PId:
 			var drawn_card = msg.get("data", {}).get("cardId")
 			if drawn_card != null and drawn_card != "":
@@ -168,14 +171,14 @@ func _newturn(player):
 func decrease_counter():
 	if controller.interaction_disabled:
 		return
-		
+
 	if CardLogic.first_combo_card != null or CardLogic.trojan_selecting_gift == true:
 		print("Cant draw card when playing cards")
 		return
 	elif CardLogic.imp_hardware_active == true or CardLogic.os_active == true:
 		print("Cant draw card when playing cards")
 		return
-	
+
 	if turns == controller.PId:
 		controller.Draw_Card(controller.PId)
 

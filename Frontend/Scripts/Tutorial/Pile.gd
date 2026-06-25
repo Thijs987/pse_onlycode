@@ -14,7 +14,7 @@ signal card_drawn()
 
 func _ready():
 	add_child(draw_sound)
-	draw_sound.stream = preload("res://Sounds/PlayCard.mp3")
+	draw_sound.stream = preload("res://Sounds/click.mp3")
 	create_visual_pile()
 
 # Haalt 1 kaart van de counter
