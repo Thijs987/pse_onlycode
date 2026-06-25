@@ -1,5 +1,7 @@
 extends Node2D
 
+@onready var bg_params: ColorRect = $"../Background/CanvasLayer2/ColorRect"
+
 var card_limit_label: Label
 var player_labels = {}
 
@@ -11,12 +13,18 @@ func _ready() -> void:
 
 	player_list_container = VBoxContainer.new()
 	player_list_container.position = Vector2(20, 60)
+	player_list_container.z_index = 1000
 	add_child(player_list_container)
 	
 	_update_player_list()
-	if controller.Last_Message.get("action") == "HAND":
+	if controller.Last_Message.get("action") == "HAND" or controller.Last_Message.get("action") == "MATCH_STARTED":
 		var turn_player = controller.Last_Message.get("data", {}).get("nextPlayer", "")
-		_highlight_turn(turn_player)
+		if turn_player != null:
+			_highlight_turn(turn_player)
+			if turn_player == controller.PId:
+				bg_params.setAlpha(0.1)
+			else:
+				bg_params.setAlpha(0.5)
 
 func _setup_card_limit_label() -> void:
 	card_limit_label = Label.new()
@@ -59,9 +67,14 @@ func _on_message(msg):
 		var rejoined_player = msg.get("playerId", "")
 		_set_player_reconnected(rejoined_player)
 
-	if action == "NEXT_TURN":
-		var current_turn_player = msg.get("playerId", "")
-		_highlight_turn(current_turn_player)
+	if action == "NEXT_TURN" or action == "CARD_PLAYED":
+		var current_turn_player = msg.get("data", {}).get("nextPlayer")
+		if current_turn_player != null:
+			_highlight_turn(current_turn_player)
+			if current_turn_player == controller.PId:
+				bg_params.setAlpha(0.1)
+			else:
+				bg_params.setAlpha(0.5)
 
 	if action == "PLAYER_LEFT" or action == "PLAYER_DISCONNECTED":
 		var left_player = msg.get("playerId", "")
@@ -69,6 +82,7 @@ func _on_message(msg):
 
 	if action == "CARD_LIMIT":
 		var eliminated_player = msg.get("playerId", "")
+		_set_player_lost(eliminated_player)
 		if eliminated_player == controller.PId:
 			show_notification("You have been eliminated! Spectating...")
 		else:
@@ -98,6 +112,7 @@ func _highlight_turn(current_player_id: String):
 		lbl.text = lbl.text.replace(">> ", "")
 
 	if player_labels.has(current_player_id):
+		print(current_player_id)
 		var active_lbl = player_labels[current_player_id]
 		active_lbl.add_theme_color_override("font_color", Color(1.0, 0.845, 0.392, 1.0))
 		active_lbl.text = ">> " + active_lbl.text
@@ -105,14 +120,20 @@ func _highlight_turn(current_player_id: String):
 func _set_player_disconnected(player_id: String):
 	if player_labels.has(player_id):
 		var lbl = player_labels[player_id]
-		lbl.text = lbl.text.replace("🟢", "🔴")
+		lbl.text = lbl.text.replace("🟢", "🟠")
 		lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 
 func _set_player_reconnected(player_id: String):
 	if player_labels.has(player_id):
 		var lbl = player_labels[player_id]
-		lbl.text = lbl.text.replace("🔴", "🟢")
+		lbl.text = lbl.text.replace("🟠", "🟢")
 		lbl.remove_theme_color_override("font_color")
+
+func _set_player_lost(player_id: String):
+	if player_labels.has(player_id):
+		var lbl = player_labels[player_id]
+		lbl.text = lbl.text.replace("🟢", "🔴")
+		lbl.add_theme_color_override("font_color", Color(1, 0, 0))
 
 func show_notification(text_str: String):
 	var label = Label.new()

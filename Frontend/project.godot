@@ -21,6 +21,7 @@ gschttp="*uid://br3mo8m8v4kiw"
 gscws="*uid://dg8okmsqxxyxb"
 controller="*uid://bb627jh3g5wj5"
 auth_manager="*res://Scripts/GodotToServer/AuthManager.gd"
+ButtonClick="*res://Scripts/ButtonClick.gd"
 
 [display]
 

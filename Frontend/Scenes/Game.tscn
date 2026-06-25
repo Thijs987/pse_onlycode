@@ -1,7 +1,9 @@
 [gd_scene format=3 uid="uid://qekpyka670e2"]
 
 [ext_resource type="Texture2D" uid="uid://cxuq8htjhpl3a" path="res://Sprites/Background/gameabg.png" id="1_3so38"]
+[ext_resource type="Shader" uid="uid://c6fb11dkp3o6o" path="res://Sprites/Background/Background.gdshader" id="2_3cx6b"]
 [ext_resource type="Script" uid="uid://bkjjiqdqugih7" path="res://Scripts/ClickLogic/Pile.gd" id="2_dahhg"]
+[ext_resource type="Script" uid="uid://cruuh8gf08k8f" path="res://Scripts/Background/ControlBackground.gd" id="3_wxwew"]
 [ext_resource type="Script" uid="uid://uchns3vel8n1" path="res://Scripts/ClickLogic/DiscardPile.gd" id="4_3cx6b"]
 [ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://Scripts/Cards/CardLogic.gd" id="5_wxwew"]
 [ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://Scripts/Cards/PlayerHand.gd" id="6_acvyw"]
@@ -12,6 +14,12 @@
 [ext_resource type="Script" uid="uid://ltey2a6xnpbk" path="res://Scripts/Menus/GameUI.gd" id="11_gameui"]
 [ext_resource type="Script" uid="uid://h003qqnoqrym" path="res://Scenes/turn_timer.gd" id="12_3so38"]
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wxwew"]
+shader = ExtResource("2_3cx6b")
+shader_parameter/alpha = 0.5
+shader_parameter/inner_radius = 0.0
+shader_parameter/outer_radius = 1.0
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
 
@@ -21,6 +29,30 @@ size = Vector2(421.5, 218)
 [node name="Game" type="Node2D" unique_id=1499448830]
 
 [node name="Background" type="Node2D" parent="." unique_id=234779892]
+
+[node name="CanvasLayer2" type="CanvasLayer" parent="Background" unique_id=750428360]
+layer = -1
+
+[node name="Background" type="TextureRect" parent="Background/CanvasLayer2" unique_id=504285544]
+z_index = -1
+offset_left = -222.0
+offset_top = -257.0
+offset_right = 1410.0
+offset_bottom = 901.0
+texture = ExtResource("1_3so38")
+stretch_mode = 1
+
+[node name="ColorRect" type="ColorRect" parent="Background/CanvasLayer2" unique_id=2086870893]
+show_behind_parent = true
+z_index = -1
+material = SubResource("ShaderMaterial_wxwew")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_wxwew")
 
 [node name="TurnLabel" type="Label" parent="Background" unique_id=110888612]
 offset_left = 534.0
@@ -36,15 +68,8 @@ offset_right = 614.0
 offset_bottom = 361.0
 justification_flags = 131
 
-[node name="Background" type="TextureRect" parent="Background" unique_id=504285544]
-offset_left = -222.0
-offset_top = -257.0
-offset_right = 1410.0
-offset_bottom = 901.0
-texture = ExtResource("1_3so38")
-stretch_mode = 1
-
 [node name="Pile" type="Node2D" parent="." unique_id=738463849]
+z_index = 1
 script = ExtResource("2_dahhg")
 
 [node name="PileArea" type="Area2D" parent="Pile" unique_id=1734952556]
@@ -62,6 +87,7 @@ offset_bottom = -104.0
 metadata/_edit_use_anchors_ = true
 
 [node name="DiscardPile" type="Node2D" parent="." unique_id=231680211]
+z_index = 1
 script = ExtResource("4_3cx6b")
 
 [node name="DiscardPileArea" type="Area2D" parent="DiscardPile" unique_id=1594361609]
@@ -79,12 +105,15 @@ position = Vector2(426, 324)
 collision_layer = 8
 
 [node name="CardLogic" type="Node2D" parent="." unique_id=1659768658]
+z_index = 1
 script = ExtResource("5_wxwew")
 
 [node name="PlayerHand" type="Node2D" parent="." unique_id=1343786011]
+z_index = 1
 script = ExtResource("6_acvyw")
 
 [node name="InputManager" type="Node2D" parent="." unique_id=174033307]
+z_index = 1
 script = ExtResource("7_alh3a")
 
 [node name="GSCHTTP" type="Node2D" parent="." unique_id=1025658604]
@@ -97,6 +126,7 @@ script = ExtResource("9_x3xnh")
 script = ExtResource("10_8r6kd")
 
 [node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
+z_index = 1
 script = ExtResource("11_gameui")
 
 [node name="Card Play" type="AudioStreamPlayer2D" parent="." unique_id=1269714596]

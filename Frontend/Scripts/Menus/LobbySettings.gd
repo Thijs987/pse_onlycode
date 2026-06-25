@@ -16,7 +16,7 @@ extends Control
 @onready var SubmitButton = $VBoxContainer/HBoxContainer11/SubmitButton
 @onready var ResetButton = $VBoxContainer/HBoxContainer11/ResetButton
 @onready var BackButton = $VBoxContainer/HBoxContainer12/BackButton
-@onready var background: TextureRect = $Background
+@onready var background: TextureRect = $Background/CanvasLayer/Background
 
 signal change_vis
 
@@ -71,10 +71,10 @@ func _process(delta: float) -> void:
 		
 # Creates the moving background
 func _move_background() -> void:
-	background.position.x -= 0.25
-	background.position.y -= 0.5
+	background.position.x -= 0.15
+	background.position.y -= 0.3
 	
-	if background.position.x == bg_start_pos.x - 80:
+	if background.position.x <= bg_start_pos.x - 80:
 		background.position = bg_start_pos
 
 func _on_submit():
@@ -99,8 +99,17 @@ func _on_submit():
 
 		CusSet[card_name] = amount
 		total += amount
+	
+	var pcount = 0
+	for p in controller.player_list:
+		if p != "":
+			pcount += 1
 
-	if total < 10:
+	if (total - (int(Fields["IH"].text.strip_edges()))) < (pcount * 3):
+		Result.text = "Incorrect ratio of players and improved hardware"
+		return
+
+	if total < (6 * pcount):
 		Result.text = "Deck contains too few cards"
 		return
 
