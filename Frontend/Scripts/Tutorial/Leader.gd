@@ -47,7 +47,7 @@ func _ready() -> void:
 	run_tutorial()
 
 func _on_timeout():
-	pass#turn_timer.start()
+	pass
 
 func _on_card_played(player_id, card_id):
 	if player_id == player_list[0]:
@@ -90,7 +90,7 @@ func run_tutorial():
 	card_to_draw = "ddos"
 	await next_step
 	can_draw = false
-	set_tutorial_text("Well done.\nDrawing a card will end your turn\nNow the other player will draw a card.")
+	set_tutorial_text("Drawing a card will end your turn\nNow the other player will draw a card.")
 	await get_tree().create_timer(1.0).timeout
 	hand_reference.add_new_card("achterkant", 1)
 	can_hover = true
@@ -103,22 +103,25 @@ func run_tutorial():
 	can_play = true
 	await next_step
 	can_play = false
-	await get_tree().create_timer(1.0).timeout
+	await get_tree().create_timer(0.5).timeout
 	hand_reference.add_new_card("achterkant", 1)
 	set_tutorial_text("Your opponent now has 5 cards\nThis game has a card limit that starts at 5\nThe limit reduces everytime the draw pile is empty\nYour opponent now has to play a card or they lose\nClick to continue...")
 	wait_for_mouse_click = true
 	await next_step
 	wait_for_mouse_click = false
-	discard_reference.play_card(1, "cm")
-	hand_reference.remove_card_from_hand(hand_reference.player_hands[1][0], 1)
 	set_tutorial_text("Now it is your turn again\nYour turn is limited to 30 seconds\nIf the timer runs out before you end your turn,\na card will be drawn for you")
+	time_label.visible = true
 	turn_timer.start()
 	can_draw = true
 	card_to_draw = "nocom"
 	await next_step
 	can_draw = false
 	turn_timer.stop()
-	set_tutorial_text("You've drawn a blank card\nYou can only play this card in pairs of the same type")
+	time_label.visible = false
+	set_tutorial_text("You've drawn a blank card\nYou can only play this card in pairs of the same type\nClick to continue...")
+	wait_for_mouse_click = true
+	await next_step
+	wait_for_mouse_click = false
 	await get_tree().create_timer(1.0).timeout
 	hand_reference.add_new_card("nocom", 0)
 	set_tutorial_text("We've given you a second no comments card\nNow play both blank cards")
