@@ -131,7 +131,63 @@ text = "Log in"
 layout_mode = 2
 text = "Reset Password?"
 
+[node name="ResetTokenButton" type="LinkButton" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=1758390217]
+layout_mode = 2
+text = "Enter reset token"
+
 [node name="LoginStatusLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=2001705787]
+layout_mode = 2
+
+[node name="ResetPasswordPopup" type="WindowDialog" parent="." unique_id=123456789]
+layout_mode = 0
+rect_min_size = Vector2(420, 320)
+visible = false
+window_title = "Reset Password"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ResetPasswordPopup" unique_id=123456790]
+layout_mode = 2
+custom_constants/separation = 8
+
+[node name="ResetTitle" type="Label" parent="ResetPasswordPopup/VBoxContainer" unique_id=123456791]
+layout_mode = 2
+text = "Reset your password"
+horizontal_alignment = 1
+
+[node name="ResetEmailLabel" type="Label" parent="ResetPasswordPopup/VBoxContainer" unique_id=123456792]
+layout_mode = 2
+text = "Email"
+horizontal_alignment = 1
+
+[node name="ResetEmailInput" type="LineEdit" parent="ResetPasswordPopup/VBoxContainer" unique_id=123456793]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="ResetTokenLabel" type="Label" parent="ResetPasswordPopup/VBoxContainer" unique_id=123456794]
+layout_mode = 2
+text = "Reset token"
+horizontal_alignment = 1
+
+[node name="ResetTokenInput" type="LineEdit" parent="ResetPasswordPopup/VBoxContainer" unique_id=123456795]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="ResetPasswordLabel" type="Label" parent="ResetPasswordPopup/VBoxContainer" unique_id=123456796]
+layout_mode = 2
+text = "New password"
+horizontal_alignment = 1
+
+[node name="ResetPasswordInput" type="LineEdit" parent="ResetPasswordPopup/VBoxContainer" unique_id=123456797]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="ResetPasswordSubmitButton" type="Button" parent="ResetPasswordPopup/VBoxContainer" unique_id=123456798]
+layout_mode = 2
+text = "Submit"
+
+[node name="ResetPasswordStatusLabel" type="Label" parent="ResetPasswordPopup/VBoxContainer" unique_id=123456799]
 layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=342874477]

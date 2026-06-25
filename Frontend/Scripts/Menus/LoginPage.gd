@@ -8,7 +8,8 @@ var BASE_URL: String = "https://localhost:6969" if OS.has_feature("editor") else
 
 const REGISTER_ENDPOINT = "/api/auth/register"
 const LOGIN_ENDPOINT = "/api/auth/login"
-const FORGOT_PASSWORD_ENDPOINT = "/api/auth/forgot-password"
+const REQUEST_PASSWORD_RESET_ENDPOINT = "/api/auth/request-password-reset"
+const RESET_PASSWORD_ENDPOINT = "/api/auth/reset-password"
 
 const MOCK_FILE_PATH = "user://mock_database.json"
 
@@ -25,6 +26,15 @@ const MOCK_FILE_PATH = "user://mock_database.json"
 @onready var login_button: Button = $HBoxContainer/RightLoginPanel/LoginVBox/LoginButton
 @onready var login_status: Label = $HBoxContainer/RightLoginPanel/LoginVBox/LoginStatusLabel
 @onready var forgot_password_link: LinkButton = $HBoxContainer/RightLoginPanel/LoginVBox/ForgotPasswordButton
+@onready var reset_token_button: LinkButton = $HBoxContainer/RightLoginPanel/LoginVBox/ResetTokenButton
+
+# Reset token UI
+@onready var reset_password_popup: WindowDialog = $ResetPasswordPopup
+@onready var reset_email_input: LineEdit = $ResetPasswordPopup/VBoxContainer/ResetEmailInput
+@onready var reset_token_input: LineEdit = $ResetPasswordPopup/VBoxContainer/ResetTokenInput
+@onready var reset_new_password_input: LineEdit = $ResetPasswordPopup/VBoxContainer/ResetPasswordInput
+@onready var reset_password_submit_button: Button = $ResetPasswordPopup/VBoxContainer/ResetPasswordSubmitButton
+@onready var reset_password_status_label: Label = $ResetPasswordPopup/VBoxContainer/ResetPasswordStatusLabel
 
 # GENERAL NODES
 @onready var return_button: Button = $MarginContainer/ReturnButton
@@ -38,11 +48,15 @@ func _ready() -> void:
 	return_button.pressed.connect(_on_return_button_pressed)
 	
 	forgot_password_link.pressed.connect(_on_forgot_password_link_pressed)
+	reset_token_button.pressed.connect(_on_reset_token_button_pressed)
+	reset_password_submit_button.pressed.connect(_on_reset_password_submit_pressed)
 	
 	login_password_input.secret = true
+	reset_new_password_input.secret = true
 	
 	register_status.text = ""
 	login_status.text = ""
+	reset_password_status_label.text = ""
 
 # LOGIN
 func _on_login_button_pressed() -> void:
@@ -87,7 +101,7 @@ func _on_forgot_password_link_pressed() -> void:
 		login_status.text = "Mock: Reset link sent to " + email
 		set_loading_state(false, "login")
 	else:
-		var url = BASE_URL + FORGOT_PASSWORD_ENDPOINT
+		var url = BASE_URL + REQUEST_PASSWORD_RESET_ENDPOINT
 		var headers = ["Content-Type: application/json"]
 		var body = JSON.stringify({"email": email})
 		
@@ -153,6 +167,42 @@ func _on_register_button_pressed() -> void:
 func _on_return_button_pressed() -> void:
 	if not is_submitting:
 		SceneLoader.load_scene("uid://ctined7qq8dh2")
+
+func _on_reset_token_button_pressed() -> void:
+	if is_submitting: return
+
+	reset_email_input.text = login_identifier_input.text.strip_edges()
+	reset_token_input.text = ""
+	reset_new_password_input.text = ""
+	reset_password_status_label.text = ""
+	reset_password_popup.popup_centered()
+
+func _on_reset_password_submit_pressed() -> void:
+	if is_submitting: return
+
+	var email = reset_email_input.text.strip_edges()
+	var token = reset_token_input.text.strip_edges()
+	var new_password = reset_new_password_input.text
+
+	if email == "" or token == "" or new_password == "":
+		reset_password_status_label.text = "Please fill in all fields."
+		return
+
+	set_loading_state(true, "reset")
+	reset_password_status_label.text = "Resetting password..."
+
+	var success: bool
+	if USE_LOCAL_MOCK:
+		await get_tree().create_timer(0.5).timeout
+		success = true
+	else:
+		success = await _send_auth_request(RESET_PASSWORD_ENDPOINT, {"email": email, "token": token, "password": new_password}, reset_password_status_label)
+
+	set_loading_state(false, "reset")
+
+	if success:
+		reset_password_status_label.text = "Password reset successfully! You can now log in."
+		reset_password_popup.hide()
 
 func _send_auth_request(endpoint: String, data: Dictionary, status_label: Label) -> bool:
 	var url = BASE_URL + endpoint
@@ -248,7 +298,10 @@ func set_loading_state(busy: bool, mode: String) -> void:
 	login_button.disabled = busy
 	return_button.disabled = busy
 	forgot_password_link.disabled = busy
+	reset_token_button.disabled = busy
+	reset_password_submit_button.disabled = busy
 	
 	if busy:
 		if mode == "login": login_status.text = "Logging in..."
 		if mode == "register": register_status.text = "Creating account..."
+		if mode == "reset": reset_password_status_label.text = "Processing..."

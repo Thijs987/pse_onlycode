@@ -257,6 +257,8 @@ public class GmailEmailService : IEmailService
         <p>Reset your password here: <a href=\"{resetLink}\">Reset password</a></p>
         <p>If the link above is not clickable, copy and paste the following URL into your browser:</p>
         <p><code>{resetLink}</code></p>
+        <p>Your reset token is:</p>
+        <p><code>{resetToken}</code></p>
         <p>If you did not request this, please ignore this email.</p>
         <p>Kind regards,<br/>Code Green</p>
         """;
@@ -269,6 +271,10 @@ public class GmailEmailService : IEmailService
         Reset your password by opening the link below or copying it into your browser:
 
         {resetLink}
+
+        Your reset token is:
+
+        {resetToken}
 
         If you did not request this, please ignore this email.
 
