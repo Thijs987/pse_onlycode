@@ -112,7 +112,7 @@ func Start_Match(custom_set: Dictionary):
 		str(custom_set.get("OpS", 0))
 	]
 
-	_Send(_Make_Message("START_MATCH", {"data": new_set}))
+	_Send(_Make_Message("START_MATCH", {"cards": new_set}))
 
 # Function to add bot
 func Add_Bot():

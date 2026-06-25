@@ -5,7 +5,7 @@ extends Control
 @onready var player_list_label: Label = $MultiLobbyContainer/InLobbyView/PlayerList
 @onready var lobby_item_list: ItemList = $MultiLobbyContainer/BrowserView/LobbyItemList
 @onready var refresh_button: Button = $MultiLobbyContainer/BrowserView/RefreshButton
-@onready var error_dialog: AcceptDialog = $MultiLobbyContainer/BrowserView/ErrorDialog
+@onready var error_dialog: Label = $MultiLobbyContainer/BrowserView/HBoxContainer2/ErrorLabel
 @onready var browser_view: Control = $MultiLobbyContainer/BrowserView
 @onready var in_lobby_view: Control = $MultiLobbyContainer/InLobbyView
 @onready var main_menu_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
@@ -73,12 +73,12 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_move_background()
-	
+
 # Creates the moving background
 func _move_background() -> void:
-	background.position.x -= 0.25
-	background.position.y -= 0
-	
+	background.position.x -= 0.15
+	background.position.y -= 0.3
+
 	if background.position.x <= bg_start_pos.x - 80:
 		background.position = bg_start_pos
 
@@ -159,7 +159,7 @@ func _on_lobby_left() -> void:
 	in_lobby_state = false
 	created_lobby = false
 	player_count = 0
-	controller.player_list = ["", "", "", ""]
+	controller.Reset_Lobby_State()
 	update_lobby_list()
 	update_views()
 	controller.Get_Lobbies()
@@ -280,8 +280,7 @@ func _on_lobby_selected(index: int) -> void:
 	lobby_input.text = lobby_id
 
 func _on_lobby_join_failed() -> void:
-	error_dialog.dialog_text = "Failed to join lobby. It might be full or already started."
-	error_dialog.popup_centered()
+	error_dialog.text = "Failed to join lobby. It might be full or already started."
 
 func _on_leave_lobby() -> void:
 	controller.Leave_Lobby()

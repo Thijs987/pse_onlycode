@@ -19,7 +19,6 @@ offset_bottom = 40.0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="Background" unique_id=1527799430]
 layer = -1
-visible = false
 
 [node name="Background" type="TextureRect" parent="Background/CanvasLayer" unique_id=754063962]
 z_index = -1
