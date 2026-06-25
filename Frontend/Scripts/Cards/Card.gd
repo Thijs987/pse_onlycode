@@ -7,6 +7,15 @@ var movable = true
 var is_others
 var own_card_id = null
 var hand_position
+# Dit zet je in het script van de losse KAART (niet in card_logic.gd)
+var is_playable = true
+
+func set_playable_visual(playable: bool) -> void:
+	is_playable = playable
+	if playable:
+		modulate = Color(1, 1, 1, 1) # Normale kleur
+	else:
+		modulate = Color(0.5, 0.5, 0.5, 0.6) # Donkerder/transparanter (blijft wel selecteerbaar voor Trojan)
 
 
 # Called when the node enters the scene tree for the first time.

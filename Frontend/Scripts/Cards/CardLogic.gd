@@ -3,6 +3,9 @@ extends Node2D
 @onready var discard_pile = $"../DiscardPile"
 @onready var hand_reference = $"../PlayerHand"
 @onready var pile_node = $"../Pile"
+@onready var instruction_label = $"../InstructionLabel"
+
+
 const ATTACK_SCENE = preload("res://Scenes/Attack.tscn")
 const OS_MENU_SCENE = preload("res://Scenes/OSMenu.tscn")
 
@@ -16,6 +19,10 @@ var card_offsety
 var turns
 var first_combo_card = null # Played blanco
 var trojan_selecting_gift = false # Played trojan horse
+var pending_trojan_card = null
+var pending_trojan_gift_id = ""
+var pending_trojan_gift_card = null
+var trojan_selecting_target = false
 var imp_hardware_active = false #  Played improved hardware
 var tooltip_scene = preload("uid://b0ems5mni4412")
 var card_tooltip
@@ -29,7 +36,11 @@ func _ready() -> void:
 	$"../InputManager".connect("left_mouse_release", on_left_mouse_release)
 	card_tooltip = tooltip_scene.instantiate()
 	add_child(card_tooltip)
-
+	
+	# Start the game with correct card visuality
+	await get_tree().create_timer(0.2).timeout
+	update_hand_playability()
+	update_instruction_text()
 
 # Runs every frame, card is set to current mouse position with offset
 func _process(_delta: float) -> void:
@@ -41,6 +52,8 @@ func _process(_delta: float) -> void:
 func _newturn(player):
 	if player != null:
 		turns = player
+		update_hand_playability()
+		update_instruction_text()
 
 # Helper function to safely access a player hand
 func _get_my_hand() -> Array:
@@ -110,6 +123,7 @@ func play_card(card):
 					first_combo_card.position.y -= 30
 					first_combo_card.position.x -= 200
 					first_combo_card.movable = false
+					update_instruction_text()
 
 					return true
 				else:
@@ -135,7 +149,6 @@ func play_card(card):
 
 					first_combo_card = null # Reset combo flag
 					
-					# Select target is a TODO
 				else:
 					print("Bad combo, cards need to be of same type or 1 has to be goto")
 					card.movable = true
@@ -154,11 +167,16 @@ func play_card(card):
 				print("You dont have a card to give")
 				card.movable = true
 				return false
+			pending_trojan_card = card
+
 			hand_reference.remove_card_from_hand(card, 0)
-			card.queue_free()
+
+			card.visible = false
+			card.movable = false
 
 			print("Choose a card to give to player")
 			trojan_selecting_gift = true
+			update_instruction_text()
 
 			return true
 
@@ -174,6 +192,7 @@ func play_card(card):
 			else: # Choose another card
 				print("Chose card to play without effect")
 				imp_hardware_active = true
+				update_instruction_text()
 
 			return true
 
@@ -214,8 +233,69 @@ func play_card(card):
 			data = {cardId = current_id}
 
 		controller.Play_Card(controller.PId, data)
+		update_hand_playability()
+		update_instruction_text()
 		return true
 	return false
+
+# Gives you instruction for what to do after playing a card when needed
+func update_instruction_text() -> void:
+	if instruction_label == null:
+		return
+
+	# Not your turm
+	var my_turn = (controller.PId == turns) and not controller.interaction_disabled
+	if not my_turn:
+		instruction_label.display_message("")
+		return
+		
+	if trojan_selecting_gift:
+		instruction_label.display_message("TROJAN HORSE: Choose a card from your hand to give away!")
+	elif imp_hardware_active:
+		instruction_label.display_message("IMPROVED HARDWARE: Choose a card to play without effect!")
+	elif first_combo_card != null:
+		instruction_label.display_message("COMBO: Play a matching, GOTO or other blank card to finish your combo!")
+	else:
+		instruction_label.display_message("")
+
+# De opgeschoonde versie voor onderaan cardlogic.gd
+
+func update_hand_playability() -> void:
+	if hand_reference == null or hand_reference.player_hands[0].is_empty():
+		return
+		
+	var my_turn = (controller.PId == turns) and not controller.interaction_disabled
+	var hand_cards = hand_reference.player_hands[0]
+	
+	for card in hand_cards:
+		var playable = false
+		
+		if my_turn:
+			if trojan_selecting_gift or imp_hardware_active or os_active: # Not in these situations
+				playable = false
+			else:
+				match card.own_card_id:
+					"nocom", "goto", "inf", "vibe": # Blanco cards
+						if first_combo_card == null:
+							playable = has_another_blanco(card.own_card_id)
+						else:
+							playable = (card.own_card_id == first_combo_card.own_card_id or card.own_card_id == "goto" or first_combo_card.own_card_id == "goto")
+							
+					"trojan": # Need a card to give
+						playable = (hand_cards.size() >= 2)
+						
+					"os":
+						playable = (pile_node != null and pile_node.card_count > 0)
+						
+					"blue", "err", "merge": # Not playable
+						playable = false
+						
+					_:
+						playable = true
+						
+		if card.has_method("set_playable_visual"):
+			card.set_playable_visual(playable)
+
 
 func open_source_menu(card_id_to_show: String):
 	os_active = true
@@ -234,8 +314,8 @@ func open_source_menu(card_id_to_show: String):
 		hand_reference.add_new_card(card_id_to_show, 0)
 	
 	os_active = false
+	update_hand_playability()
 	return gekozen_keuze
-
 
 # Code for sql attack card
 func sql_attack() -> String:
@@ -277,29 +357,63 @@ func has_another_blanco(card_type: String) -> bool:
 func start_dragging(card):
 	if controller.interaction_disabled:
 		return
-		
+
+	if "is_playable" in card and not card.is_playable:
+		# Uitzondering: Als je een Trojan gift aan het kiezen bent, of een IMP sacrifice, 
+		# mag je de kaart wél oppakken/klikken!
+		if not (trojan_selecting_gift or imp_hardware_active):
+			print("Deze kaart mag je nu niet spelen!")
+
 		# TROJAN HORSE
 	if trojan_selecting_gift:
 		trojan_selecting_gift = false # Reset status
+		update_hand_playability()
 		
 		var gift_card_id = card.own_card_id
 		print("Chosen card: ", gift_card_id)
 		
 		# Delete card from your hand
+		pending_trojan_gift_id = card.own_card_id
+		pending_trojan_gift_card = card
+
 		hand_reference.remove_card_from_hand(card, 0)
-		card.queue_free()
-		var target_id = await sql_attack() 
-		
-		var data = {cardId = "trojan",
-					target = target_id,
-					cards = [gift_card_id]}
+
+		card.visible = false
+		card.movable = false
+		update_instruction_text()
+		trojan_selecting_target = true
+		update_instruction_text()
+
+		var target_id = await sql_attack()
+		var attack_node = get_tree().root.get_node_or_null("Attack")
+		if attack_node == null:
+			return # attack was cancelled by timeout
+
+		# 🔴 BELANGRIJK: als timeout al gereset heeft → stop hier
+		if not trojan_selecting_target:
+			return
+
+		trojan_selecting_target = false
+
+		var data = {
+			cardId = "trojan",
+			target = target_id,
+			cards = [gift_card_id]
+		}
+
+		controller.Play_Card(controller.PId, data)
 		
 		#var played_cards = ["trojan", gift_card_id]
 		controller.Play_Card(controller.PId, data)
+		pending_trojan_card = null
+		pending_trojan_gift_card = null
+		pending_trojan_gift_id = ""
+		update_instruction_text()
 		return
 		
 	if imp_hardware_active:
 		imp_hardware_active = false
+		update_instruction_text()
 		
 		var sacrifice_card_id = card.own_card_id
 		print("Chosen card: ", sacrifice_card_id)
@@ -388,7 +502,7 @@ func highlight_card(card, hovered):
 				card.scale = Vector2(1.1, 1.1)
 				#if the mouse is below show_tooltip_y, show the tooltip
 				var show_tooltip_y = hand_reference.center_screen_y * 2
-				show_tooltip_y -= hand_reference.CARD_HEIGHT * 0.2
+				show_tooltip_y -= hand_reference.CARD_HEIGHT * 0.3
 				if not dragging_card and card.global_position.y > show_tooltip_y:
 					card_tooltip.show_tooltip(card.own_card_id)
 					card_tooltip.global_position.x = card.global_position.x
