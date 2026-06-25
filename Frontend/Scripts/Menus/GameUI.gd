@@ -13,6 +13,7 @@ func _ready() -> void:
 
 	player_list_container = VBoxContainer.new()
 	player_list_container.position = Vector2(20, 60)
+	player_list_container.z_index = 1000
 	add_child(player_list_container)
 	
 	_update_player_list()
