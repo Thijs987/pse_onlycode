@@ -365,8 +365,6 @@ public class MatchManager
             // Refill deck
             Log.Warning("Deck empty for match {MatchId}, regenerating.", match.MatchId);
             GenerateDeck(match);
-            // Use a dedicated flag so it is not clobbered by the card-type message
-            // (e.g. when the card drawn after the refill is "imp").
             responseData.DeckRefilled = true;
         }
 
@@ -491,12 +489,6 @@ public class MatchManager
             if (match.CurrentTurnPlayerId == playerId)
             {
                 match.NTurns = 0;
-            }
-            // return the eliminated player's cards to the discard pile so they stay in
-            // circulation and are counted in future draw-pile refills (matches RemoveFromMatch).
-            foreach (var card in hand)
-            {
-                match.TableCards.Add(card);
             }
             // remove hand from dict
             match.PlayerHands.Remove(playerId);

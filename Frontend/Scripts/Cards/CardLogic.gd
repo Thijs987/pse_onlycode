@@ -55,6 +55,25 @@ func _newturn(player):
 		update_hand_playability()
 		update_instruction_text()
 
+# Helper function to safely access a player hand
+func _get_my_hand() -> Array:
+	if hand_reference == null:
+		return []
+
+	if !hand_reference.has_method("get"):
+		pass
+
+	if !("player_hands" in hand_reference):
+		return []
+
+	if hand_reference.player_hands.is_empty():
+		return []
+
+	if hand_reference.player_hands[0] == null:
+		return []
+
+	return hand_reference.player_hands[0]
+
 func play_card(card):
 	if controller.interaction_disabled:
 		return
@@ -80,9 +99,16 @@ func play_card(card):
 		var data = {}
 		var target_id = ""
 		var blanco = ["nocom", "goto", "inf", "vibe"]
+		var green_cards = ["blue", "err", "merge"]
 		
-		for card1 in hand_reference.player_hands[0]:
-			if "imp" == card1.own_card_id && current_id != "imp":
+		if current_id in green_cards:
+				card.movable = true
+				return false
+		
+		var my_hand = _get_my_hand()
+
+		for card1 in my_hand:
+			if card1.own_card_id == "imp" and current_id != "imp":
 				print("Hand contains imp, play it")
 				card.movable = true
 				return false
@@ -142,7 +168,7 @@ func play_card(card):
 					target = target_id}
 		
 		elif current_id == "trojan":
-			if hand_reference.player_hands[0].size() < 2: # Need to have a card to give
+			if my_hand.size() < 2: # Need to have a card to give
 				print("You dont have a card to give")
 				card.movable = true
 				return false
@@ -164,10 +190,10 @@ func play_card(card):
 			hand_reference.remove_card_from_hand(card, 0)
 			card.queue_free()
 
-			if hand_reference.player_hands[0].size() == 0: # No other cards
+			if my_hand.size() == 0:
 				print("No other cards in hand, play only improved hardware")
 				data = {cardId = current_id}
-				controller.Play_Card(controller.PId,data)
+				controller.Play_Card(controller.PId, data)
 			else: # Choose another card
 				print("Chose card to play without effect")
 				imp_hardware_active = true
@@ -317,13 +343,16 @@ func sql_attack() -> String:
 
 # Checks if you have a second blanco card
 func has_another_blanco(card_type: String) -> bool:
+	var my_hand = _get_my_hand()
 	var count = 0
 	var blanco = ["nocom", "goto", "inf", "vibe"]
-	for c in hand_reference.player_hands[0]:
+
+	for c in my_hand:
 		if c.own_card_id == card_type or c.own_card_id == "goto":
 			count += 1
 		elif card_type == "goto" and c.own_card_id in blanco:
 			count += 1
+
 	return count >= 2
 		
 		

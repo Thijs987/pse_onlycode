@@ -64,6 +64,12 @@ func Leave_Lobby():
 	interaction_disabled = true
 	gscws.Leave_Lobby()
 
+func Reset_Lobby_State():
+	player_list = ["", "", "", ""]
+	All_Player_Ids.clear()
+	Player_Hand.clear()
+	Hand_Sizes.clear()
+
 #func Play_Card(Player_Id: String, Arr: Array,  OId: String):
 	#PId = Player_Id
 	#gscws.Play_Card(Arr, OId)
@@ -106,6 +112,11 @@ func Update_From_Server(msg: Dictionary):
 		var joined_id = Last_Message.get("playerId")
 		if joined_id and not All_Player_Ids.has(joined_id):
 			All_Player_Ids.append(joined_id)
+
+	if Last_Message.get("action") == "PLAYER_LEFT" or Last_Message.get("action") == "PLAYER_DISCONNECTED":
+		var left_id = Last_Message.get("playerId")
+		if left_id and All_Player_Ids.has(left_id):
+			All_Player_Ids.erase(left_id)
 
 	if Last_Message.get("action") == "CARD_DRAWN":
 		if Last_Data.has("cardId") and Last_Data["cardId"] != null:

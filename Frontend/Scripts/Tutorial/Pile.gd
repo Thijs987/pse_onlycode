@@ -1,6 +1,7 @@
 extends Node2D
 
 @onready var hand_reference = $"../PlayerHand"
+@onready var draw_sound := AudioStreamPlayer.new()
 
 const CARD_SCENE = preload("uid://dlb3crw3qdkv2")
 
@@ -12,12 +13,15 @@ var card_count = 40
 signal card_drawn()
 
 func _ready():
+	add_child(draw_sound)
+	draw_sound.stream = preload("res://Sounds/PlayCard.mp3")
 	create_visual_pile()
 
 # Haalt 1 kaart van de counter
 func draw_card():
 	if controller.interaction_disabled:
 		return
+	draw_sound.play()
 	update_visual_pile()
 	card_drawn.emit()
 
