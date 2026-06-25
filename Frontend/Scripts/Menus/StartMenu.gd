@@ -32,7 +32,7 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	move_background()
+	_move_background()
 	
 func _input(event: InputEvent) -> void:
 	if !in_main_menu and event.is_pressed():
@@ -53,7 +53,7 @@ func show_buttons_menu(TitleContainer):
 	)
 
 # Creates the moving background
-func move_background() -> void:
+func _move_background() -> void:
 	background.position.x -= 0.25
 	background.position.y -= 0.5
 	
