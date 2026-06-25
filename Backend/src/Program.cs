@@ -135,7 +135,7 @@ builder.Services.AddSingleton<MatchManager>();
 builder.Services.AddSingleton<BotService>();
 
 // trust X-Forwarded-* headers when behind a reverse proxy (controlled by config)
-// This is important for correct client IP logging and HTTPS detection when behind a proxy 
+// This is important for correct client IP logging and HTTPS detection when behind a proxy
 // like Nginx or Traefik.
 var forwardedHeadersEnabled = builder.Configuration.GetValue("AppSettings:TrustForwardedHeaders", false);
 if (forwardedHeadersEnabled)
@@ -164,74 +164,74 @@ if (authEnabled)
     // Configure JWT bearer authentication
     var keyBytes = Encoding.UTF8.GetBytes(jwtKey!);
 
-        if (keyBytes.Length < 32)
-        {
-            throw new InvalidOperationException("Jwt:Key must be at least 32 bytes long for secure HMAC-SHA256 signing.");
-        }
+    if (keyBytes.Length < 32)
+    {
+        throw new InvalidOperationException("Jwt:Key must be at least 32 bytes long for secure HMAC-SHA256 signing.");
+    }
 
-        // In production, require JWT authentication if a key is provided or if EnforceAuth is true.
-        // In development, allow unauthenticated access if no key is configured for ease of testing.
-        builder.Services.AddAuthentication(options =>
+    // In production, require JWT authentication if a key is provided or if EnforceAuth is true.
+    // In development, allow unauthenticated access if no key is configured for ease of testing.
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        // Configure JWT validation parameters
+        // In production, require HTTPS for JWT tokens (enforced via environment)
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            // Configure JWT validation parameters
-            // In production, require HTTPS for JWT tokens (enforced via environment)
-            options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
-            options.SaveToken = true;
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                // Validate the JWT token parameters
-                ValidateIssuer = true,
-                ValidIssuer = jwtIssuer,
-                ValidateAudience = true,
-                ValidAudience = jwtAudience,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-                ValidateLifetime = true,
-                // Small clock skew to allow for minor clock differences between clients and server
-                ClockSkew = TimeSpan.FromSeconds(30)
-            };
+            // Validate the JWT token parameters
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+            ValidateLifetime = true,
+            // Small clock skew to allow for minor clock differences between clients and server
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
 
-            // Prefer Authorization header and cookie; do not accept access_token values from query string.
-            options.Events = new JwtBearerEvents
+        // Prefer Authorization header and cookie; do not accept access_token values from query string.
+        options.Events = new JwtBearerEvents
+        {
+            // This allows JWT tokens to be sent in the Authorization header
+            OnMessageReceived = context =>
             {
-                // This allows JWT tokens to be sent in the Authorization header
-                OnMessageReceived = context =>
+                var authorizationHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                 {
-                    var authorizationHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-                    if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                    {
-                        context.Token = authorizationHeader[7..].Trim();
-                        return Task.CompletedTask;
-                    }
-
-                    var accessToken = context.Request.Cookies["access_token"];
-                    if (!string.IsNullOrEmpty(accessToken))
-                    {
-                        context.Token = accessToken;
-                        return Task.CompletedTask;
-                    }
-
-                    // Fallback: accept access_token from query string for WebSocket connections,
-                    // since WS clients (e.g. Godot) cannot set custom headers during handshake.
-                    // We check the path instead of IsWebSocketRequest because the latter might not be set yet.
-                    var path = context.Request.Path.Value ?? string.Empty;
-                    if (path.StartsWith("/lobby", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var queryToken = context.Request.Query["access_token"].FirstOrDefault();
-                        if (!string.IsNullOrEmpty(queryToken))
-                        {
-                            context.Token = queryToken;
-                        }
-                    }
-
+                    context.Token = authorizationHeader[7..].Trim();
                     return Task.CompletedTask;
                 }
-            };
+
+                var accessToken = context.Request.Cookies["access_token"];
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    context.Token = accessToken;
+                    return Task.CompletedTask;
+                }
+
+                // Fallback: accept access_token from query string for WebSocket connections,
+                // since WS clients (e.g. Godot) cannot set custom headers during handshake.
+                // We check the path instead of IsWebSocketRequest because the latter might not be set yet.
+                var path = context.Request.Path.Value ?? string.Empty;
+                if (path.StartsWith("/lobby", StringComparison.OrdinalIgnoreCase))
+                {
+                    var queryToken = context.Request.Query["access_token"].FirstOrDefault();
+                    if (!string.IsNullOrEmpty(queryToken))
+                    {
+                        context.Token = queryToken;
+                    }
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
     Log.Information("Authentication: JWT bearer registered.");
@@ -410,7 +410,14 @@ app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManage
             return;
         }
 
-        if (!connectionManager.IsLobbyAvailable(lobbyId))
+        var isRejoining = false;
+        try
+        {
+            isRejoining = connectionManager.GetPlayers(lobbyId).Contains(playerId);
+        }
+        catch { }
+
+        if (!isRejoining && !connectionManager.IsLobbyAvailable(lobbyId))
         {
             Log.Warning("Rejected {PlayerId}: Lobby {LobbyId} is full or doesn't exist.", playerId, lobbyId);
             context.Response.StatusCode = StatusCodes.Status403Forbidden;

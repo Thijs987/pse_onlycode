@@ -10,6 +10,7 @@ var visual_cards = []
 const CARD_SCENE = preload("uid://dlb3crw3qdkv2")
 var turns = null
 var updating_pile := false
+var pending_update := false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -46,6 +47,8 @@ func create_visual_pile():
 		card.set_card("achterkant")
 		card.movable = false
 		card.is_others = true
+		# Random tilt assigned once at creation, not on every reposition.
+		card.rotation_degrees = randf_range(-4.0, 4.0)
 
 		card.get_node("Area2D").monitoring = false
 		card.get_node("Area2D").monitorable = false
@@ -74,13 +77,14 @@ func setup_draw_pile_card(card, index):
 		index * 4
 	)
 
-	card.rotation_degrees = randf_range(-4.0, 4.0)
-
 	card.z_index = index
 	
 func update_visual_pile():
 
 	if updating_pile:
+		# A refresh is already running (awaiting a removal tween). Remember to run
+		# once more afterwards so updates arriving mid-tween aren't dropped.
+		pending_update = true
 		return
 
 	updating_pile = true
@@ -102,7 +106,6 @@ func update_visual_pile():
 		await tween.finished
 
 		card.queue_free()
-	updating_pile = false
 
 	while visual_cards.size() < wanted_cards:
 		var card = CARD_SCENE.instantiate()
@@ -112,6 +115,8 @@ func update_visual_pile():
 		card.set_card("achterkant")
 		card.movable = false
 		card.is_others = true
+		# Random tilt assigned once at creation, not on every reposition.
+		card.rotation_degrees = randf_range(-4.0, 4.0)
 
 		card.get_node("Area2D").monitoring = false
 		card.get_node("Area2D").monitorable = false
@@ -125,6 +130,14 @@ func update_visual_pile():
 	# Reposition stack nicely
 	for i in range(visual_cards.size()):
 		setup_draw_pile_card(visual_cards[i], i)
+
+	updating_pile = false
+
+	# If updates came in while we were animating, refresh once more with the
+	# latest card_count.
+	if pending_update:
+		pending_update = false
+		update_visual_pile()
 
 
 
@@ -171,10 +184,7 @@ func decrease_counter():
 		return
 	
 	if turns == controller.PId:
-		if card_count > 0:
-			controller.Draw_Card(controller.PId)
-		else:
-			print("Pile is empty")
+		controller.Draw_Card(controller.PId)
 
 # Past card count getal aan
 func update_card_text():

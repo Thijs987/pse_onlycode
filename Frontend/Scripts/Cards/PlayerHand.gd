@@ -149,6 +149,15 @@ func _on_message(msg):
 							card.queue_free()
 							update_card_hand_position(player_number)
 
+		if msg["action"] == "CARD_LIMIT":
+			var player_number = controller.player_list.find(msg.get("playerId"))
+			var size = player_hands[player_number].size()
+			for m in range(0,size):
+				var card = player_hands[player_number][0]
+				player_hands[player_number].remove_at(0)
+				card.queue_free()
+				update_card_hand_position(player_number)
+
 		if msg["action"] == "ERROR":
 			if msg.get("playerId") == controller.PId:
 				for card in player_hands[0]:

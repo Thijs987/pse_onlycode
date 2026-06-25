@@ -1,0 +1,7 @@
+[gd_resource type="StyleBoxTexture" format=3 uid="uid://cga7y6hxvdm4a"]
+
+[ext_resource type="Texture2D" uid="uid://cddmfc44v2cvs" path="res://Sprites/Menu/MainMenuButtons.png" id="1_qh3xd"]
+
+[resource]
+texture = ExtResource("1_qh3xd")
+region_rect = Rect2(499, 258.5, 200, 52)

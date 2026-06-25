@@ -11,19 +11,22 @@ const LOGIN_ENDPOINT = "/api/auth/login"
 
 const MOCK_FILE_PATH = "user://mock_database.json"
 
-# UI REFERENCES - LEFT (REGISTER)
-@onready var reg_email_input: LineEdit = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegEmailInput
-@onready var reg_username_input: LineEdit = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegUserInput
-@onready var reg_password_input: LineEdit = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegPasswordInput
-@onready var register_button: Button = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegisterButton
-@onready var register_status: Label = $HBoxContainer/LeftRegisterPanel/RegisterVBox/RegisterStatusLabel
+# UI REFERENCES - REGISTER
+@onready var register_panel: MarginContainer = $"HBoxContainer/RegisterPanel"
+@onready var reg_email_input: LineEdit = $HBoxContainer/RegisterPanel/RegisterVBox/RegEmailInput
+@onready var reg_username_input: LineEdit = $HBoxContainer/RegisterPanel/RegisterVBox/RegUserInput
+@onready var reg_password_input: LineEdit = $HBoxContainer/RegisterPanel/RegisterVBox/RegPasswordInput
+@onready var register_button: Button = $HBoxContainer/RegisterPanel/RegisterVBox/RegisterButton
+@onready var switch_to_login_button: Button = $"HBoxContainer/RegisterPanel/RegisterVBox/SwitchLoginButton"
+@onready var register_status: Label = $HBoxContainer/RegisterPanel/RegisterVBox/RegisterStatusLabel
 
-# UI REFERENCES - RIGHT (LOGIN)
-
-@onready var login_identifier_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginIdentifierInput
-@onready var login_password_input: LineEdit = $HBoxContainer/RightLoginPanel/LoginVBox/LoginPasswordInput
-@onready var login_button: Button = $HBoxContainer/RightLoginPanel/LoginVBox/LoginButton
-@onready var login_status: Label = $HBoxContainer/RightLoginPanel/LoginVBox/LoginStatusLabel
+# UI REFERENCES - LOGIN
+@onready var login_panel: MarginContainer = $"HBoxContainer/LoginPanel"
+@onready var login_identifier_input: LineEdit = $HBoxContainer/LoginPanel/LoginVBox/LoginIdentifierInput
+@onready var login_password_input: LineEdit = $HBoxContainer/LoginPanel/LoginVBox/LoginPasswordInput
+@onready var login_button: Button = $HBoxContainer/LoginPanel/LoginVBox/LoginButton
+@onready var switch_to_register_button: Button = $"HBoxContainer/LoginPanel/LoginVBox/SwitchRegisterButton"
+@onready var login_status: Label = $HBoxContainer/LoginPanel/LoginVBox/LoginStatusLabel
 
 # GENERAL NODES
 @onready var return_button: Button = $MarginContainer/ReturnButton
@@ -37,7 +40,9 @@ func _ready() -> void:
 	register_button.pressed.connect(_on_register_button_pressed)
 	login_button.pressed.connect(_on_login_button_pressed)
 	return_button.pressed.connect(_on_return_button_pressed)
-	
+	switch_to_login_button.pressed.connect(_switch_to_login)
+	switch_to_register_button.pressed.connect(_switch_to_register)
+
 	login_password_input.secret = true;
 	
 	register_status.text = ""
@@ -117,6 +122,16 @@ func _on_register_button_pressed() -> void:
 func _on_return_button_pressed() -> void:
 	if not is_submitting:
 		SceneLoader.load_scene("uid://ctined7qq8dh2")
+
+# --- SWITCH TO LOGIN SCREEN ---
+func _switch_to_login():
+	register_panel.visible = false
+	login_panel.visible = true
+
+# --- SWITCH TO REGISTER SCREEN ---
+func _switch_to_register():
+	login_panel.visible = false
+	register_panel.visible = true
 
 # --- REAL SERVER NETWORK FUNCTION ---
 func _send_auth_request(endpoint: String, data: Dictionary, status_label: Label) -> bool:
