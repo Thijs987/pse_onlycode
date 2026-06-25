@@ -871,6 +871,58 @@ public class AuthServiceTests
     }
 
     [Fact]
+    // Unverified user accounts older than the retention period should be removed.
+    public async Task UnverifiedUserCleanup_RemovesOldUnverifiedAccounts()
+    {
+        using var context = CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = DateTime.UtcNow;
+
+        context.Users.Add(new Domain.AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "stale-unverified@example.com",
+            Username = "staleunverified",
+            PasswordHash = "hash",
+            IsEmailVerified = false,
+            VerificationToken = "token",
+            VerificationTokenExpiry = now.AddDays(-31)
+        });
+
+        context.Users.Add(new Domain.AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "recent-unverified@example.com",
+            Username = "recentunverified",
+            PasswordHash = "hash",
+            IsEmailVerified = false,
+            VerificationToken = "token",
+            VerificationTokenExpiry = now.AddDays(-10)
+        });
+
+        context.Users.Add(new Domain.AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "verified@example.com",
+            Username = "verifieduser",
+            PasswordHash = "hash",
+            IsEmailVerified = true,
+            VerificationToken = null,
+            VerificationTokenExpiry = null
+        });
+
+        await context.SaveChangesAsync();
+
+        var removed = await StaleDataCleanupService.CleanupUnverifiedUsersAsync(context, 30);
+
+        Assert.Equal(1, removed);
+        var remainingUsers = await context.Users.ToListAsync();
+        Assert.Equal(2, remainingUsers.Count);
+        Assert.DoesNotContain(remainingUsers, u => u.Email == "stale-unverified@example.com");
+        Assert.Contains(remainingUsers, u => u.Email == "recent-unverified@example.com");
+        Assert.Contains(remainingUsers, u => u.Email == "verified@example.com");
+    }
+
+    [Fact]
     // Login should fail when required credentials are missing.
     public async Task Login_ReturnsInvalidInput_WhenMissingRequiredFields()
     {

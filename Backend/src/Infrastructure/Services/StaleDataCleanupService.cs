@@ -19,6 +19,7 @@ public class StaleDataCleanupService : BackgroundService
     private readonly TimeSpan _cleanupInterval;
     private readonly int _refreshTokenRetentionDays;
     private readonly int _rateLimitRetentionHours;
+    private readonly int _unverifiedUserRetentionDays;
 
     public StaleDataCleanupService(
         IServiceScopeFactory scopeFactory,
@@ -30,6 +31,7 @@ public class StaleDataCleanupService : BackgroundService
         _cleanupInterval = TimeSpan.FromHours(configuration.GetValue("AppSettings:RefreshTokenCleanupIntervalHours", 6));
         _refreshTokenRetentionDays = configuration.GetValue("AppSettings:RefreshTokenCleanupRetentionDays", 30);
         _rateLimitRetentionHours = configuration.GetValue("AppSettings:RateLimitCleanupRetentionHours", 24);
+        _unverifiedUserRetentionDays = configuration.GetValue("AppSettings:UnverifiedUserCleanupRetentionDays", 30);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -56,6 +58,7 @@ public class StaleDataCleanupService : BackgroundService
 
         var refreshTokenRemoved = await CleanupExpiredRefreshTokensAsync(context, _refreshTokenRetentionDays, cancellationToken);
         var rateLimitRemoved = await CleanupExpiredRateLimitEntriesAsync(context, _rateLimitRetentionHours, cancellationToken);
+        var unverifiedUserRemoved = await CleanupUnverifiedUsersAsync(context, _unverifiedUserRetentionDays, cancellationToken);
 
         if (refreshTokenRemoved > 0)
         {
@@ -65,6 +68,11 @@ public class StaleDataCleanupService : BackgroundService
         if (rateLimitRemoved > 0)
         {
             _logger.LogInformation("Removed {Count} stale rate-limit entry(ies) from the database.", rateLimitRemoved);
+        }
+
+        if (unverifiedUserRemoved > 0)
+        {
+            _logger.LogInformation("Removed {Count} unverified user account(s) from the database.", unverifiedUserRemoved);
         }
     }
 
@@ -87,6 +95,28 @@ public class StaleDataCleanupService : BackgroundService
         context.RefreshTokens.RemoveRange(staleTokens);
         await context.SaveChangesAsync(cancellationToken);
         return staleTokens.Count;
+    }
+
+    public static async Task<int> CleanupUnverifiedUsersAsync(AppDbContext context, int retentionDays, CancellationToken cancellationToken = default)
+    {
+        if (retentionDays < 0) throw new ArgumentOutOfRangeException(nameof(retentionDays));
+
+        var cutoff = DateTime.UtcNow.AddDays(-retentionDays);
+
+        var staleUsers = await context.Users
+            .Where(user => !user.IsEmailVerified
+                           && user.VerificationTokenExpiry.HasValue
+                           && user.VerificationTokenExpiry.Value <= cutoff)
+            .ToListAsync(cancellationToken);
+
+        if (!staleUsers.Any())
+        {
+            return 0;
+        }
+
+        context.Users.RemoveRange(staleUsers);
+        await context.SaveChangesAsync(cancellationToken);
+        return staleUsers.Count;
     }
 
     public static async Task<int> CleanupExpiredRateLimitEntriesAsync(AppDbContext context, int retentionHours, CancellationToken cancellationToken = default)
