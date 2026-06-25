@@ -29,13 +29,24 @@ public class ConnectionManager
 
     public async Task HandleConnectionAsync(string playerId, string lobbyId, WebSocket socket, MessageRouter router, MatchManager matchManager, CancellationToken cancellationToken)
     {
-        if (_sockets.TryGetValue(playerId, out var oldSocket))
+        if (_connectionToLobby.TryGetValue(playerId, out var oldLobbyId))
+        {
+            if (oldLobbyId != lobbyId)
+            {
+                // Different lobby, so remove from old lobby
+                RemoveFromLobby(playerId, matchManager);
+                matchManager.Disconnect(playerId, oldLobbyId);
+            }
+        }
+
+        bool hadOldSocket = _sockets.TryGetValue(playerId, out var oldSocket);
+        _sockets[playerId] = socket;
+
+        if (hadOldSocket && oldSocket != null)
         {
             try { await oldSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Reconnected", CancellationToken.None); } catch { }
-            _sockets.TryRemove(playerId, out _);
-            RemoveFromLobby(playerId, matchManager);
         }
-        _sockets.TryAdd(playerId, socket);
+
         List<string> existingPlayers = new List<string>();
         try
         {
@@ -44,68 +55,84 @@ public class ConnectionManager
         catch { }
 
         var rejoin = false;
-        if (existingPlayers.Contains(playerId))
+        if (existingPlayers.Contains(playerId) && matchManager.IsMatchActive(lobbyId))
         {
             rejoin = true;
         }
 
-        var joinMessage = new NetworkMessage { };
-
-        string action;
-        string message;
-
-        foreach (var existingPlayer in existingPlayers)
+        if (!rejoin)
         {
-            if (existingPlayer != playerId)
+            foreach (var existingPlayer in existingPlayers)
             {
-                var existingPlayerMessage = new NetworkMessage
+                if (existingPlayer != playerId)
                 {
-                    Action = "PLAYER_JOINED",
-                    PlayerId = existingPlayer,
-                    Data = new DataInfo
+                    var existingPlayerMessage = new NetworkMessage
                     {
-                        Message = $"{existingPlayer} is in the game!"
-                    }
-                };
-                await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(existingPlayerMessage));
+                        Action = "PLAYER_JOINED",
+                        PlayerId = existingPlayer,
+                        Data = new DataInfo
+                        {
+                            Message = $"{existingPlayer} is in the game!"
+                        }
+                    };
+                    await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(existingPlayerMessage));
+                }
             }
         }
 
         if (rejoin == true)
         {
             matchManager.Rejoin(playerId);
+            Log.Information("Socket connected: {PlayerId} rejoined lobby {LobbyId}", playerId, lobbyId);
+            
+            // Broadcast the rejoin message to the lobby FIRST, so the reconnecting client 
+            // processes it before receiving MATCH_STARTED.
+            var joinMessage = new NetworkMessage
+            {
+                Action = "PLAYER_REJOINED",
+                PlayerId = playerId,
+                Data = new DataInfo { Message = $"{playerId} has rejoined the game!" }
+            };
+            await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(joinMessage));
+
             var responseData = new DataInfo
             {
                 Cards = matchManager.GetPlayerHand(lobbyId, playerId),
                 NextPlayer = matchManager.GetCurrentTurnPlayer(lobbyId),
                 Players = matchManager.GetPlayerOrder(lobbyId),
-                HandSizes = matchManager.GetPlayerHandSizes(lobbyId)
+                HandSizes = matchManager.GetPlayerHandSizes(lobbyId),
+                DeckSize = matchManager.GetDeckSize(lobbyId),
+                CardLimit = matchManager.GetCardLimit(lobbyId)
             };
-            var response = router.MakeMessage("HAND", playerId, responseData);
+            var response = router.MakeMessage("MATCH_STARTED", playerId, responseData);
             await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(response));
-            Log.Information("Socket connected: {PlayerId} rejoined lobby {LobbyId}", playerId, lobbyId);
-            action = "PLAYER_REJOINED";
-            message = $"{playerId} has rejoined the game!";
+            
             router.botService.RemoveBot(lobbyId, playerId);
         }
         else
         {
             AddToLobby(playerId, lobbyId);
             Log.Information("Socket connected: {PlayerId} joined lobby {LobbyId}", playerId, lobbyId);
-            action = "PLAYER_JOINED";
-            message = $"{playerId} has joined the game!";
+            
+            var joinMessage = new NetworkMessage
+            {
+                Action = "PLAYER_JOINED",
+                PlayerId = playerId,
+                Data = new DataInfo { Message = $"{playerId} has joined the game!" }
+            };
+            await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(joinMessage));
         }
 
-        joinMessage = new NetworkMessage
+        if (IsHost(lobbyId, playerId) && !matchManager.IsMatchActive(lobbyId))
         {
-            Action = action,
-            PlayerId = playerId,
-            Data = new DataInfo
+            var transferMsg = new NetworkMessage
             {
-                Message = message
-            }
-        };
-        await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(joinMessage));
+                Action = "HOST_TRANSFERRED",
+                PlayerId = playerId,
+                Data = new DataInfo { Message = "You are now the host of the lobby!" }
+            };
+            await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(transferMsg));
+        }
 
         var buffer = new byte[1024 * 4];
 
@@ -144,38 +171,45 @@ public class ConnectionManager
         }
         finally
         {
-            var responseData = matchManager.Disconnect(playerId);
-            if (!matchManager.IsMatchActive(lobbyId))
+            if (_sockets.TryGetValue(playerId, out var currentSocket) && currentSocket == socket)
             {
-                RemoveFromLobby(playerId, matchManager);
-            }
-            else if (matchManager.GetActives(lobbyId).Count <= 0)
-            {
-                RemoveLobby(playerId);
-            }
-            responseData.Message = $"{playerId} disconnected.";
-            _sockets.TryRemove(playerId, out _);
-
-            var leaveMessage = new NetworkMessage
-            {
-                Action = "PLAYER_LEFT",
-                PlayerId = playerId,
-                Data = responseData
-            };
-
-            await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
-            Log.Information("Socket disconnected: {PlayerId}", playerId);
-
-            if (matchManager.IsMatchActive(lobbyId) && matchManager.GetActives(lobbyId).Count > 0)
-            {
-                // Replace with bot
-                Log.Information("Adding bot for disconnected player {PlayerId} in lobby {LobbyId}", playerId, lobbyId);
-                await router.botService.AddBotAsync(lobbyId, playerId);
-                if (matchManager.GetCurrentTurnPlayer(lobbyId) == playerId)
+                var responseData = matchManager.Disconnect(playerId);
+                if (!matchManager.IsMatchActive(lobbyId))
                 {
-                    var botTurnData = new DataInfo { NextPlayer = playerId };
-                    await router.CheckBotTurn(lobbyId, this, matchManager, botTurnData);
+                    RemoveFromLobby(playerId, matchManager);
                 }
+                else if (matchManager.GetActives(lobbyId).Count <= 0)
+                {
+                    RemoveLobby(playerId);
+                }
+                responseData.Message = $"{playerId} disconnected.";
+                _sockets.TryRemove(playerId, out _);
+
+                var leaveMessage = new NetworkMessage
+                {
+                    Action = "PLAYER_LEFT",
+                    PlayerId = playerId,
+                    Data = responseData
+                };
+
+                await BroadcastToLobbyAsync(lobbyId, System.Text.Json.JsonSerializer.Serialize(leaveMessage));
+                Log.Information("Socket disconnected: {PlayerId}", playerId);
+
+                if (matchManager.IsMatchActive(lobbyId) && matchManager.GetActives(lobbyId).Count > 0)
+                {
+                    // Replace with bot
+                    Log.Information("Adding bot for disconnected player {PlayerId} in lobby {LobbyId}", playerId, lobbyId);
+                    await router.botService.AddBotAsync(lobbyId, playerId);
+                    if (matchManager.GetCurrentTurnPlayer(lobbyId) == playerId)
+                    {
+                        var botTurnData = new DataInfo { NextPlayer = playerId };
+                        await router.CheckBotTurn(lobbyId, this, matchManager, botTurnData);
+                    }
+                }
+            }
+            else
+            {
+                Log.Information("Socket for {PlayerId} closed, but a new socket is already active (reconnection). Skipping cleanup.", playerId);
             }
         }
     }
