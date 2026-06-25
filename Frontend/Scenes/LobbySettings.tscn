@@ -31,14 +31,17 @@ stretch_mode = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=706943334]
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = 8
 anchor_left = 0.5
+anchor_top = 0.5
 anchor_right = 0.5
-offset_left = -161.0
-offset_top = 3.0
-offset_right = 71.0
-offset_bottom = 361.0
+anchor_bottom = 0.5
+offset_left = -116.5
+offset_top = -221.5
+offset_right = 116.5
+offset_bottom = 221.5
 grow_horizontal = 2
+grow_vertical = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1706499621]
 layout_mode = 2

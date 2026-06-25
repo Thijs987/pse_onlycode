@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://chbtysc0spb4n" path="res://Sprites/TextBox.png" id="3_o136v"]
 [ext_resource type="Texture2D" uid="uid://c2p5pse03r8ie" path="res://Sprites/Login/LoginButtons.png" id="3_x3lit"]
 [ext_resource type="Texture2D" uid="uid://bufvc1f3aqotc" path="res://Sprites/BackButton.png" id="4_3gsyq"]
+[ext_resource type="FontFile" uid="uid://dnxdqkdiptw0l" path="res://COMIC.TTF" id="5_d5dr1"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_sq1ca"]
 font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
@@ -39,6 +40,24 @@ region_rect = Rect2(0, 120, 200, 59)
 texture = ExtResource("3_x3lit")
 region_rect = Rect2(2, -2, 198, 61)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kjdre"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_86001"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q3u1h"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6yofy"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="LabelSettings" id="LabelSettings_d5dr1"]
+font = ExtResource("5_d5dr1")
+font_size = 20
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_n73g4"]
 texture = ExtResource("3_o136v")
 expand_margin_left = 10.0
@@ -63,8 +82,25 @@ region_rect = Rect2(2, 361, 196, 58)
 texture = ExtResource("3_x3lit")
 region_rect = Rect2(6, 240, 187, 59)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o136v"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_r67tb"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3744d"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_042y3"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h6kmm"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
 [sub_resource type="LabelSettings" id="LabelSettings_o136v"]
-font_color = Color(0, 0, 0, 1)
+font = ExtResource("5_d5dr1")
+font_size = 20
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_h6kmm"]
 texture = ExtResource("4_3gsyq")
@@ -77,6 +113,9 @@ region_rect = Rect2(-2, 58, 205, 62)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_q3u1h"]
 texture = ExtResource("4_3gsyq")
 region_rect = Rect2(2, 0, 195, 57)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d5dr1"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [node name="LoginPage" type="Control" unique_id=884357330]
 layout_mode = 3
@@ -121,7 +160,6 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="RegisterPanel" type="MarginContainer" parent="HBoxContainer" unique_id=1842646288]
-visible = false
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4
@@ -194,14 +232,25 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxTexture_3gsyq")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_o136v")
 theme_override_styles/hover = SubResource("StyleBoxTexture_d5dr1")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_kjdre")
 
 [node name="SwitchLoginButton" type="Button" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=2055691338]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-text = "Already registered?"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_86001")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_q3u1h")
+theme_override_styles/hover = SubResource("StyleBoxFlat_6yofy")
+text = "Already
+registered?"
 
 [node name="RegisterStatusLabel" type="Label" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1944538550]
 layout_mode = 2
+label_settings = SubResource("LabelSettings_d5dr1")
+horizontal_alignment = 1
 
 [node name="LoginPanel" type="MarginContainer" parent="HBoxContainer" unique_id=287964335]
 layout_mode = 2
@@ -256,10 +305,19 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxTexture_x3lit")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_kjdre")
 theme_override_styles/hover = SubResource("StyleBoxTexture_3744d")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_o136v")
 
 [node name="SwitchRegisterButton" type="Button" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=2038771003]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxTexture_r67tb")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_3744d")
+theme_override_styles/hover = SubResource("StyleBoxFlat_042y3")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_h6kmm")
 text = "Not registered?"
 
 [node name="LoginStatusLabel" type="Label" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=2001705787]
@@ -288,3 +346,4 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxTexture_h6kmm")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_86001")
 theme_override_styles/hover = SubResource("StyleBoxTexture_q3u1h")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_d5dr1")
