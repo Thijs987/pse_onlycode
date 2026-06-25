@@ -172,6 +172,21 @@ func _on_message(msg):
 
 
 func _on_timeout():
+	var imp = false
+	if turn == controller.PId:
+		for card in player_hands[0]:
+			if card.own_card_id == "imp":
+				imp = true
+				card_logic.play_card(card)
+				break
+		if imp or card_logic.imp_hardware_active:
+			print("TIMER OUT: No card chosen for automatic selection. Automatic choice")
+			for card in player_hands[0]:
+				if card != null and card.own_card_id != "imp":
+					card_logic.start_dragging(card)
+					print("Forced card for Improved Hardware: ", card.own_card_id)
+		else:
+			controller.Draw_Card(controller.PId)
 	print("TIMEOUT")
 	print("trojan_selecting_gift = ", card_logic.trojan_selecting_gift)
 	print("trojan_selecting_target = ", card_logic.trojan_selecting_target)
@@ -253,44 +268,6 @@ func _on_timeout():
 		controller.Draw_Card(controller.PId)
 		return
 
-	# Improved hardware
-	if card_logic.imp_hardware_active:
-		print("TIMER OUT: No card chosen for automatic selection. Automatic choice")
-		card_logic.imp_hardware_active = false
-		
-		var chosen_card = null
-		var bricks = ["blue", "err", "merge"]
-		var hand_cards = player_hands[0]
-
-		if hand_cards.size() > 0:
-			# First check for bricks
-			for card in hand_cards:
-				if card.own_card_id in bricks:
-					chosen_card = card
-					break
-
-			if chosen_card == null:
-				var random_index = randi() % hand_cards.size()
-				chosen_card = hand_cards[random_index]
-		
-		# Found card to force
-		if chosen_card != null:
-			var sacrifice_id = chosen_card.own_card_id
-			print("Forced card for Improved Hardware: ", sacrifice_id)
-
-			remove_card_from_hand(chosen_card, 0)
-			chosen_card.queue_free()
-
-			var data = {cardId = sacrifice_id}
-			controller.Play_Card(controller.PId, data)
-
-			card_logic.update_hand_playability()
-			card_logic.update_instruction_text()
-		else:
-			controller.Draw_Card(controller.PId)
-			
-		return
-
 	# Open source
 	if card_logic.os_active:
 		print("TIMER OUT: No choice make. Closing menu")
@@ -333,10 +310,6 @@ func add_new_card(card_id, player_number):
 		new_card.is_others = true
 	player_hands[player_number].insert(0, new_card)
 	update_card_hand_position(player_number)
-	if new_card.own_card_id == "imp": # If you grab an improved hardware, you must play it
-		# For now let the card go into your hand
-		print("Grabbed improved hardware, must play")
-		card_logic.play_card(new_card)
 
 	animate_draw_card(new_card)
 
