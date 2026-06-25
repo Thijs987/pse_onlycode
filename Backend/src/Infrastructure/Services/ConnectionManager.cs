@@ -36,12 +36,18 @@ public class ConnectionManager
             RemoveFromLobby(playerId, matchManager);
         }
         _sockets.TryAdd(playerId, socket);
+
+        if(!_lobbies.ContainsKey(lobbyId))
+        {
+            Log.Information("no lobby named: {lobbyId}", lobbyId);
+        }
+
         List<string> existingPlayers = new List<string>();
         try
         {
             existingPlayers = GetPlayers(lobbyId);
         }
-        catch { }
+        catch {}
 
         var rejoin = false;
         if (existingPlayers.Contains(playerId))
@@ -393,5 +399,14 @@ public class ConnectionManager
         {
             set.Add(lobbyId);
         }
+    }
+
+    public bool cont(string lobbyId)
+    {
+        if(_lobbies.ContainsKey(lobbyId))
+        {
+            return true;
+        }
+        return false;
     }
 }
