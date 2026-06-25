@@ -26,7 +26,6 @@ func _ready() -> void:
 	center_screen_y = get_viewport().size.y / 2
 	add_new_card("achterkant", 1)
 	add_new_card("achterkant", 1)
-	add_new_card("achterkant", 1)
 
 func _process(_delta: float) -> void:
 	if card_logic and card_logic.dragging_card != null:

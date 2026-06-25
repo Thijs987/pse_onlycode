@@ -73,22 +73,29 @@ public class MatchManager
             // {"imp", 10},
             // {"inf", 0},
             // {"merge", 0},
-            {"blue", 0},
-            {"cm", 0},
-            {"ddos", 0},
-            {"err", 0},
-            {"garb", 0},
-            {"goto", 10},
-            {"imp", 0},
-            {"inf", 0},
-            {"merge", 0},
-            {"miracle", 0},
-            {"nocom", 0},
-            {"sql", 0},
-            {"trojan", 10},
-            {"vibe", 0},
-            {"os", 0},
-            {"test", 0}
+             // {"miracle", 0},
+            // {"nocom", 0},
+            // {"sql", 0},
+            // {"trojan", 0},
+            // {"vibe", 0},
+            // {"os", 10},
+            // {"test", 10}
+
+            {"blue", pileCards[0]},
+            {"cm", pileCards[1]},
+            {"ddos", pileCards[2]},
+            {"err", pileCards[3]},
+            {"garb", pileCards[4]},
+            {"goto", pileCards[5]},
+            {"imp", pileCards[6]},
+            {"inf", pileCards[7]},
+            {"merge", pileCards[8]},
+            {"miracle", pileCards[9]},
+            {"nocom", pileCards[10]},
+            {"sql", pileCards[11]},
+            {"trojan", pileCards[12]},
+            {"vibe", pileCards[13]},
+            {"os", pileCards[14]}
         };
 
         foreach (var card in allCards)
@@ -185,6 +192,11 @@ public class MatchManager
         if (!match.PlayerHands.TryGetValue(playerId, out var hands))
         {
             return new DataInfo { Error = "You have been eliminated or are not in the game." };
+        }
+
+        if (!string.IsNullOrEmpty(cardData.Target) && match.PlayerIds.Contains(cardData.Target) && !match.PlayerHands.ContainsKey(cardData.Target))
+        {
+            return new DataInfo { Error = "Target player has been eliminated." };
         }
 
         // Look up the card in registry

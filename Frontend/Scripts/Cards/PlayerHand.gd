@@ -21,6 +21,8 @@ var player_amount = 0
 var center_screen_y
 var center_screen_x
 
+var turn
+
 signal next_turn(player)
 
 
@@ -32,10 +34,7 @@ func _ready() -> void:
 			next_turn.emit(player)
 			if turn_label != null:
 				turn_label.text = str(player)
-			if player == controller.PId:
-				turn_timer.start()
-			else:
-				turn_timer.stop()
+			turn_timer.start()
 
 	change_player_list()
 	turn_timer.timeout.connect(_on_timeout)
@@ -51,8 +50,8 @@ func _ready() -> void:
 			var hand_size = controller.Hand_Sizes.get(p_id, 5)
 			for j in range(hand_size):
 				add_new_card("achterkant", i)
-
-func _process(_delta: float) -> void:
+	
+func _process(_delta: float) -> void:	
 	if card_logic and card_logic.dragging_card != null:
 		sort_hand()
 
@@ -62,24 +61,19 @@ func _on_message(msg):
 			var player = msg.get("data", {}).get("nextPlayer")
 			if player != null:
 				next_turn.emit(player)
+				turn = player
 				if turn_label != null:
 					turn_label.text = str(player)
-
-				if player == controller.PId:
-					turn_timer.start()
-				else:
-					turn_timer.stop()
+				turn_timer.start()
 
 		if msg["action"] == "CARD_PLAYED":
 			var next_player = msg.get("data", {}).get("nextPlayer")
 			if next_player != "" and next_player != null:
 				next_turn.emit(next_player)
+				turn = next_player
 				if turn_label != null:
 					turn_label.text = str(next_player)
-				if next_player == controller.PId:
-					turn_timer.start()
-				else:
-					turn_timer.stop()
+				turn_timer.start()
 
 			var blanco = ["nocom", "goto", "inf", "vibe"]
 			# For goto/blanco cards[0-1] are played cards[2] is the given card
@@ -154,6 +148,15 @@ func _on_message(msg):
 							player_hands[player_number].remove_at(0)
 							card.queue_free()
 							update_card_hand_position(player_number)
+
+		if msg["action"] == "CARD_LIMIT":
+			var player_number = controller.player_list.find(msg.get("playerId"))
+			var size = player_hands[player_number].size()
+			for m in range(0,size):
+				var card = player_hands[player_number][0]
+				player_hands[player_number].remove_at(0)
+				card.queue_free()
+				update_card_hand_position(player_number)
 
 		if msg["action"] == "ERROR":
 			if msg.get("playerId") == controller.PId:
@@ -322,7 +325,7 @@ func add_new_card(card_id, player_number):
 
 	new_card.name = "Card"
 	new_card.set_card(card_id)
-	var pile_pos = $"../Pile/PileArea/Pile".global_position
+	var pile_pos = $"../Pile/PileArea".global_position
 	new_card.global_position = pile_pos
 	if player_number == 0:
 		new_card.is_others = false

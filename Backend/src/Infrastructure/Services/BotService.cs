@@ -327,7 +327,7 @@ public class BotService
         List<string> players;
         try
         {
-            players = _connectionManager.GetPlayers(lobbyId);
+            players = _matchManager.GetPlayerHandSizes(lobbyId).Keys.ToList();
         }
         catch (Exception e)
         {

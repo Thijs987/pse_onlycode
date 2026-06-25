@@ -5,6 +5,7 @@ extends Control
 @onready var welcome_label: Label = $ButtonContainer/LoginContainer/LoginLayout/WelcomeLabel
 @onready var mute_button: Button = $ButtonContainer/MuteButtonContainer/HBoxContainer/MuteButton
 @onready var background: TextureRect = $Background
+@onready var press_start_sound := AudioStreamPlayer.new()
 
 @export var multi_lobby: StringName = &""
 @export var main_menu_buttons: MarginContainer
@@ -12,6 +13,10 @@ extends Control
 @export var press_to_start: TextureRect
 @export var press_start_animation: AnimationPlayer
 @export var movement_ease_curve: Curve
+@export var mute_on_style: StyleBoxTexture
+@export var mute_off_style: StyleBoxTexture
+@export var mute_on_style_hover: StyleBoxTexture
+@export var mute_off_style_hover_off: StyleBoxTexture
 
 var bg_start_pos
 var in_main_menu: bool = false
@@ -24,18 +29,25 @@ var is_muted: bool = false
 func _ready() -> void:
 	press_start_animation.play("PressStartAnimation")
 	bg_start_pos = background.position
+
+	add_child(press_start_sound)
+	press_start_sound.stream = preload("res://Sounds/menu.mp3")
 	
 	login_button.pressed.connect(_on_login_pressed)
 	mute_button.pressed.connect(_on_mute_pressed)
-	
+	mute_button.add_theme_stylebox_override("normal", mute_off_style)
+	mute_button.add_theme_stylebox_override("hover", mute_off_style_hover_off)
+	mute_button.add_theme_stylebox_override("pressed", mute_off_style_hover_off)
+	mute_button.add_theme_stylebox_override("focus", mute_off_style_hover_off)
 	check_login_status()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	move_background()
+	_move_background()
 	
 func _input(event: InputEvent) -> void:
 	if !in_main_menu and event.is_pressed():
+			press_start_sound.play()
 			press_start_animation.play("PressStartPressed")
 			await press_start_animation.animation_finished
 			main_menu_buttons.visible = true
@@ -53,7 +65,7 @@ func show_buttons_menu(TitleContainer):
 	)
 
 # Creates the moving background
-func move_background() -> void:
+func _move_background() -> void:
 	background.position.x -= 0.25
 	background.position.y -= 0.5
 	
@@ -96,11 +108,17 @@ func _on_mute_pressed() -> void:
 	AudioServer.set_bus_mute(master_bus_index, is_muted)
 
 	if is_muted:
-		mute_button.text = "Unmute"
+		mute_button.add_theme_stylebox_override("normal", mute_on_style)
+		mute_button.add_theme_stylebox_override("hover", mute_on_style_hover)
+		mute_button.add_theme_stylebox_override("pressed", mute_on_style_hover)
+		mute_button.add_theme_stylebox_override("focus", mute_on_style_hover)
 	else:
-		mute_button.text = "Mute"
+		mute_button.add_theme_stylebox_override("normal", mute_off_style)
+		mute_button.add_theme_stylebox_override("hover", mute_off_style_hover_off)
+		mute_button.add_theme_stylebox_override("pressed", mute_off_style_hover_off)
+		mute_button.add_theme_stylebox_override("focus", mute_off_style_hover_off)
 	
-	#THIS IS TO GET THE LOBBIES. SHOULD CREATE ANOTHER BUTTON FOR THIS
-	controller.Get_Lobbies()
-	await get_tree().create_timer(1.0).timeout
-	print(controller.Active_Lobbies)
+	##THIS IS TO GET THE LOBBIES. SHOULD CREATE ANOTHER BUTTON FOR THIS
+	#controller.Get_Lobbies()
+	#await get_tree().create_timer(1.0).timeout
+	#print(controller.Active_Lobbies)

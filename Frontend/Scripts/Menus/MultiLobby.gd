@@ -8,15 +8,17 @@ extends Control
 @onready var error_dialog: AcceptDialog = $MultiLobbyContainer/BrowserView/ErrorDialog
 @onready var browser_view: Control = $MultiLobbyContainer/BrowserView
 @onready var in_lobby_view: Control = $MultiLobbyContainer/InLobbyView
-@onready var leave_lobby_button: Button = $MultiLobbyContainer/InLobbyView/HBoxContainer6/LeaveLobby
 @onready var main_menu_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
 @onready var tutorial_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer5/TutorialButton
+@onready var background: TextureRect = $"Background/CanvasLayer/Background"
+@onready var card_setting_box: BoxContainer = $MultiLobbyContainer/InLobbyView/VBoxContainer/CardSettingsBox
 
 @export var game_scene: StringName = &""
 @export var create_lobby_button: Button
 @export var join_lobby_button: Button
 @export var start_lobby_button: Button
 @export var card_setting_button: Button
+@export var leave_lobby_button: Button
 
 @export var multi_lobby_container: Control
 @export var lobby_settings: Control
@@ -26,12 +28,16 @@ var match_started = false
 var lobby_id
 var in_lobby_state = false
 var created_lobby = false
+var rejoin_panel: PanelContainer
+var rejoin_lobby_id: String = ""
+var bg_start_pos
 
 # Called when the node enters the scene tree for the first time.
 var list_container: VBoxContainer
 var add_bot_btn: Button
 
 func _ready() -> void:
+	bg_start_pos = background.position
 	list_container = VBoxContainer.new()
 	list_container.position = Vector2(842, 200)
 	in_lobby_view.add_child(list_container)
@@ -65,8 +71,16 @@ func _ready() -> void:
 	update_views()
 	controller.Get_Lobbies()
 
-var rejoin_panel: PanelContainer
-var rejoin_lobby_id: String = ""
+func _process(delta: float) -> void:
+	_move_background()
+	
+# Creates the moving background
+func _move_background() -> void:
+	background.position.x -= 0.15
+	background.position.y -= 0.3
+	
+	if background.position.x <= bg_start_pos.x - 80:
+		background.position = bg_start_pos
 
 func _setup_rejoin_dialog() -> void:
 	rejoin_panel = PanelContainer.new()
@@ -273,11 +287,11 @@ func _on_leave_lobby() -> void:
 	controller.Leave_Lobby()
 
 func _on_card_settings():
-	if multi_lobby_container.visible == true:
-		multi_lobby_container.visible = false
+	if in_lobby_view.visible == true:
+		in_lobby_view.visible = false
 		lobby_settings.visible = true
 	else:
-		multi_lobby_container.visible = true
+		in_lobby_view.visible = true
 		lobby_settings.visible = false
 
 func _on_tutorial_pressed():
@@ -289,6 +303,11 @@ func signal_connect(lobby):
 
 func update_views() -> void:
 	browser_view.visible = not in_lobby_state
+	if in_lobby_state == true:
+		if created_lobby == false:
+			card_setting_button.visible = false
+		else:
+			card_setting_button.visible = true
 	in_lobby_view.visible = in_lobby_state
 
 func _on_main_menu_pressed() -> void:
