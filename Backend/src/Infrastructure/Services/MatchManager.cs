@@ -365,7 +365,7 @@ public class MatchManager
             // Refill deck
             Log.Warning("Deck empty for match {MatchId}, regenerating.", match.MatchId);
             GenerateDeck(match);
-            responseData.Message = "1";
+            responseData.DeckRefilled = true;
         }
 
         // No top card, not possible
@@ -460,7 +460,7 @@ public class MatchManager
         return new List<string>();
     }
 
-    public DataInfo CheckCardLimit(string matchId, string playerId, string newLimit)
+    public DataInfo CheckCardLimit(string matchId, string playerId, bool deckRefilled)
     {
         // hands.TryGetValue(playerId, out var hand);
         // var count = hand.Count;
@@ -494,7 +494,7 @@ public class MatchManager
             match.PlayerHands.Remove(playerId);
             responseData.Message = "Removed";
         }
-        if (newLimit == "1")
+        if (deckRefilled)
         {
             match.CardLimit--;
         }

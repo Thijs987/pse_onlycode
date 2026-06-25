@@ -351,9 +351,9 @@ public class BotService
         // await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
         Log.Debug("Bot {BotId} card played {CardId} with cards {Cards}", botId, response.Data.CardId, response.Data.Cards);
 
-        if (responseData.CardId == "imp")
+        if (responseData.CardId == "imp" && !_matchManager.GetPlayerHand(lobbyId, botId).Contains("imp"))
         {
-            await NextPlayer(lobbyId, botId, "0");
+            await NextPlayer(lobbyId, botId, false);
         }
 
         if (responseData.IsPrivate == true)
@@ -381,21 +381,35 @@ public class BotService
         var response = MakeMessage("CARD_DRAWN", botId, publicData);
         await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
 
+        var deckRefilled = responseData.DeckRefilled == true;
+
         if (responseData.CardId != "imp")
         {
-            await NextPlayer(lobbyId, botId, responseData.Message);
+            await NextPlayer(lobbyId, botId, deckRefilled);
+        }
+        else if (deckRefilled)
+        {
+            _matchManager.LowerCardLimit(lobbyId);
+            var deckSizeMsg = MakeMessage("DECK_SIZE", botId, new DataInfo { Message = _matchManager.GetDeckSize(lobbyId).ToString(), CardLimit = _matchManager.GetCardLimit(lobbyId) });
+            await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(deckSizeMsg));
         }
     }
 
-    private async Task NextPlayer(string lobbyId, string botId, string newLimit)
+    private async Task NextPlayer(string lobbyId, string botId, bool deckRefilled)
     {
         var responseData = _matchManager.NextTurn(lobbyId, botId);
 
-        var end = _matchManager.CheckCardLimit(lobbyId, botId, newLimit);
+        var end = _matchManager.CheckCardLimit(lobbyId, botId, deckRefilled);
         if (end.Error != "")
         {
             var errorMessage = MakeMessage("ERROR", botId, end);
             await _connectionManager.SendMessageAsync(botId, JsonSerializer.Serialize(errorMessage));
+        }
+
+        if (deckRefilled)
+        {
+            var deckSizeMsg = MakeMessage("DECK_SIZE", botId, new DataInfo { Message = _matchManager.GetDeckSize(lobbyId).ToString(), CardLimit = _matchManager.GetCardLimit(lobbyId) });
+            await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(deckSizeMsg));
         }
 
         if (end.Message == "Removed")
