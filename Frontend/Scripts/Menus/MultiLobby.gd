@@ -73,12 +73,12 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_move_background()
-	
+
 # Creates the moving background
 func _move_background() -> void:
 	background.position.x -= 0.15
 	background.position.y -= 0.3
-	
+
 	if background.position.x <= bg_start_pos.x - 80:
 		background.position = bg_start_pos
 
@@ -159,7 +159,7 @@ func _on_lobby_left() -> void:
 	in_lobby_state = false
 	created_lobby = false
 	player_count = 0
-	controller.player_list = ["", "", "", ""]
+	controller.Reset_Lobby_State()
 	update_lobby_list()
 	update_views()
 	controller.Get_Lobbies()

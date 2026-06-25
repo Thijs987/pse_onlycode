@@ -15,7 +15,7 @@ func _ready() -> void:
 	player_list_container.position = Vector2(20, 60)
 	player_list_container.z_index = 1000
 	add_child(player_list_container)
-	
+
 	_update_player_list()
 	if controller.Last_Message.get("action") == "HAND" or controller.Last_Message.get("action") == "MATCH_STARTED":
 		var turn_player = controller.Last_Message.get("data", {}).get("nextPlayer", "")
@@ -178,4 +178,5 @@ func _on_return_pressed():
 	# Disconnect websocket before returning
 	if gscws.socket.get_ready_state() == WebSocketPeer.STATE_OPEN:
 		gscws.socket.close()
+	controller.Reset_Lobby_State()
 	SceneLoader.load_scene("uid://ctined7qq8dh2")
