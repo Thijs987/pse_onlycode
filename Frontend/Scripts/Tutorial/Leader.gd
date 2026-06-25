@@ -4,7 +4,6 @@ extends Node2D
 @onready var tutorial_panel: Panel = $"TutorialPanel"
 @onready var tutorial_label: Label = $TutorialPanel/TutorialLabel
 @onready var turn_timer: Timer = $"../TurnTimer"
-@onready var turn_label: Label = $"../Background/TurnLabel"
 @onready var exit_button = $"ExitButton"
 #References other scripts
 @onready var hand_reference = $"../PlayerHand"
@@ -32,8 +31,6 @@ func _ready() -> void:
 	card_logic.card_hovered.connect(_on_card_hovered)
 	pile_reference.card_drawn.connect(_on_card_drawn)
 	exit_button.pressed.connect(_on_exit_button)
-	if turn_label != null:
-		turn_label.text = str(player_list[0])
 	if tutorial_label != null:
 		tutorial_panel.global_position.x = hand_reference.center_screen_x * 0.1
 		tutorial_panel.global_position.y = hand_reference.center_screen_y
