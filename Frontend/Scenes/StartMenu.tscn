@@ -17,6 +17,14 @@ point_count = 4
 texture = ExtResource("3_h303d")
 region_rect = Rect2(92, 83, 223, 70)
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o7rkd"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(108, 154, 192, 90)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_x3sen"]
+texture = ExtResource("3_h303d")
+region_rect = Rect2(116, 82, 178, 72)
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dibtv"]
 texture = ExtResource("3_h303d")
 region_rect = Rect2(100, 240.25, 207.5, 78.5)
@@ -173,6 +181,8 @@ layout_mode = 2
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxTexture_ujd4t")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_o7rkd")
+theme_override_styles/hover = SubResource("StyleBoxTexture_x3sen")
 
 [node name="QuitButton" type="Button" parent="ButtonContainer/PlayButtonsContainer/MainMenuButtons" unique_id=1923007763]
 custom_minimum_size = Vector2(0, 70)

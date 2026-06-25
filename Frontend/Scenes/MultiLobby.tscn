@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://dwi83y2rurxgq" path="res://Sprites/Lobby/Tutorial.png" id="3_sbkco"]
 [ext_resource type="Texture2D" uid="uid://hokr04xcwdri" path="res://Sprites/Lobby/BackButton.png" id="4_8i1ja"]
 [ext_resource type="Texture2D" uid="uid://be4mfdh8uk5p1" path="res://Sprites/Lobby/LobbyButtons.png" id="4_mxyc5"]
+[ext_resource type="Texture2D" uid="uid://c1o2paiykeeg8" path="res://Sprites/Lobby/InLobby.png" id="8_ji2ea"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5deb5"]
 texture = ExtResource("3_0ark7")
@@ -74,6 +75,42 @@ region_rect = Rect2(-3, -4, 306, 85)
 
 [sub_resource type="LabelSettings" id="LabelSettings_q72hu"]
 font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_8vdlb"]
+texture = ExtResource("8_ji2ea")
+region_rect = Rect2(-11, 0, 225, 69)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_4wyck"]
+texture = ExtResource("8_ji2ea")
+region_rect = Rect2(-6, 68, 212, 71)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hhe5v"]
+texture = ExtResource("8_ji2ea")
+region_rect = Rect2(4, 0, 192, 69)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ele6c"]
+texture = ExtResource("8_ji2ea")
+region_rect = Rect2(-12, 135, 229, 76)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_eskyf"]
+texture = ExtResource("8_ji2ea")
+region_rect = Rect2(-8, 210, 216, 70)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_2faxi"]
+texture = ExtResource("8_ji2ea")
+region_rect = Rect2(0, 143, 200, 68)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dj6pe"]
+texture = ExtResource("3_alc0g")
+region_rect = Rect2(0, 0, 200, 57)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bq2rc"]
+texture = ExtResource("3_alc0g")
+region_rect = Rect2(3, 56, 193, 64)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_74awb"]
+texture = ExtResource("3_alc0g")
+region_rect = Rect2(13, 0, 174, 58)
 
 [node name="MultiLobby" type="Control" unique_id=1520286451 node_paths=PackedStringArray("create_lobby_button", "join_lobby_button", "start_lobby_button", "card_setting_button", "leave_lobby_button", "multi_lobby_container", "lobby_settings")]
 layout_mode = 3
@@ -277,7 +314,9 @@ size_flags_vertical = 4
 [node name="StartLobby" type="Button" parent="MultiLobbyContainer/InLobbyView/VBoxContainer/HBoxContainer5" unique_id=1364728254]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-text = "Start"
+theme_override_styles/normal = SubResource("StyleBoxTexture_8vdlb")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_4wyck")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hhe5v")
 
 [node name="CardSettingsBox" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView/VBoxContainer" unique_id=199627811]
 layout_mode = 2
@@ -288,7 +327,9 @@ custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-text = "Card Settings"
+theme_override_styles/normal = SubResource("StyleBoxTexture_ele6c")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_eskyf")
+theme_override_styles/hover = SubResource("StyleBoxTexture_2faxi")
 
 [node name="HBoxContainer6" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView/VBoxContainer" unique_id=474319475]
 layout_mode = 2
@@ -298,7 +339,9 @@ size_flags_vertical = 4
 [node name="LeaveLobby" type="Button" parent="MultiLobbyContainer/InLobbyView/VBoxContainer/HBoxContainer6" unique_id=613134272]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-text = "Back"
+theme_override_styles/normal = SubResource("StyleBoxTexture_dj6pe")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_bq2rc")
+theme_override_styles/hover = SubResource("StyleBoxTexture_74awb")
 
 [node name="LobbySettings" parent="." unique_id=1787609362 instance=ExtResource("2_jlkr6")]
 visible = false
