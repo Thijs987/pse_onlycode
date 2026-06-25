@@ -176,6 +176,7 @@ public class MessageRouter
                             responseData.Cards = [];
                             response = MakeMessage(action, playerId, responseData);
                         }
+
                         if (specialCards.Contains(responseData.CardId))
                         {
                             var dataBroad = new DataInfo
