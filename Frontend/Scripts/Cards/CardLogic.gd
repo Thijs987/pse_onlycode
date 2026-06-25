@@ -67,6 +67,11 @@ func play_card(card):
 		var data = {}
 		var target_id = ""
 		var blanco = ["nocom", "goto", "inf", "vibe"]
+		var green_cards = ["blue", "err", "merge"]
+		
+		if current_id in green_cards:
+				card.movable = true
+				return false
 		
 		for card1 in hand_reference.player_hands[0]:
 			if "imp" == card1.own_card_id && current_id != "imp":
