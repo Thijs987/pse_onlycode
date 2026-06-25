@@ -172,8 +172,127 @@ func _on_message(msg):
 
 
 func _on_timeout():
+	var imp = false
 	if turn == controller.PId:
+		for card in player_hands[0]:
+			if card.own_card_id == "imp":
+				imp = true
+				card_logic.play_card(card)
+				break
+		if imp or card_logic.imp_hardware_active:
+			print("TIMER OUT: No card chosen for automatic selection. Automatic choice")
+			for card in player_hands[0]:
+				if card != null and card.own_card_id != "imp":
+					card_logic.start_dragging(card)
+					print("Forced card for Improved Hardware: ", card.own_card_id)
+		else:
+			controller.Draw_Card(controller.PId)
+	print("TIMEOUT")
+	print("trojan_selecting_gift = ", card_logic.trojan_selecting_gift)
+	print("trojan_selecting_target = ", card_logic.trojan_selecting_target)
+	if card_logic == null:
 		controller.Draw_Card(controller.PId)
+		return
+
+	# If a blanco card is played
+	if card_logic.first_combo_card != null:
+		print("TIMER OUT: Didnt finish combo, take card(s) back.")
+		var card_to_reset = card_logic.first_combo_card
+		card_logic.first_combo_card = null
+		
+		card_to_reset.movable = true
+		add_card_to_hand(card_to_reset, 0)
+		
+		controller.Draw_Card(controller.PId)
+		return
+
+	# Trojan horse
+	if card_logic.trojan_selecting_gift:
+		print("TIMER OUT: Trojan gift not selected -> rollback")
+
+		card_logic.trojan_selecting_gift = false
+
+		if card_logic.pending_trojan_card:
+			card_logic.pending_trojan_card.visible = true
+			card_logic.pending_trojan_card.movable = true
+			add_card_to_hand(card_logic.pending_trojan_card, 0)
+			card_logic.pending_trojan_card = null
+
+		# reset everything
+		card_logic.pending_trojan_gift_id = ""
+		card_logic.pending_trojan_gift_card = null
+
+		controller.Draw_Card(controller.PId)
+		return
+		# Giftkaart teruggeven
+		if card_logic.pending_trojan_gift_id != "":
+			add_new_card(card_logic.pending_trojan_gift_id, 0)
+
+			card_logic.pending_trojan_gift_id = ""
+
+		var attack_node = get_tree().root.get_node_or_null("Attack")
+		if attack_node:
+			attack_node.queue_free()
+
+		get_tree().paused = false
+
+		controller.Draw_Card(controller.PId)
+		return
+	if card_logic.trojan_selecting_target:
+		print("TIMER OUT: Closing Attack screen (Trojan cancelled)")
+
+		card_logic.trojan_selecting_target = false
+
+		# FORCE CLOSE ATTACK SCREEN
+		var attack_node = get_tree().root.get_node_or_null("Attack")
+		if attack_node:
+			attack_node.queue_free()
+
+		get_tree().paused = false
+
+		# restore card if needed
+		if card_logic.pending_trojan_card:
+			card_logic.pending_trojan_card.visible = true
+			card_logic.pending_trojan_card.movable = true
+			add_card_to_hand(card_logic.pending_trojan_card, 0)
+			card_logic.pending_trojan_card = null
+
+		if card_logic.pending_trojan_gift_card:
+			card_logic.pending_trojan_gift_card.visible = true
+			card_logic.pending_trojan_gift_card.movable = true
+			add_card_to_hand(card_logic.pending_trojan_gift_card, 0)
+			card_logic.pending_trojan_gift_card = null
+
+		card_logic.pending_trojan_gift_id = ""
+
+		controller.Draw_Card(controller.PId)
+		return
+
+	# Open source
+	if card_logic.os_active:
+		print("TIMER OUT: No choice make. Closing menu")
+		card_logic.os_active = false
+		
+		# Searche and delete os screen
+		var os_node = get_tree().root.get_node_or_null("OSMenu")
+		if os_node:
+			print("OSMenu found and deleted")
+			if os_node.has_signal("choice_selected"):
+				os_node.choice_selected.emit("keep") 
+			os_node.queue_free()
+			
+		get_tree().paused = false
+		return
+
+	# Close other screens just in case
+	var backup_attack = get_tree().root.get_node_or_null("Attack")
+	if backup_attack:
+		backup_attack.queue_free()
+		get_tree().paused = false
+
+	# Default
+	print("TIMER OUT: End turn.")
+	controller.Draw_Card(controller.PId)
 
 func add_new_card(card_id, player_number):
 	var card_scene = preload(CARD_SCENE_PATH)
@@ -191,10 +310,6 @@ func add_new_card(card_id, player_number):
 		new_card.is_others = true
 	player_hands[player_number].insert(0, new_card)
 	update_card_hand_position(player_number)
-	if new_card.own_card_id == "imp": # If you grab an improved hardware, you must play it
-		# For now let the card go into your hand
-		print("Grabbed improved hardware, must play")
-		card_logic.play_card(new_card)
 
 	animate_draw_card(new_card)
 
