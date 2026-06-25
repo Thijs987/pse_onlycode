@@ -172,7 +172,16 @@ func _on_message(msg):
 
 
 func _on_timeout():
-	if turn == controller.PId:
+	var imp = false
+	for card in player_hands[0]:
+		if card.own_card_id == "imp":
+			imp = true
+			card_logic.play_card(card)
+			break
+	if imp:
+		if player_hands[0][0] != null:
+			card_logic.start_dragging(player_hands[0][0])
+	elif turn == controller.PId:
 		controller.Draw_Card(controller.PId)
 
 func add_new_card(card_id, player_number):
