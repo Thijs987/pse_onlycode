@@ -46,6 +46,10 @@ public class ConnectionManager
         {
             try { await oldSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Reconnected", CancellationToken.None); } catch { }
         }
+        if (!_lobbies.ContainsKey(lobbyId))
+        {
+            Log.Information("no lobby named: {lobbyId}", lobbyId);
+        }
 
         List<string> existingPlayers = new List<string>();
         try
@@ -84,8 +88,8 @@ public class ConnectionManager
         {
             matchManager.Rejoin(playerId);
             Log.Information("Socket connected: {PlayerId} rejoined lobby {LobbyId}", playerId, lobbyId);
-            
-            // Broadcast the rejoin message to the lobby FIRST, so the reconnecting client 
+
+            // Broadcast the rejoin message to the lobby FIRST, so the reconnecting client
             // processes it before receiving MATCH_STARTED.
             var joinMessage = new NetworkMessage
             {
@@ -106,14 +110,14 @@ public class ConnectionManager
             };
             var response = router.MakeMessage("MATCH_STARTED", playerId, responseData);
             await SendMessageAsync(playerId, System.Text.Json.JsonSerializer.Serialize(response));
-            
+
             router.botService.RemoveBot(lobbyId, playerId);
         }
         else
         {
             AddToLobby(playerId, lobbyId);
             Log.Information("Socket connected: {PlayerId} joined lobby {LobbyId}", playerId, lobbyId);
-            
+
             var joinMessage = new NetworkMessage
             {
                 Action = "PLAYER_JOINED",
@@ -427,5 +431,14 @@ public class ConnectionManager
         {
             set.Add(lobbyId);
         }
+    }
+
+    public bool cont(string lobbyId)
+    {
+        if (_lobbies.ContainsKey(lobbyId))
+        {
+            return true;
+        }
+        return false;
     }
 }
