@@ -194,6 +194,11 @@ public class MatchManager
             return new DataInfo { Error = "You have been eliminated or are not in the game." };
         }
 
+        if (!string.IsNullOrEmpty(cardData.Target) && match.PlayerIds.Contains(cardData.Target) && !match.PlayerHands.ContainsKey(cardData.Target))
+        {
+            return new DataInfo { Error = "Target player has been eliminated." };
+        }
+
         // Look up the card in registry
         if (!_cardRegistry.TryGetValue(cardData.CardId, out var cardEffect))
         {
@@ -360,8 +365,6 @@ public class MatchManager
             // Refill deck
             Log.Warning("Deck empty for match {MatchId}, regenerating.", match.MatchId);
             GenerateDeck(match);
-            // Use a dedicated flag so it is not clobbered by the card-type message
-            // (e.g. when the card drawn after the refill is "imp").
             responseData.DeckRefilled = true;
         }
 
@@ -486,12 +489,6 @@ public class MatchManager
             if (match.CurrentTurnPlayerId == playerId)
             {
                 match.NTurns = 0;
-            }
-            // return the eliminated player's cards to the discard pile so they stay in
-            // circulation and are counted in future draw-pile refills (matches RemoveFromMatch).
-            foreach (var card in hand)
-            {
-                match.TableCards.Add(card);
             }
             // remove hand from dict
             match.PlayerHands.Remove(playerId);

@@ -44,19 +44,6 @@ expand_margin_bottom = 4.0
 
 [node name="Background" type="Node2D" parent="." unique_id=1148183018]
 
-[node name="TurnLabel" type="Label" parent="Background" unique_id=1031097960]
-offset_left = 626.0
-offset_top = 324.0
-offset_right = 708.0
-offset_bottom = 347.0
-
-[node name="TimeLabel" type="Label" parent="Background" unique_id=367852581]
-offset_left = 676.0
-offset_top = 324.0
-offset_right = 758.0
-offset_bottom = 347.0
-justification_flags = 131
-
 [node name="CanvasLayer" type="CanvasLayer" parent="Background" unique_id=521228002]
 layer = -1
 
@@ -80,6 +67,13 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("3_sgy12")
+
+[node name="TimeLabel" type="Label" parent="Background" unique_id=1515514116]
+offset_left = 682.0
+offset_top = 338.0
+offset_right = 764.0
+offset_bottom = 361.0
+justification_flags = 131
 
 [node name="Pile" type="Node2D" parent="." unique_id=712988398]
 script = ExtResource("2_uo1fs")
@@ -125,11 +119,6 @@ script = ExtResource("7_vv0ms")
 [node name="InputManager" type="Node2D" parent="." unique_id=225008625]
 script = ExtResource("8_vv0ms")
 
-[node name="TurnTimer" type="Timer" parent="." unique_id=40858803]
-wait_time = 30.0
-ignore_time_scale = true
-script = ExtResource("5_rlm2d")
-
 [node name="Leader" type="Node2D" parent="." unique_id=1404215155]
 script = ExtResource("9_hxa32")
 
@@ -150,3 +139,8 @@ layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="TurnTimer" type="Timer" parent="." unique_id=663342367]
+wait_time = 30.0
+ignore_time_scale = true
+script = ExtResource("5_rlm2d")

@@ -1,24 +1,23 @@
 extends Node2D
 
 @onready var pile_location = $DiscardPileLocation
-@onready var play_sound := AudioStreamPlayer.new()
+@onready var draw_sound := AudioStreamPlayer.new()
 
 var discarded_cards = []
 
 
 func _ready():
-	add_child(play_sound)
-	play_sound.stream = preload("res://Sounds/PlayCard.mp3")
+	add_child(draw_sound)
+	draw_sound.stream = preload("res://Sounds/PlayCard.mp3")
 	gscws.card_played.connect(_on_card_played)
-	
 
 func _on_card_played(player_id, card_id):
-	play_sound.play()
+	draw_sound.play()
 	var card_scene = preload("uid://dlb3crw3qdkv2")
 	var card = card_scene.instantiate()
 
 	add_child(card)
-	
+
 	print("Discardpile _on" + card_id)
 
 	card.set_card(card_id)
@@ -26,7 +25,7 @@ func _on_card_played(player_id, card_id):
 
 	card.get_node("Area2D").monitoring = false
 	card.get_node("Area2D").monitorable = false
-	
+
 	Add_Card(card)
 
 func Add_Card(card):

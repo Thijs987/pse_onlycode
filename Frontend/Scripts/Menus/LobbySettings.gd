@@ -99,8 +99,17 @@ func _on_submit():
 
 		CusSet[card_name] = amount
 		total += amount
+	
+	var pcount = 0
+	for p in controller.player_list:
+		if p != "":
+			pcount += 1
 
-	if total < 10:
+	if (total - (int(Fields["IH"].text.strip_edges()))) < (pcount * 3):
+		Result.text = "Incorrect ratio of players and improved hardware"
+		return
+
+	if total < (6 * pcount):
 		Result.text = "Deck contains too few cards"
 		return
 

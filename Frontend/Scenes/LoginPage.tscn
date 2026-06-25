@@ -48,104 +48,115 @@ offset_bottom = 131.5
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="LeftRegisterPanel" type="MarginContainer" parent="HBoxContainer" unique_id=1842646288]
+[node name="RegisterPanel" type="MarginContainer" parent="HBoxContainer" unique_id=1842646288]
+visible = false
 layout_mode = 2
-size_flags_horizontal = 4
+size_flags_horizontal = 6
 size_flags_vertical = 4
 
-[node name="RegisterVBox" type="VBoxContainer" parent="HBoxContainer/LeftRegisterPanel" unique_id=1306938269]
+[node name="RegisterVBox" type="VBoxContainer" parent="HBoxContainer/RegisterPanel" unique_id=1306938269]
 layout_mode = 2
 
-[node name="RegisterTitle" type="Label" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=914890401]
+[node name="RegisterTitle" type="Label" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=914890401]
 layout_mode = 2
 text = "Create Account"
 label_settings = SubResource("LabelSettings_sq1ca")
 horizontal_alignment = 1
 
-[node name="RegEmailLabel" type="Label" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1800732917]
+[node name="RegEmailLabel" type="Label" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1800732917]
 modulate = Color(0, 0, 0, 1)
 layout_mode = 2
 text = "Email"
 horizontal_alignment = 1
 
-[node name="RegEmailInput" type="LineEdit" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1431110833]
+[node name="RegEmailInput" type="LineEdit" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1431110833]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="RegUserLabel" type="Label" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=363630638]
+[node name="RegUserLabel" type="Label" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=363630638]
 modulate = Color(0, 0, 0, 1)
 layout_mode = 2
 text = "Username"
 horizontal_alignment = 1
 
-[node name="RegUserInput" type="LineEdit" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=27414220]
+[node name="RegUserInput" type="LineEdit" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=27414220]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="RegPasswordLabel" type="Label" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1434411266]
+[node name="RegPasswordLabel" type="Label" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1434411266]
 modulate = Color(0, 0, 0, 1)
 layout_mode = 2
 text = "Password"
 horizontal_alignment = 1
 
-[node name="RegPasswordInput" type="LineEdit" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1626466714]
+[node name="RegPasswordInput" type="LineEdit" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1626466714]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="RegisterButton" type="Button" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1289735244]
+[node name="RegisterButton" type="Button" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1289735244]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Register"
 
-[node name="RegisterStatusLabel" type="Label" parent="HBoxContainer/LeftRegisterPanel/RegisterVBox" unique_id=1944538550]
+[node name="SwitchLoginButton" type="Button" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=2055691338]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Already registered?"
+
+[node name="RegisterStatusLabel" type="Label" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=1944538550]
 layout_mode = 2
 
-[node name="RightLoginPanel" type="MarginContainer" parent="HBoxContainer" unique_id=287964335]
+[node name="LoginPanel" type="MarginContainer" parent="HBoxContainer" unique_id=287964335]
 layout_mode = 2
-size_flags_horizontal = 8
+size_flags_horizontal = 6
 size_flags_vertical = 4
 
-[node name="LoginVBox" type="VBoxContainer" parent="HBoxContainer/RightLoginPanel" unique_id=537876617]
+[node name="LoginVBox" type="VBoxContainer" parent="HBoxContainer/LoginPanel" unique_id=537876617]
 layout_mode = 2
 size_flags_horizontal = 8
 
-[node name="LoginTitle" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=1747927484]
+[node name="LoginTitle" type="Label" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=1747927484]
 layout_mode = 2
 text = "Log in"
 label_settings = SubResource("LabelSettings_sq1ca")
 horizontal_alignment = 1
 
-[node name="LoginIdentifierLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=1442675738]
+[node name="LoginIdentifierLabel" type="Label" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=1442675738]
 modulate = Color(0, 0, 0, 1)
 layout_mode = 2
 text = "Username/Email"
 horizontal_alignment = 1
 
-[node name="LoginIdentifierInput" type="LineEdit" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=472526710]
+[node name="LoginIdentifierInput" type="LineEdit" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=472526710]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="LoginPasswordLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=113834122]
+[node name="LoginPasswordLabel" type="Label" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=113834122]
 modulate = Color(0, 0, 0, 1)
 layout_mode = 2
 text = "Password"
 horizontal_alignment = 1
 
-[node name="LoginPasswordInput" type="LineEdit" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=322138422]
+[node name="LoginPasswordInput" type="LineEdit" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=322138422]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="LoginButton" type="Button" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=626939730]
+[node name="LoginButton" type="Button" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=626939730]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Log in"
 
-[node name="LoginStatusLabel" type="Label" parent="HBoxContainer/RightLoginPanel/LoginVBox" unique_id=2001705787]
+[node name="SwitchRegisterButton" type="Button" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=2038771003]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Not registered?"
+
+[node name="LoginStatusLabel" type="Label" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=2001705787]
 layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=342874477]

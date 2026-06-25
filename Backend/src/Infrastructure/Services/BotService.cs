@@ -327,7 +327,7 @@ public class BotService
         List<string> players;
         try
         {
-            players = _connectionManager.GetPlayers(lobbyId);
+            players = _matchManager.GetPlayerHandSizes(lobbyId).Keys.ToList();
         }
         catch (Exception e)
         {
@@ -351,7 +351,7 @@ public class BotService
         // await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
         Log.Debug("Bot {BotId} card played {CardId} with cards {Cards}", botId, response.Data.CardId, response.Data.Cards);
 
-        if (responseData.CardId == "imp")
+        if (responseData.CardId == "imp" && !_matchManager.GetPlayerHand(lobbyId, botId).Contains("imp"))
         {
             await NextPlayer(lobbyId, botId, false);
         }
@@ -363,17 +363,6 @@ public class BotService
         else
         {
             await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
-        }
-
-        // goto/vibe/inf/nocom draw a card from the deck without sending CARD_DRAWN; re-sync the
-        // clients' deck counter and drop the card limit if the draw exhausted and refilled the pile.
-        if (responseData.CardId != null && ComboCardOptions.ContainsKey(responseData.CardId))
-        {
-            if (responseData.DeckRefilled == true)
-            {
-                _matchManager.LowerCardLimit(lobbyId);
-            }
-            await BroadcastDeckSize(lobbyId, botId);
         }
     }
 
@@ -394,19 +383,16 @@ public class BotService
 
         var deckRefilled = responseData.DeckRefilled == true;
 
-        // Drawing Improved Hardware does not end the bot's turn, but if this draw refilled the
-        // pile we still lower the card limit and report the new deck size to all clients.
-        if (responseData.CardId == "imp")
+        if (responseData.CardId != "imp")
         {
-            if (deckRefilled)
-            {
-                _matchManager.LowerCardLimit(lobbyId);
-                await BroadcastDeckSize(lobbyId, botId);
-            }
-            return;
+            await NextPlayer(lobbyId, botId, deckRefilled);
         }
-
-        await NextPlayer(lobbyId, botId, deckRefilled);
+        else if (deckRefilled)
+        {
+            _matchManager.LowerCardLimit(lobbyId);
+            var deckSizeMsg = MakeMessage("DECK_SIZE", botId, new DataInfo { Message = _matchManager.GetDeckSize(lobbyId).ToString(), CardLimit = _matchManager.GetCardLimit(lobbyId) });
+            await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(deckSizeMsg));
+        }
     }
 
     private async Task NextPlayer(string lobbyId, string botId, bool deckRefilled)
@@ -414,15 +400,16 @@ public class BotService
         var responseData = _matchManager.NextTurn(lobbyId, botId);
 
         var end = _matchManager.CheckCardLimit(lobbyId, botId, deckRefilled);
-
-        if (deckRefilled)
-        {
-            await BroadcastDeckSize(lobbyId, botId);
-        }
         if (end.Error != "")
         {
             var errorMessage = MakeMessage("ERROR", botId, end);
             await _connectionManager.SendMessageAsync(botId, JsonSerializer.Serialize(errorMessage));
+        }
+
+        if (deckRefilled)
+        {
+            var deckSizeMsg = MakeMessage("DECK_SIZE", botId, new DataInfo { Message = _matchManager.GetDeckSize(lobbyId).ToString(), CardLimit = _matchManager.GetCardLimit(lobbyId) });
+            await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(deckSizeMsg));
         }
 
         if (end.Message == "Removed")
@@ -444,19 +431,6 @@ public class BotService
 
         var response = MakeMessage("NEXT_TURN", botId, responseData);
         await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(response));
-    }
-
-    // Broadcasts the current draw-pile size and card limit to every player in the lobby.
-    private async Task BroadcastDeckSize(string lobbyId, string botId)
-    {
-        var deckSize = _matchManager.GetDeckSize(lobbyId);
-        var message = new DataInfo
-        {
-            Message = $"{deckSize}",
-            CardLimit = _matchManager.GetCardLimit(lobbyId)
-        };
-        var deckSizeMessage = MakeMessage("DECK_SIZE", botId, message);
-        await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(deckSizeMessage));
     }
 
     private static NetworkMessage MakeMessage(string action, string playerId, DataInfo data)

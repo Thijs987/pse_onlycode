@@ -2,14 +2,21 @@ extends Node2D
 
 @onready var pile_location = $DiscardPileLocation
 @onready var card_logic = $"../CardLogic"
+@onready var draw_sound := AudioStreamPlayer.new()
 var discarded_cards = []
 
 
 func _ready():
+	add_child(draw_sound)
+	draw_sound.stream = preload("res://Sounds/PlayCard.mp3")
 	card_logic.card_played.connect(_on_card_played)
 
 func _on_card_played(player_id, card_id):
-	play_card(player_id, card_id)
+	draw_sound.play()
+	if card_id is String:
+		card_id = [card_id]
+	for id in card_id:
+		play_card(player_id, id)
 
 func play_card(player_id, card_id):
 	var card_scene = preload("uid://dlb3crw3qdkv2")
@@ -21,7 +28,7 @@ func play_card(player_id, card_id):
 
 	card.get_node("Area2D").monitoring = false
 	card.get_node("Area2D").monitorable = false
-	
+
 	Add_Card(card)
 
 func Add_Card(card):

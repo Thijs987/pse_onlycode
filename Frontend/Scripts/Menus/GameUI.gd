@@ -13,8 +13,9 @@ func _ready() -> void:
 
 	player_list_container = VBoxContainer.new()
 	player_list_container.position = Vector2(20, 60)
+	player_list_container.z_index = 1000
 	add_child(player_list_container)
-	
+
 	_update_player_list()
 	if controller.Last_Message.get("action") == "HAND" or controller.Last_Message.get("action") == "MATCH_STARTED":
 		var turn_player = controller.Last_Message.get("data", {}).get("nextPlayer", "")
@@ -81,6 +82,7 @@ func _on_message(msg):
 
 	if action == "CARD_LIMIT":
 		var eliminated_player = msg.get("playerId", "")
+		_set_player_lost(eliminated_player)
 		if eliminated_player == controller.PId:
 			show_notification("You have been eliminated! Spectating...")
 		else:
@@ -110,6 +112,7 @@ func _highlight_turn(current_player_id: String):
 		lbl.text = lbl.text.replace(">> ", "")
 
 	if player_labels.has(current_player_id):
+		print(current_player_id)
 		var active_lbl = player_labels[current_player_id]
 		active_lbl.add_theme_color_override("font_color", Color(1.0, 0.845, 0.392, 1.0))
 		active_lbl.text = ">> " + active_lbl.text
@@ -117,14 +120,20 @@ func _highlight_turn(current_player_id: String):
 func _set_player_disconnected(player_id: String):
 	if player_labels.has(player_id):
 		var lbl = player_labels[player_id]
-		lbl.text = lbl.text.replace("🟢", "🔴")
+		lbl.text = lbl.text.replace("🟢", "🟠")
 		lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 
 func _set_player_reconnected(player_id: String):
 	if player_labels.has(player_id):
 		var lbl = player_labels[player_id]
-		lbl.text = lbl.text.replace("🔴", "🟢")
+		lbl.text = lbl.text.replace("🟠", "🟢")
 		lbl.remove_theme_color_override("font_color")
+
+func _set_player_lost(player_id: String):
+	if player_labels.has(player_id):
+		var lbl = player_labels[player_id]
+		lbl.text = lbl.text.replace("🟢", "🔴")
+		lbl.add_theme_color_override("font_color", Color(1, 0, 0))
 
 func show_notification(text_str: String):
 	var label = Label.new()
@@ -169,4 +178,5 @@ func _on_return_pressed():
 	# Disconnect websocket before returning
 	if gscws.socket.get_ready_state() == WebSocketPeer.STATE_OPEN:
 		gscws.socket.close()
+	controller.Reset_Lobby_State()
 	SceneLoader.load_scene("uid://ctined7qq8dh2")

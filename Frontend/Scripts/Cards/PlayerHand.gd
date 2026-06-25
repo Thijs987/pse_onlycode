@@ -39,8 +39,8 @@ func _ready() -> void:
 	change_player_list()
 	turn_timer.timeout.connect(_on_timeout)
 	controller.message_updated.connect(_on_message)
-	center_screen_x = get_viewport().size.x / 2
-	center_screen_y = get_viewport().size.y / 2
+	center_screen_x = 576
+	center_screen_y = 324
 	for card_id in controller.Player_Hand:
 		add_new_card(card_id, 0)
 
@@ -148,6 +148,15 @@ func _on_message(msg):
 							player_hands[player_number].remove_at(0)
 							card.queue_free()
 							update_card_hand_position(player_number)
+
+		if msg["action"] == "CARD_LIMIT":
+			var player_number = controller.player_list.find(msg.get("playerId"))
+			var size = player_hands[player_number].size()
+			for m in range(0,size):
+				var card = player_hands[player_number][0]
+				player_hands[player_number].remove_at(0)
+				card.queue_free()
+				update_card_hand_position(player_number)
 
 		if msg["action"] == "ERROR":
 			if msg.get("playerId") == controller.PId:
