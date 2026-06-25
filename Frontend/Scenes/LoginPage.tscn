@@ -49,6 +49,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="RegisterPanel" type="MarginContainer" parent="HBoxContainer" unique_id=1842646288]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4
@@ -109,7 +110,6 @@ text = "Already registered?"
 layout_mode = 2
 
 [node name="LoginPanel" type="MarginContainer" parent="HBoxContainer" unique_id=287964335]
-visible = false
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4

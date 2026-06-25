@@ -3,7 +3,9 @@ extends Node2D
 @onready var discard_pile = $"../DiscardPile"
 @onready var hand_reference = $"../PlayerHand"
 @onready var leader = $"../Leader"
+
 const CARD_COLLISION_MASK = 1
+const ATTACK_SCENE = preload("res://Scenes/Attack.tscn")
 
 var screen_size
 var dragging_card
@@ -12,6 +14,7 @@ var card_offsetx
 var card_offsety
 var tooltip_scene = preload("uid://b0ems5mni4412")
 var card_tooltip
+var first_combo_card = null
 
 signal card_played(player_id, card_id)
 signal card_hovered
@@ -42,13 +45,56 @@ func play_card(card):
 		print("Error: DiscardPileArea node not found!")
 		return
 
-	if discard_area.overlaps_area(card.get_node("Area2D")) and leader.turns == controller.PId:
-		card.set_meta("pending", true)
-		card.modulate.a = 0.5
+	if discard_area.overlaps_area(card.get_node("Area2D")):
+		var current_id = card.own_card_id
+		if current_id != "nocom":
+			card.set_meta("pending", true)
+			card.modulate.a = 0.5
 
-		highlight_card(card, false)
-		card_played.emit(controller.PId, card.own_card_id)
-		hand_reference.remove_card_from_hand(card, 0)
+			highlight_card(card, false)
+			card_played.emit(controller.PId, current_id)
+			hand_reference.remove_card_from_hand(card, 0)
+		else:
+			if first_combo_card == null: # First blanco card played
+				print("Eerste combo-kaart geselecteerd: ", current_id)
+				first_combo_card = card
+
+				# Place the card visually
+				first_combo_card.position.y -= 30
+				first_combo_card.position.x -= 200
+				first_combo_card.movable = false
+
+			else: # Second blanco card
+				# Checks if type matches or at least 1 card is a goto
+				if current_id == first_combo_card.own_card_id or current_id == "goto" or first_combo_card.own_card_id == "goto":
+					var played_cards = [first_combo_card.own_card_id, current_id]
+					print("Geldige combo gemaakt! Versturen naar server: ", played_cards)
+					await sql_attack()
+					card_played.emit(controller.PId, played_cards)
+
+					# Play both cards
+					hand_reference.remove_card_from_hand(first_combo_card, 0)
+					hand_reference.remove_card_from_hand(card, 0)
+
+					first_combo_card.queue_free()
+					card.queue_free()
+
+					first_combo_card = null # Reset combo flag
+
+func sql_attack() -> String:
+	var attack_screen = ATTACK_SCENE.instantiate()
+	get_tree().root.add_child(attack_screen)
+	
+	if attack_screen is Control:
+		attack_screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	
+	var filtered_enemies = ["Opponent"]
+	
+	attack_screen.setup_targets(filtered_enemies)
+	get_tree().paused = true # Pauses the game except for the selection menu
+	var gekozen_id = await attack_screen.target_selected
+	get_tree().paused = false
+	return gekozen_id
 
 func bot_play_card(card, card_id):
 	if leader.turns == leader.player_list[1]:
