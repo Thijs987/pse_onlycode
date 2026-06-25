@@ -12,6 +12,7 @@ signal lobby_left()
 
 var PId := ""
 var player_list = ["", "", "", ""]
+var eliminated_players := []
 
 var Last_Message := {}
 var Last_Data := {}
@@ -66,6 +67,7 @@ func Leave_Lobby():
 
 func Reset_Lobby_State():
 	player_list = ["", "", "", ""]
+	eliminated_players.clear()
 	All_Player_Ids.clear()
 	Player_Hand.clear()
 	Hand_Sizes.clear()
@@ -141,8 +143,10 @@ func Update_From_Server(msg: Dictionary):
 	if Last_Message.get("action") == "GAME_OVER":
 		interaction_disabled = true
 
-	if Last_Message.get("action") == "CARD_LIMIT" and msg.get("playerId") == PId:
-		interaction_disabled = true
+	if Last_Message.get("action") == "CARD_LIMIT":
+		eliminated_players.append(msg.get("playerId"))
+		if msg.get("playerId") == PId:
+			interaction_disabled = true
 
 	if Last_Message.get("action") == "HAND":
 		if Last_Data.has("cards"):

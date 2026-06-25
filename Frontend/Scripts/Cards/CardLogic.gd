@@ -231,7 +231,7 @@ func sql_attack() -> String:
 	
 	var filtered_enemies = []
 	for p_id in controller.All_Player_Ids:
-		if p_id != controller.PId:
+		if p_id != controller.PId and p_id not in controller.eliminated_players:
 			filtered_enemies.append(p_id)
 	
 	attack_screen.setup_targets(filtered_enemies)

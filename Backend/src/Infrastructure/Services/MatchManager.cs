@@ -119,7 +119,7 @@ public class MatchManager
             newState.Deck = new List<string> { };
             return newState;
         }
-
+         Log.Information("Match {MatchId} initialization failed - insufficient cards (size={Size}, impcards={ImpCards}, players={Players}).", matchId, size, impcards, playerCount);
         // Initialize hands and deal 3 cards per player
         foreach (var player in players)
         {
@@ -141,7 +141,7 @@ public class MatchManager
                 }
                 else
                 {
-                    newState.TableCards.Add(card);
+                    newState.Deck.Add(card);
                     i--;
                 }
             }
