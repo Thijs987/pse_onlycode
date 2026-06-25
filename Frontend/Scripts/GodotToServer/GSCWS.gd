@@ -95,21 +95,21 @@ func Start_Match(custom_set: Dictionary):
 			no_un -= 1
 	
 	var new_set := [
-		no_blue,
-		int(custom_set.get("CM", 0)),
-		int(custom_set.get("Ddos", 0)),
-		no_err,
-		0,#is garbage collector
-		int(custom_set.get("Goto", 0)),
-		int(custom_set.get("IH", 0)),
-		int(custom_set.get("Err", 0)),
-		no_merge,
-		int(custom_set.get("MS", 0)),
-		int(custom_set.get("Err", 0)),
-		int(custom_set.get("SQL", 0)),
-		int(custom_set.get("TH", 0)),
-		int(custom_set.get("Err", 0)),
-		int(custom_set.get("OpS", 0)),
+		str(no_blue),
+		str(custom_set.get("CM", 0)),
+		str(custom_set.get("Ddos", 0)),
+		str(no_err),
+		"0",#is garbage collector
+		str(custom_set.get("Goto", 0)),
+		str(custom_set.get("IH", 0)),
+		str(custom_set.get("Err", 0)),
+		str(no_merge),
+		str(custom_set.get("MS", 0)),
+		str(custom_set.get("Err", 0)),
+		str(custom_set.get("SQL", 0)),
+		str(custom_set.get("TH", 0)),
+		str(custom_set.get("Err", 0)),
+		str(custom_set.get("OpS", 0))
 	]
 
 	_Send(_Make_Message("START_MATCH", {"data": new_set}))
