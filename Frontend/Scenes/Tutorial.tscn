@@ -68,12 +68,6 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("3_sgy12")
 
-[node name="TurnLabel" type="Label" parent="Background" unique_id=1031097960]
-offset_left = 626.0
-offset_top = 324.0
-offset_right = 708.0
-offset_bottom = 347.0
-
 [node name="TimeLabel" type="Label" parent="Background" unique_id=1515514116]
 offset_left = 682.0
 offset_top = 338.0
