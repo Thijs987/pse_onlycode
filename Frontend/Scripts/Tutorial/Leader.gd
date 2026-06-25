@@ -80,6 +80,32 @@ func set_tutorial_text(text):
 	tutorial_panel.size = tutorial_label.size
 	tutorial_panel.show()
 
+func show_game_over():
+	var panel = ColorRect.new()
+	panel.color = Color(0, 0, 0, 0.8)
+	panel.size = get_viewport_rect().size
+	panel.z_index = 2000
+	add_child(panel)
+
+	var label = Label.new()
+	label.text = "GAME OVER\n\nWinner: " + str(controller.PId)
+	label.add_theme_font_size_override("font_size", 50)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel.add_child(label)
+
+	var btn = Button.new()
+	btn.text = "Return to Menu"
+	btn.add_theme_font_size_override("font_size", 30)
+	btn.position = Vector2(get_viewport_rect().size.x / 2.0 - 150, get_viewport_rect().size.y / 2.0 + 150)
+	btn.size = Vector2(300, 60)
+	panel.add_child(btn)
+	btn.pressed.connect(_on_return_pressed)
+
+func _on_return_pressed():
+	SceneLoader.load_scene("uid://ctined7qq8dh2")
+
 func run_tutorial():
 	set_tutorial_text("Welcome to the tutorial\nClick to continue...")
 	wait_for_mouse_click = true
@@ -91,7 +117,9 @@ func run_tutorial():
 	await next_step
 	can_draw = false
 	set_tutorial_text("Drawing a card will end your turn\nNow the other player will draw a card.")
-	await get_tree().create_timer(1.0).timeout
+	wait_for_mouse_click = true
+	await next_step
+	wait_for_mouse_click = false
 	hand_reference.add_new_card("achterkant", 1)
 	can_hover = true
 	await get_tree().create_timer(1.0).timeout
@@ -103,7 +131,8 @@ func run_tutorial():
 	can_play = true
 	await next_step
 	can_play = false
-	await get_tree().create_timer(0.5).timeout
+	hand_reference.add_new_card("achterkant", 1)
+	await get_tree().create_timer(1.0).timeout
 	hand_reference.add_new_card("achterkant", 1)
 	set_tutorial_text("Your opponent now has 5 cards\nThis game has a card limit that starts at 5\nThe limit reduces everytime the draw pile is empty\nYour opponent now has to play a card or they lose\nClick to continue...")
 	wait_for_mouse_click = true
@@ -122,7 +151,6 @@ func run_tutorial():
 	wait_for_mouse_click = true
 	await next_step
 	wait_for_mouse_click = false
-	await get_tree().create_timer(1.0).timeout
 	hand_reference.add_new_card("nocom", 0)
 	set_tutorial_text("We've given you a second no comments card\nNow play both blank cards")
 	can_play = true
@@ -130,6 +158,5 @@ func run_tutorial():
 	can_play = false
 	hand_reference.add_new_card("achterkant", 1)
 	set_tutorial_text("Congratulations, you won\nNow go play an entire match")
-	await get_tree().create_timer(20.0).timeout
-	SceneLoader.load_scene("uid://bdxchheqi80lr") #multilobby
-	
+	exit_button.visible = false
+	show_game_over()
