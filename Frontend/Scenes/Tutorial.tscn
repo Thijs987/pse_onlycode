@@ -1,8 +1,10 @@
 [gd_scene format=3 uid="uid://15klgveacs0r"]
 
-[ext_resource type="Texture2D" uid="uid://ddi0wy7qoyp4c" path="res://Sprites/Table.jpeg" id="1_m35rq"]
+[ext_resource type="Texture2D" uid="uid://cxuq8htjhpl3a" path="res://Sprites/Background/gameabg.png" id="1_8i65c"]
+[ext_resource type="Shader" uid="uid://c6fb11dkp3o6o" path="res://Sprites/Background/Background.gdshader" id="2_m35rq"]
 [ext_resource type="Script" uid="uid://l8hl0gyra0em" path="res://Scripts/Tutorial/Pile.gd" id="2_uo1fs"]
 [ext_resource type="Texture2D" uid="uid://bglcmj03jm8lb" path="res://Sprites/Card_deck_sprite.png" id="3_5gw1s"]
+[ext_resource type="Script" uid="uid://cruuh8gf08k8f" path="res://Scripts/Background/ControlBackground.gd" id="3_sgy12"]
 [ext_resource type="Script" uid="uid://dsxn481hq1afa" path="res://Scripts/Tutorial/DiscardPile.gd" id="4_7bloo"]
 [ext_resource type="Script" uid="uid://dq1qq7wsoepde" path="res://Scripts/Tutorial/TurnTimer.gd" id="5_rlm2d"]
 [ext_resource type="Script" uid="uid://w4glwalulqb3" path="res://Scripts/Tutorial/PlayerHand.gd" id="6_x7a1n"]
@@ -10,20 +12,61 @@
 [ext_resource type="Script" uid="uid://ccxvg0uo4vgo2" path="res://Scripts/Tutorial/InputManager.gd" id="8_vv0ms"]
 [ext_resource type="Script" uid="uid://bki53kmrqcrjb" path="res://Scripts/Tutorial/Leader.gd" id="9_hxa32"]
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5gw1s"]
+shader = ExtResource("2_m35rq")
+shader_parameter/alpha = 0.1
+shader_parameter/inner_radius = 0.0
+shader_parameter/outer_radius = 1.0
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2o727"]
 size = Vector2(89, 88)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rlm2d"]
 size = Vector2(421.5, 218)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hxa32"]
+bg_color = Color(0, 0, 0, 0.60784316)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 1, 0, 0.8509804)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+expand_margin_left = 8.0
+expand_margin_top = 4.0
+expand_margin_right = 8.0
+expand_margin_bottom = 4.0
+
 [node name="Tutorial" type="Node2D" unique_id=1466140711]
 
 [node name="Background" type="Node2D" parent="." unique_id=1148183018]
 
-[node name="Table" type="Sprite2D" parent="Background" unique_id=954604565]
-position = Vector2(576, 324)
-scale = Vector2(2.1893203, 2.1893206)
-texture = ExtResource("1_m35rq")
+[node name="CanvasLayer" type="CanvasLayer" parent="Background" unique_id=521228002]
+layer = -1
+
+[node name="Background" type="TextureRect" parent="Background/CanvasLayer" unique_id=378821701]
+z_index = -1
+offset_left = -222.0
+offset_top = -257.0
+offset_right = 1410.0
+offset_bottom = 901.0
+texture = ExtResource("1_8i65c")
+stretch_mode = 1
+
+[node name="ColorRect" type="ColorRect" parent="Background/CanvasLayer" unique_id=762553784]
+show_behind_parent = true
+z_index = -1
+material = SubResource("ShaderMaterial_5gw1s")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_sgy12")
 
 [node name="TurnLabel" type="Label" parent="Background" unique_id=1031097960]
 offset_left = 626.0
@@ -31,11 +74,11 @@ offset_top = 324.0
 offset_right = 708.0
 offset_bottom = 347.0
 
-[node name="TimeLabel" type="Label" parent="Background" unique_id=367852581]
-offset_left = 676.0
-offset_top = 324.0
-offset_right = 758.0
-offset_bottom = 347.0
+[node name="TimeLabel" type="Label" parent="Background" unique_id=1515514116]
+offset_left = 682.0
+offset_top = 338.0
+offset_right = 764.0
+offset_bottom = 361.0
 justification_flags = 131
 
 [node name="Pile" type="Node2D" parent="." unique_id=712988398]
@@ -82,14 +125,28 @@ script = ExtResource("7_vv0ms")
 [node name="InputManager" type="Node2D" parent="." unique_id=225008625]
 script = ExtResource("8_vv0ms")
 
-[node name="TurnTimer" type="Timer" parent="." unique_id=40858803]
-wait_time = 30.0
-ignore_time_scale = true
-script = ExtResource("5_rlm2d")
-
 [node name="Leader" type="Node2D" parent="." unique_id=1404215155]
 script = ExtResource("9_hxa32")
 
-[node name="TutorialLabel" type="Label" parent="Leader" unique_id=298529425]
+[node name="ExitButton" type="Button" parent="Leader" unique_id=1980228947]
+offset_left = 951.0
+offset_top = 29.0
+offset_right = 1110.0
+offset_bottom = 81.0
+text = "Exit"
+
+[node name="TutorialPanel" type="Panel" parent="Leader" unique_id=262777299]
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hxa32")
+
+[node name="TutorialLabel" type="Label" parent="Leader/TutorialPanel" unique_id=1259266932]
+layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="TurnTimer" type="Timer" parent="." unique_id=663342367]
+wait_time = 30.0
+ignore_time_scale = true
+script = ExtResource("5_rlm2d")

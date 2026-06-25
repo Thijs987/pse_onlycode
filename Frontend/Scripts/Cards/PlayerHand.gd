@@ -34,10 +34,7 @@ func _ready() -> void:
 			next_turn.emit(player)
 			if turn_label != null:
 				turn_label.text = str(player)
-			if player == controller.PId:
-				turn_timer.start()
-			else:
-				turn_timer.stop()
+			turn_timer.start()
 
 	change_player_list()
 	turn_timer.timeout.connect(_on_timeout)
@@ -53,8 +50,8 @@ func _ready() -> void:
 			var hand_size = controller.Hand_Sizes.get(p_id, 5)
 			for j in range(hand_size):
 				add_new_card("achterkant", i)
-
-func _process(_delta: float) -> void:
+	
+func _process(_delta: float) -> void:	
 	if card_logic and card_logic.dragging_card != null:
 		sort_hand()
 
@@ -151,6 +148,15 @@ func _on_message(msg):
 							player_hands[player_number].remove_at(0)
 							card.queue_free()
 							update_card_hand_position(player_number)
+
+		if msg["action"] == "CARD_LIMIT":
+			var player_number = controller.player_list.find(msg.get("playerId"))
+			var size = player_hands[player_number].size()
+			for m in range(0,size):
+				var card = player_hands[player_number][0]
+				player_hands[player_number].remove_at(0)
+				card.queue_free()
+				update_card_hand_position(player_number)
 
 		if msg["action"] == "ERROR":
 			if msg.get("playerId") == controller.PId:

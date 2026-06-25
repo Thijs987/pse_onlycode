@@ -151,9 +151,11 @@ public class MessageRouter
                         var action = "CARD_PLAYED";
 
                         response = MakeMessage(action, playerId, responseData);
-                        if (responseData.CardId == "imp")
+                        if (responseData.CardId == "imp" && !matchManager.GetPlayerHand(lobbyId,playerId).Contains("imp"))
                         {
                             await Next_player(lobbyId, playerId, false, connectionManager, matchManager);
+                        } else if(responseData.CardId == "imp") {
+                            break;
                         }
                         else if (responseData.IsPrivate == true)
                         {
@@ -365,6 +367,11 @@ public class MessageRouter
 
     private bool lobbyHasHuman(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
     {
+        if (!connectionManager.cont(lobbyId))
+        {
+            Log.Information("player won or sum");
+            return false;
+        }
         bool hasHuman = connectionManager.GetPlayers(lobbyId).Any(p => !botService.IsBot(p, lobbyId));
         if (!hasHuman)
         {

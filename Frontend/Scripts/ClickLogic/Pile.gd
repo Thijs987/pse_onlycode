@@ -179,10 +179,7 @@ func decrease_counter():
 		return
 	
 	if turns == controller.PId:
-		if card_count > 0:
-			controller.Draw_Card(controller.PId)
-		else:
-			print("Pile is empty")
+		controller.Draw_Card(controller.PId)
 
 # Past card count getal aan
 func update_card_text():

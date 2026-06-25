@@ -74,6 +74,10 @@ func play_card(card):
 				card.movable = true
 				return false
 
+		#if current_id == "err":
+			#card.movable = true
+			#return false
+
 		print("Card: " + current_id)
 		if current_id in blanco:
 			if first_combo_card == null: # First blanco card played
@@ -112,7 +116,7 @@ func play_card(card):
 					
 					# Select target is a TODO
 				else:
-					print("Bad combo, cards need to be of same type or 1 has to be nocom")
+					print("Bad combo, cards need to be of same type or 1 has to be goto")
 					card.movable = true
 					return false
 
