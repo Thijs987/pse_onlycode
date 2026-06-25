@@ -3,9 +3,38 @@
 [ext_resource type="Script" uid="uid://bhv02iytie5b3" path="res://Scripts/Menus/MultiLobby.gd" id="1_tj0e8"]
 [ext_resource type="Texture2D" uid="uid://c4s68mgugurgf" path="res://Sprites/Lobby/BackgroundPlay.png" id="2_8i1ja"]
 [ext_resource type="PackedScene" uid="uid://by3u2iwo87g6x" path="res://Scenes/LobbySettings.tscn" id="2_jlkr6"]
+[ext_resource type="Texture2D" uid="uid://chbtysc0spb4n" path="res://Sprites/TextBox.png" id="3_0ark7"]
 [ext_resource type="Texture2D" uid="uid://bufvc1f3aqotc" path="res://Sprites/BackButton.png" id="3_alc0g"]
 [ext_resource type="Texture2D" uid="uid://dwi83y2rurxgq" path="res://Sprites/Lobby/Tutorial.png" id="3_sbkco"]
 [ext_resource type="Texture2D" uid="uid://hokr04xcwdri" path="res://Sprites/Lobby/BackButton.png" id="4_8i1ja"]
+[ext_resource type="Texture2D" uid="uid://be4mfdh8uk5p1" path="res://Sprites/Lobby/LobbyButtons.png" id="4_mxyc5"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5deb5"]
+texture = ExtResource("3_0ark7")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_x06vt"]
+texture = ExtResource("4_mxyc5")
+region_rect = Rect2(-10, 0, 219, 76)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_sh3g7"]
+texture = ExtResource("4_mxyc5")
+region_rect = Rect2(0, 83, 200, 71)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_nepvy"]
+texture = ExtResource("4_mxyc5")
+region_rect = Rect2(3, 5, 194, 73)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7pf85"]
+texture = ExtResource("4_mxyc5")
+region_rect = Rect2(-16, 167, 235, 67)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_udp1n"]
+texture = ExtResource("4_mxyc5")
+region_rect = Rect2(-8, 245, 217, 75)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0ccqt"]
+texture = ExtResource("4_mxyc5")
+region_rect = Rect2(-7, 165, 212, 72)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yj5nb"]
 texture = ExtResource("3_sbkco")
@@ -107,6 +136,10 @@ size_flags_vertical = 4
 [node name="LineEdit" type="LineEdit" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer3" unique_id=1274674973]
 custom_minimum_size = Vector2(200, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 0.9254902)
+theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
+theme_override_colors/font_placeholder_color = Color(0.09620453, 0.09620487, 0.096204616, 1)
+theme_override_styles/normal = SubResource("StyleBoxTexture_5deb5")
 placeholder_text = "Lobby id"
 alignment = 1
 
@@ -118,7 +151,9 @@ size_flags_vertical = 4
 [node name="JoinLobby" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer4" unique_id=189700080]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-text = "Join lobby"
+theme_override_styles/normal = SubResource("StyleBoxTexture_x06vt")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_sh3g7")
+theme_override_styles/hover = SubResource("StyleBoxTexture_nepvy")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=711806622]
 layout_mode = 2
@@ -128,7 +163,9 @@ size_flags_vertical = 4
 [node name="CreateLobby" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer" unique_id=1151753198]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-text = "Create lobby"
+theme_override_styles/normal = SubResource("StyleBoxTexture_7pf85")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_udp1n")
+theme_override_styles/hover = SubResource("StyleBoxTexture_0ccqt")
 
 [node name="HBoxContainer5" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=1290916625]
 layout_mode = 2
