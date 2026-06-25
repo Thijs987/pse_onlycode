@@ -39,8 +39,8 @@ func _ready() -> void:
 	change_player_list()
 	turn_timer.timeout.connect(_on_timeout)
 	controller.message_updated.connect(_on_message)
-	center_screen_x = get_viewport().size.x / 2
-	center_screen_y = get_viewport().size.y / 2
+	center_screen_x = 576
+	center_screen_y = 324
 	for card_id in controller.Player_Hand:
 		add_new_card(card_id, 0)
 
