@@ -74,6 +74,10 @@ func play_card(card):
 				card.movable = true
 				return false
 
+		#if current_id == "err":
+			#card.movable = true
+			#return false
+
 		print("Card: " + current_id)
 		if current_id in blanco:
 			if first_combo_card == null: # First blanco card played
