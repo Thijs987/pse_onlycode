@@ -67,13 +67,8 @@ func play_card(card):
 	if discard_pile == null:
 		print("Error: DiscardPile node not found!")
 		return
-	var discard_area = discard_pile.get_node_or_null("DiscardPileArea")
-	if discard_area == null:
-		print("Error: DiscardPileArea node not found!")
-		return
 		
-		
-	if discard_area.overlaps_area(card.get_node("Area2D")) and controller.PId == turns:
+	if controller.PId == turns:
 		card.movable = false
 		highlight_card(card, false)
 		#controller.Play_Card(controller.PId, card.own_card_id)
@@ -338,10 +333,15 @@ func start_dragging(card):
 # Calls logic for case of stopping dragging when left mouse button is released
 func stop_dragging():
 	if dragging_card and dragging_card.movable == true:
+		var discard_area = discard_pile.get_node_or_null("DiscardPileArea")
+		if discard_area == null:
+			print("Error: DiscardPileArea node not found!")
+			return
 		# Als play_card true teruggeeft, stoppen we HIER direct!
-		if await play_card(dragging_card):
-			dragging_card = null
-			return 
+		if discard_area.overlaps_area(dragging_card.get_node("Area2D")):
+			if await play_card(dragging_card):
+				dragging_card = null
+				return 
 			
 	var released_card = dragging_card # Temp variable for add_card_to_hand
 	if released_card and (released_card.movable == true or released_card.has_meta("pending")):

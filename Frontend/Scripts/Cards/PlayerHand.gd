@@ -172,8 +172,19 @@ func _on_message(msg):
 
 
 func _on_timeout():
+	var imp = false
 	if turn == controller.PId:
-		controller.Draw_Card(controller.PId)
+		for card in player_hands[0]:
+			if card.own_card_id == "imp":
+				imp = true
+				card_logic.play_card(card)
+				break
+		if imp or card_logic.imp_hardware_active:
+			for card in player_hands[0]:
+				if card != null and card.own_card_id != "imp":
+					card_logic.start_dragging(card)
+		else:
+			controller.Draw_Card(controller.PId)
 
 func add_new_card(card_id, player_number):
 	var card_scene = preload(CARD_SCENE_PATH)
@@ -191,10 +202,6 @@ func add_new_card(card_id, player_number):
 		new_card.is_others = true
 	player_hands[player_number].insert(0, new_card)
 	update_card_hand_position(player_number)
-	if new_card.own_card_id == "imp": # If you grab an improved hardware, you must play it
-		# For now let the card go into your hand
-		print("Grabbed improved hardware, must play")
-		card_logic.play_card(new_card)
 
 	animate_draw_card(new_card)
 
