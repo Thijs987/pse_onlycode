@@ -74,7 +74,7 @@ public class MatchManager
             // {"inf", 0},
             // {"merge", 0},
             {"blue", 0},
-            {"cm", 0},
+            {"cm", 50},
             {"ddos", 0},
             {"err", 0},
             {"garb", 0},
@@ -87,7 +87,7 @@ public class MatchManager
             {"sql", 0},
             {"trojan", 0},
             {"vibe", 0},
-            {"os", 30},
+            {"os", 0},
             {"test", 0}
         };
 

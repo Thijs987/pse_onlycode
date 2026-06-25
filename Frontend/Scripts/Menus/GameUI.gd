@@ -60,7 +60,7 @@ func _on_message(msg):
 		_set_player_reconnected(rejoined_player)
 
 	if action == "NEXT_TURN":
-		var current_turn_player = msg.get("playerId", "")
+		var current_turn_player = msg.get("data", {}).get("nextPlayer", "")
 		_highlight_turn(current_turn_player)
 
 	if action == "PLAYER_LEFT" or action == "PLAYER_DISCONNECTED":
@@ -69,10 +69,16 @@ func _on_message(msg):
 
 	if action == "CARD_LIMIT":
 		var eliminated_player = msg.get("playerId", "")
+		_set_player_lost(eliminated_player)
 		if eliminated_player == controller.PId:
 			show_notification("You have been eliminated! Spectating...")
 		else:
 			show_notification(str(eliminated_player) + " was eliminated!")
+	
+	if action == "CARD_PLAYED":
+		if msg.has("data") and msg.get("data", {}).has("nextPlayer"):
+			var current_turn_player = msg.get("data", {}).get("nextPlayer", "")
+			_highlight_turn(current_turn_player)
 
 	if action == "GAME_OVER":
 		var winner = msg.get("playerId", "")
@@ -98,6 +104,7 @@ func _highlight_turn(current_player_id: String):
 		lbl.text = lbl.text.replace(">> ", "")
 
 	if player_labels.has(current_player_id):
+		print(current_player_id)
 		var active_lbl = player_labels[current_player_id]
 		active_lbl.add_theme_color_override("font_color", Color(1.0, 0.845, 0.392, 1.0))
 		active_lbl.text = ">> " + active_lbl.text
@@ -105,14 +112,20 @@ func _highlight_turn(current_player_id: String):
 func _set_player_disconnected(player_id: String):
 	if player_labels.has(player_id):
 		var lbl = player_labels[player_id]
-		lbl.text = lbl.text.replace("🟢", "🔴")
+		lbl.text = lbl.text.replace("🟢", "🟠")
 		lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 
 func _set_player_reconnected(player_id: String):
 	if player_labels.has(player_id):
 		var lbl = player_labels[player_id]
-		lbl.text = lbl.text.replace("🔴", "🟢")
+		lbl.text = lbl.text.replace("🟠", "🟢")
 		lbl.remove_theme_color_override("font_color")
+
+func _set_player_lost(player_id: String):
+	if player_labels.has(player_id):
+		var lbl = player_labels[player_id]
+		lbl.text = lbl.text.replace("🟢", "🔴")
+		lbl.add_theme_color_override("font_color", Color(1, 0, 0))
 
 func show_notification(text_str: String):
 	var label = Label.new()

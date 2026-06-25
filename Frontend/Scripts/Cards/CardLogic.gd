@@ -116,7 +116,7 @@ func play_card(card):
 					
 					# Select target is a TODO
 				else:
-					print("Bad combo, cards need to be of same type or 1 has to be nocom")
+					print("Bad combo, cards need to be of same type or 1 has to be goto")
 					card.movable = true
 					return false
 
