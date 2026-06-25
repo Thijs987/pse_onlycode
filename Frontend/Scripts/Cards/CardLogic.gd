@@ -19,6 +19,10 @@ var card_offsety
 var turns
 var first_combo_card = null # Played blanco
 var trojan_selecting_gift = false # Played trojan horse
+var pending_trojan_card = null
+var pending_trojan_gift_id = ""
+var pending_trojan_gift_card = null
+var trojan_selecting_target = false
 var imp_hardware_active = false #  Played improved hardware
 var tooltip_scene = preload("uid://b0ems5mni4412")
 var card_tooltip
@@ -139,8 +143,12 @@ func play_card(card):
 				print("You dont have a card to give")
 				card.movable = true
 				return false
+			pending_trojan_card = card
+
 			hand_reference.remove_card_from_hand(card, 0)
-			card.queue_free()
+
+			card.visible = false
+			card.movable = false
 
 			print("Choose a card to give to player")
 			trojan_selecting_gift = true
@@ -338,17 +346,41 @@ func start_dragging(card):
 		print("Chosen card: ", gift_card_id)
 		
 		# Delete card from your hand
+		pending_trojan_gift_id = card.own_card_id
+		pending_trojan_gift_card = card
+
 		hand_reference.remove_card_from_hand(card, 0)
-		card.queue_free()
+
+		card.visible = false
+		card.movable = false
 		update_instruction_text()
-		var target_id = await sql_attack() 
-		
-		var data = {cardId = "trojan",
-					target = target_id,
-					cards = [gift_card_id]}
+		trojan_selecting_target = true
+		update_instruction_text()
+
+		var target_id = await sql_attack()
+		var attack_node = get_tree().root.get_node_or_null("Attack")
+		if attack_node == null:
+			return # attack was cancelled by timeout
+
+		# 🔴 BELANGRIJK: als timeout al gereset heeft → stop hier
+		if not trojan_selecting_target:
+			return
+
+		trojan_selecting_target = false
+
+		var data = {
+			cardId = "trojan",
+			target = target_id,
+			cards = [gift_card_id]
+		}
+
+		controller.Play_Card(controller.PId, data)
 		
 		#var played_cards = ["trojan", gift_card_id]
 		controller.Play_Card(controller.PId, data)
+		pending_trojan_card = null
+		pending_trojan_gift_card = null
+		pending_trojan_gift_id = ""
 		update_instruction_text()
 		return
 		

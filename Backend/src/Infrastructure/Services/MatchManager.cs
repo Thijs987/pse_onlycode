@@ -79,7 +79,7 @@ public class MatchManager
             {"err", 0},
             {"garb", 0},
             {"goto", 10},
-            {"imp", 10},
+            {"imp", 0},
             {"inf", 0},
             {"merge", 0},
             {"miracle", 0},

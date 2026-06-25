@@ -169,6 +169,9 @@ func _on_message(msg):
 
 
 func _on_timeout():
+	print("TIMEOUT")
+	print("trojan_selecting_gift = ", card_logic.trojan_selecting_gift)
+	print("trojan_selecting_target = ", card_logic.trojan_selecting_target)
 	if card_logic == null:
 		controller.Draw_Card(controller.PId)
 		return
@@ -186,17 +189,65 @@ func _on_timeout():
 		return
 
 	# Trojan horse
+	# TROJAN GIFT TIMEOUT (BELANGRIJK)
 	if card_logic.trojan_selecting_gift:
-		print("TIMER OUT: Choise fase over. Cleaning screen")
+		print("TIMER OUT: Trojan gift not selected -> rollback")
+
 		card_logic.trojan_selecting_gift = false
-		
-		# Remove attack screen
+
+		if card_logic.pending_trojan_card:
+			card_logic.pending_trojan_card.visible = true
+			card_logic.pending_trojan_card.movable = true
+			add_card_to_hand(card_logic.pending_trojan_card, 0)
+			card_logic.pending_trojan_card = null
+
+		# reset everything
+		card_logic.pending_trojan_gift_id = ""
+		card_logic.pending_trojan_gift_card = null
+
+		controller.Draw_Card(controller.PId)
+		return
+		# Giftkaart teruggeven
+		if card_logic.pending_trojan_gift_id != "":
+			add_new_card(card_logic.pending_trojan_gift_id, 0)
+
+			card_logic.pending_trojan_gift_id = ""
+
 		var attack_node = get_tree().root.get_node_or_null("Attack")
 		if attack_node:
-			print("Attack screen found and deleted.")
 			attack_node.queue_free()
-			
+
 		get_tree().paused = false
+
+		controller.Draw_Card(controller.PId)
+		return
+	if card_logic.trojan_selecting_target:
+		print("TIMER OUT: Closing Attack screen (Trojan cancelled)")
+
+		card_logic.trojan_selecting_target = false
+
+		# 🔴 FORCE CLOSE ATTACK SCREEN
+		var attack_node = get_tree().root.get_node_or_null("Attack")
+		if attack_node:
+			attack_node.queue_free()
+
+		get_tree().paused = false
+
+		# restore card if needed
+		if card_logic.pending_trojan_card:
+			card_logic.pending_trojan_card.visible = true
+			card_logic.pending_trojan_card.movable = true
+			add_card_to_hand(card_logic.pending_trojan_card, 0)
+			card_logic.pending_trojan_card = null
+
+		if card_logic.pending_trojan_gift_card:
+			card_logic.pending_trojan_gift_card.visible = true
+			card_logic.pending_trojan_gift_card.movable = true
+			add_card_to_hand(card_logic.pending_trojan_gift_card, 0)
+			card_logic.pending_trojan_gift_card = null
+
+		card_logic.pending_trojan_gift_id = ""
+
 		controller.Draw_Card(controller.PId)
 		return
 
