@@ -23,7 +23,7 @@ func _ready() -> void:
 	create_visual_pile()
 
 	add_child(draw_sound)
-	draw_sound.stream = preload("res://Sounds/click.mp3")
+	draw_sound.stream = preload("res://Sounds/PlayCard.mp3")
 
 	hand_reference.next_turn.connect(_newturn)
 	controller.message_updated.connect(_on_message)
