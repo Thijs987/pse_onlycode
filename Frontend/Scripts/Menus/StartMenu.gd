@@ -13,6 +13,10 @@ extends Control
 @export var press_to_start: TextureRect
 @export var press_start_animation: AnimationPlayer
 @export var movement_ease_curve: Curve
+@export var mute_on_style: StyleBoxTexture
+@export var mute_off_style: StyleBoxTexture
+@export var mute_on_style_hover: StyleBoxTexture
+@export var mute_off_style_hover_off: StyleBoxTexture
 
 var bg_start_pos
 var in_main_menu: bool = false
@@ -31,7 +35,10 @@ func _ready() -> void:
 	
 	login_button.pressed.connect(_on_login_pressed)
 	mute_button.pressed.connect(_on_mute_pressed)
-	
+	mute_button.add_theme_stylebox_override("normal", mute_off_style)
+	mute_button.add_theme_stylebox_override("hover", mute_off_style_hover_off)
+	mute_button.add_theme_stylebox_override("pressed", mute_off_style_hover_off)
+	mute_button.add_theme_stylebox_override("focus", mute_off_style_hover_off)
 	check_login_status()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -101,11 +108,17 @@ func _on_mute_pressed() -> void:
 	AudioServer.set_bus_mute(master_bus_index, is_muted)
 
 	if is_muted:
-		mute_button.text = "Unmute"
+		mute_button.add_theme_stylebox_override("normal", mute_on_style)
+		mute_button.add_theme_stylebox_override("hover", mute_on_style_hover)
+		mute_button.add_theme_stylebox_override("pressed", mute_on_style_hover)
+		mute_button.add_theme_stylebox_override("focus", mute_on_style_hover)
 	else:
-		mute_button.text = "Mute"
+		mute_button.add_theme_stylebox_override("normal", mute_off_style)
+		mute_button.add_theme_stylebox_override("hover", mute_off_style_hover_off)
+		mute_button.add_theme_stylebox_override("pressed", mute_off_style_hover_off)
+		mute_button.add_theme_stylebox_override("focus", mute_off_style_hover_off)
 	
-	#THIS IS TO GET THE LOBBIES. SHOULD CREATE ANOTHER BUTTON FOR THIS
-	controller.Get_Lobbies()
-	await get_tree().create_timer(1.0).timeout
-	print(controller.Active_Lobbies)
+	##THIS IS TO GET THE LOBBIES. SHOULD CREATE ANOTHER BUTTON FOR THIS
+	#controller.Get_Lobbies()
+	#await get_tree().create_timer(1.0).timeout
+	#print(controller.Active_Lobbies)
