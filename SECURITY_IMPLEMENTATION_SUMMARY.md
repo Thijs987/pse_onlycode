@@ -9,12 +9,15 @@ The backend now supports:
 - JWT-based authentication with issuer/audience validation
 - refresh token lifecycle with rotation and revocation
 - CSRF double-submit protection
-- HTTPS enforcement and tight forwarded header trust
+- HTTPS enforcement and tight forwarded header trust (enabled in production via redirect and HSTS)
 - password hashing with PBKDF2
+- password reset flow with hashed reset tokens and token validation
 - account lockout and persistent rate limiting
 - frontend origin allow list via CORS configuration
 - explicit security headers for API and frontend defense-in-depth
 - email verification with hashed verification tokens
+- password reset tokens are hashed before storage and validated on submit
+- soft delete account handling and refresh token revocation on password reset/logout
 - database-backed audit logging for authentication/security events
 
 ## Security Implementation
@@ -57,6 +60,7 @@ The backend now supports:
   - a new refresh token is issued and stored hashed
 - Logout explicitly revokes the active refresh token.
 - Default refresh token lifetime is 30 days (configurable).
+- Single active session enforcement is backed by `CurrentSessionId` on the user and validated against JWT claims.
 
 ### 5. CSRF Protection
 
@@ -74,6 +78,7 @@ The backend now supports:
 - When enabled, only `X-Forwarded-For` and `X-Forwarded-Proto` are accepted.
 - Forwarded header trust is limited to loopback proxies by default.
 - `ForwardLimit = 1` is enforced to avoid header chain abuse.
+- WebSocket lobby connections support JWT access tokens via query string fallback when needed.
 
 ### 7. Password and Token Hashing
 
@@ -81,6 +86,7 @@ The backend now supports:
 - Implementation uses 100,000 iterations and a 16-byte random salt.
 - Verification uses fixed-time comparison.
 - Email verification tokens are now hashed before storage.
+- Password reset tokens are also hashed before storage and validated on submit.
 - Verification checks compare the provided plaintext token with the stored hash.
 
 ### 8. Account Lockout and Rate Limiting
@@ -125,18 +131,24 @@ The backend now supports:
    - Enforce lockout and rate limiting.
    - Issue `access_token`, `refresh_token`, and `csrf_token` cookies.
 
-4. **Protected request**
+4. **Password reset**
+   - User requests a password reset by email.
+   - The backend issues a hashed reset token and sends the plaintext token via email.
+   - The user submits email, token, and new password.
+   - The backend validates the hashed token, updates the password, and revokes active refresh tokens.
+
+5. **Protected request**
    - JWT is validated by authentication middleware.
    - Authorization allows access to secured endpoints.
    - Unsafe requests require CSRF header match.
 
-5. **Token refresh**
+6. **Token refresh**
    - Validate refresh token from cookie.
    - Validate CSRF header.
    - Rotate refresh token and issue new access token.
    - Revoke the old refresh token.
 
-6. **Logout**
+7. **Logout**
    - Revoke current refresh token.
    - Clear auth cookies.
    - Prevent reuse of the old refresh token.
@@ -145,6 +157,7 @@ The backend now supports:
 
 - `Backend/src/Program.cs`
 - `Backend/src/Api/AuthController.cs`
+- `Backend/src/Api/Endpoints/AuthEndpoints.cs`
 - `Backend/src/Infrastructure/Services/AuthService.cs`
 - `Backend/src/Infrastructure/Services/DbAuditService.cs`
 - `Backend/src/Infrastructure/Services/DbRateLimitService.cs`
@@ -172,6 +185,8 @@ The current security test suite covers:
 - email verification success
 - expired verification token rejection
 - password hashing and verification
+- password reset request and token validation
+- soft delete and session revocation behavior
 - rate limiting enforcement
 - persistent audit logging to the database
 - DB-backed rate limit persistence and reset behavior
