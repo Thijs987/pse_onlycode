@@ -189,7 +189,6 @@ func _on_timeout():
 		return
 
 	# Trojan horse
-	# TROJAN GIFT TIMEOUT (BELANGRIJK)
 	if card_logic.trojan_selecting_gift:
 		print("TIMER OUT: Trojan gift not selected -> rollback")
 
@@ -226,7 +225,7 @@ func _on_timeout():
 
 		card_logic.trojan_selecting_target = false
 
-		# 🔴 FORCE CLOSE ATTACK SCREEN
+		# FORCE CLOSE ATTACK SCREEN
 		var attack_node = get_tree().root.get_node_or_null("Attack")
 		if attack_node:
 			attack_node.queue_free()

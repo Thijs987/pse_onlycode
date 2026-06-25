@@ -124,7 +124,6 @@ func play_card(card):
 
 					first_combo_card = null # Reset combo flag
 					
-					# Select target is a TODO
 				else:
 					print("Bad combo, cards need to be of same type or 1 has to be nocom")
 					card.movable = true
@@ -420,7 +419,6 @@ func start_dragging(card):
 # Calls logic for case of stopping dragging when left mouse button is released
 func stop_dragging():
 	if dragging_card and dragging_card.movable == true:
-		# Als play_card true teruggeeft, stoppen we HIER direct!
 		if await play_card(dragging_card):
 			dragging_card = null
 			return 
