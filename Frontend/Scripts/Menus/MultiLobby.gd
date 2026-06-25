@@ -8,15 +8,17 @@ extends Control
 @onready var error_dialog: AcceptDialog = $MultiLobbyContainer/BrowserView/ErrorDialog
 @onready var browser_view: Control = $MultiLobbyContainer/BrowserView
 @onready var in_lobby_view: Control = $MultiLobbyContainer/InLobbyView
-@onready var leave_lobby_button: Button = $MultiLobbyContainer/InLobbyView/HBoxContainer6/LeaveLobby
 @onready var main_menu_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
 @onready var tutorial_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer5/TutorialButton
+@onready var background: TextureRect = $"Background/CanvasLayer/Background"
+@onready var card_setting_box: BoxContainer = $MultiLobbyContainer/InLobbyView/VBoxContainer/CardSettingsBox
 
 @export var game_scene: StringName = &""
 @export var create_lobby_button: Button
 @export var join_lobby_button: Button
 @export var start_lobby_button: Button
 @export var card_setting_button: Button
+@export var leave_lobby_button: Button
 
 @export var multi_lobby_container: Control
 @export var lobby_settings: Control
@@ -26,12 +28,16 @@ var match_started = false
 var lobby_id
 var in_lobby_state = false
 var created_lobby = false
+var rejoin_panel: PanelContainer
+var rejoin_lobby_id: String = ""
+var bg_start_pos
 
 # Called when the node enters the scene tree for the first time.
 var list_container: VBoxContainer
 var add_bot_btn: Button
 
 func _ready() -> void:
+	bg_start_pos = background.position
 	list_container = VBoxContainer.new()
 	list_container.position = Vector2(842, 200)
 	in_lobby_view.add_child(list_container)
@@ -58,8 +64,87 @@ func _ready() -> void:
 	gscws.lobby_joined.connect(_on_lobby_joined_success)
 	gscws.lobby_left.connect(_on_lobby_left)
 
+	_setup_rejoin_dialog()
+	controller.rejoin_lobbies_updated.connect(_on_rejoin_lobbies_updated)
+	controller.Get_Rejoin_Lobbies(controller.PId)
+
 	update_views()
 	controller.Get_Lobbies()
+
+func _process(delta: float) -> void:
+	_move_background()
+
+# Creates the moving background
+func _move_background() -> void:
+	background.position.x -= 0.15
+	background.position.y -= 0.3
+
+	if background.position.x <= bg_start_pos.x - 80:
+		background.position = bg_start_pos
+
+func _setup_rejoin_dialog() -> void:
+	rejoin_panel = PanelContainer.new()
+	rejoin_panel.visible = false
+	rejoin_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+
+	var center = CenterContainer.new()
+	rejoin_panel.add_child(center)
+
+	var box_bg = PanelContainer.new()
+	center.add_child(box_bg)
+
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	box_bg.add_child(margin)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 15)
+	margin.add_child(vbox)
+
+	var title = Label.new()
+	title.text = "Reconnect"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var text = Label.new()
+	text.text = "You disconnected from an active match. Would you like to rejoin?"
+	vbox.add_child(text)
+
+	var hbox = HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 20)
+	vbox.add_child(hbox)
+
+	var btn_rejoin = Button.new()
+	btn_rejoin.text = "Rejoin Match"
+	btn_rejoin.pressed.connect(_on_rejoin_confirmed)
+	hbox.add_child(btn_rejoin)
+
+	var btn_cancel = Button.new()
+	btn_cancel.text = "Cancel"
+	btn_cancel.pressed.connect(_on_rejoin_cancelled)
+	hbox.add_child(btn_cancel)
+
+	add_child(rejoin_panel)
+
+func _on_rejoin_lobbies_updated(lobbies: Array) -> void:
+	if lobbies.size() > 0:
+		rejoin_lobby_id = lobbies[0].get("lobbyId", lobbies[0].get("LobbyId", ""))
+		rejoin_panel.visible = true
+
+func _on_rejoin_confirmed() -> void:
+	rejoin_panel.visible = false
+	if rejoin_lobby_id != "":
+		controller.Join_Lobby(rejoin_lobby_id, controller.PId)
+
+func _on_rejoin_cancelled() -> void:
+	if rejoin_lobby_id != "":
+		controller.Abandon_Lobby(rejoin_lobby_id, controller.PId)
+	rejoin_panel.visible = false
+	rejoin_lobby_id = ""
 
 func _on_add_bot():
 	controller.Add_Bot()
@@ -74,7 +159,7 @@ func _on_lobby_left() -> void:
 	in_lobby_state = false
 	created_lobby = false
 	player_count = 0
-	controller.player_list = ["", "", "", ""]
+	controller.Reset_Lobby_State()
 	update_lobby_list()
 	update_views()
 	controller.Get_Lobbies()
@@ -108,6 +193,19 @@ func _on_message(msg):
 		if new_host == controller.PId:
 			created_lobby = true
 			update_lobby_list()
+	elif msg["action"] == "HAND":
+		var p_id = msg.get("playerId", msg.get("PlayerId", ""))
+		var new_list = ["", "", "", ""]
+		new_list[0] = controller.PId
+		var idx = 1
+		for p in controller.player_list:
+			if p != "" and p != controller.PId:
+				new_list[idx] = p
+				idx += 1
+		controller.player_list = new_list
+		player_count = idx
+		update_lobby_list()
+		SceneLoader.load_scene(game_scene)
 	elif msg["action"] == "ERROR":
 		if msg.get("playerId", msg.get("PlayerId", "")) == controller.PId:
 			print("ERROR: ", msg.get("data", {}).get("error", "Unknown error"))
@@ -189,11 +287,11 @@ func _on_leave_lobby() -> void:
 	controller.Leave_Lobby()
 
 func _on_card_settings():
-	if multi_lobby_container.visible == true:
-		multi_lobby_container.visible = false
+	if in_lobby_view.visible == true:
+		in_lobby_view.visible = false
 		lobby_settings.visible = true
 	else:
-		multi_lobby_container.visible = true
+		in_lobby_view.visible = true
 		lobby_settings.visible = false
 
 func _on_tutorial_pressed():
@@ -205,6 +303,11 @@ func signal_connect(lobby):
 
 func update_views() -> void:
 	browser_view.visible = not in_lobby_state
+	if in_lobby_state == true:
+		if created_lobby == false:
+			card_setting_button.visible = false
+		else:
+			card_setting_button.visible = true
 	in_lobby_view.visible = in_lobby_state
 
 func _on_main_menu_pressed() -> void:

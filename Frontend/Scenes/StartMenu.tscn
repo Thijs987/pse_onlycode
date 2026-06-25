@@ -1,9 +1,13 @@
 [gd_scene format=3 uid="uid://ctined7qq8dh2"]
 
 [ext_resource type="Script" uid="uid://64li53p86thf" path="res://Scripts/Menus/StartMenu.gd" id="1_dvnd1"]
-[ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Menu/BackgroundPattern.png" id="2_dl0pg"]
+[ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Background/BackgroundPattern.png" id="2_dl0pg"]
+[ext_resource type="StyleBox" uid="uid://c0fqadvmivr25" path="res://Sprites/Menu/Mute_on.tres" id="2_ql1sk"]
 [ext_resource type="Texture2D" uid="uid://bwaifo42khjiy" path="res://Sprites/Menu/TitleCodeGreen.png" id="2_xtte2"]
+[ext_resource type="StyleBox" uid="uid://ble46ruaqokp8" path="res://Sprites/Menu/Mute_off.tres" id="3_dibtv"]
 [ext_resource type="Texture2D" uid="uid://cddmfc44v2cvs" path="res://Sprites/Menu/MainMenuButtons.png" id="3_h303d"]
+[ext_resource type="StyleBox" uid="uid://cga7y6hxvdm4a" path="res://Sprites/Menu/Mute_on_hover.tres" id="4_o6asp"]
+[ext_resource type="StyleBox" uid="uid://vkj0axgyyvn" path="res://Sprites/Menu/Mute_off_hover.tres" id="5_o42a4"]
 
 [sub_resource type="Curve" id="Curve_dl0pg"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.26602563, 0.26193547), 1.5700641, 1.5700641, 0, 0, Vector2(0.5769231, 0.90774196), 0.6886246, 0.6886246, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
@@ -13,11 +17,11 @@ point_count = 4
 texture = ExtResource("3_h303d")
 region_rect = Rect2(92, 83, 223, 70)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_h303d"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o7rkd"]
 texture = ExtResource("3_h303d")
 region_rect = Rect2(98.5, 154.25, 208, 86.75)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ql1sk"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_x3sen"]
 texture = ExtResource("3_h303d")
 region_rect = Rect2(113, 78, 179, 80)
 
@@ -32,14 +36,6 @@ region_rect = Rect2(102, 315.75, 200, 93)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o42a4"]
 texture = ExtResource("3_h303d")
 region_rect = Rect2(113.5, 240.25, 177.5, 78.5)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o7rkd"]
-texture = ExtResource("3_h303d")
-region_rect = Rect2(491.5, 330.75, 217, 60)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_x3sen"]
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_m7sq3"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0qo7l"]
 texture = ExtResource("3_h303d")
@@ -151,6 +147,10 @@ first_menu_screen = NodePath("TitleCardContainer")
 press_to_start = NodePath("TitleCardContainer/TitleCardVContainer/PressToStart")
 press_start_animation = NodePath("PressStartAnimation")
 movement_ease_curve = SubResource("Curve_dl0pg")
+mute_on_style = ExtResource("2_ql1sk")
+mute_off_style = ExtResource("3_dibtv")
+mute_on_style_hover = ExtResource("4_o6asp")
+mute_off_style_hover_off = ExtResource("5_o42a4")
 
 [node name="Background" type="TextureRect" parent="." unique_id=2055996739]
 layout_mode = 0
@@ -181,8 +181,8 @@ layout_mode = 2
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxTexture_ujd4t")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_h303d")
-theme_override_styles/hover = SubResource("StyleBoxTexture_ql1sk")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_o7rkd")
+theme_override_styles/hover = SubResource("StyleBoxTexture_x3sen")
 
 [node name="QuitButton" type="Button" parent="ButtonContainer/PlayButtonsContainer/MainMenuButtons" unique_id=1923007763]
 custom_minimum_size = Vector2(0, 70)
@@ -210,9 +210,7 @@ size_flags_vertical = 0
 [node name="MuteButton" type="Button" parent="ButtonContainer/MuteButtonContainer/HBoxContainer" unique_id=2100532035]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
-theme_override_styles/normal = SubResource("StyleBoxTexture_o7rkd")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_x3sen")
-theme_override_styles/hover = SubResource("StyleBoxTexture_m7sq3")
+theme_override_styles/normal = ExtResource("3_dibtv")
 
 [node name="LoginContainer" type="MarginContainer" parent="ButtonContainer" unique_id=1055664539]
 layout_mode = 2

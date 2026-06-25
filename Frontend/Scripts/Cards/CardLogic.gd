@@ -67,12 +67,21 @@ func play_card(card):
 		var data = {}
 		var target_id = ""
 		var blanco = ["nocom", "goto", "inf", "vibe"]
+		var green_cards = ["blue", "err", "merge"]
+		
+		if current_id in green_cards:
+				card.movable = true
+				return false
 		
 		for card1 in hand_reference.player_hands[0]:
 			if "imp" == card1.own_card_id && current_id != "imp":
 				print("Hand contains imp, play it")
 				card.movable = true
 				return false
+
+		#if current_id == "err":
+			#card.movable = true
+			#return false
 
 		print("Card: " + current_id)
 		if current_id in blanco:
@@ -112,7 +121,7 @@ func play_card(card):
 					
 					# Select target is a TODO
 				else:
-					print("Bad combo, cards need to be of same type or 1 has to be nocom")
+					print("Bad combo, cards need to be of same type or 1 has to be goto")
 					card.movable = true
 					return false
 

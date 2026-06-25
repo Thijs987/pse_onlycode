@@ -103,7 +103,7 @@ namespace Backend.Tests
             if (ex != null)
             {
                 // Surface the SMTP exception as a test failure with details to help debugging
-                Assert.False(true, $"SMTP send failed: {ex.GetType().Name}: {ex.Message}");
+                Assert.Fail($"SMTP send failed: {ex.GetType().Name}: {ex.Message}");
             }
 
             // If we got here, the send was successful.

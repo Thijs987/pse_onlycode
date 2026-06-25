@@ -45,6 +45,7 @@ public class BotService
     {
         _matchManager = matchManager;
         _connectionManager = connectionManager;
+        _connectionManager.OnLobbyDestroyed += CleanUpLobby;
     }
 
     // Registers a new bot in the lobby. Because StartNewMatch builds its
@@ -326,7 +327,7 @@ public class BotService
         List<string> players;
         try
         {
-            players = _connectionManager.GetPlayers(lobbyId);
+            players = _matchManager.GetPlayerHandSizes(lobbyId).Keys.ToList();
         }
         catch (Exception e)
         {
@@ -409,9 +410,8 @@ public class BotService
                 var winnerData = new DataInfo { NextPlayer = winnerId };
                 var gameOverMessage = MakeMessage("GAME_OVER", winnerId, winnerData);
                 await _connectionManager.BroadcastToLobbyAsync(lobbyId, JsonSerializer.Serialize(gameOverMessage));
-                _matchManager.EndMatch(lobbyId);
-                CleanUpLobby(lobbyId);
-                return; // Stop broadcasting NEXT_TURN
+                _connectionManager.RemoveLobby(botId);
+                return; // Stop processing further for this bot
             }
         }
 

@@ -98,18 +98,28 @@ public class MessageRouter
                         Log.Warning("{PlayerId} tried to start match in {LobbyId} but is not the host", playerId, lobbyId);
                         break;
                     }
-                    
+
                     // matchManager.StartNewMatch(message.Data, new List<string> { message.PlayerId });
                     // Changed matchId to lobbyId
                     var players = connectionManager.GetPlayers(lobbyId);
 
                     GameState newState = matchManager.StartNewMatch(lobbyId, players, data);
-                    if(newState.Deck.Count == 0) {
-                        responseData = new DataInfo {Message = "incorrect card configuration"};
+                    if (newState.Deck.Count == 0)
+                    {
+                        responseData = new DataInfo { Message = "incorrect card configuration" };
                         response = MakeMessage("ERROR", playerId, responseData);
                         await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
-                    } else {
-                        responseData = new DataInfo { NextPlayer = newState.CurrentTurnPlayerId };
+                    }
+                    else
+                    {
+                        responseData = new DataInfo
+                        {
+                            NextPlayer = newState.CurrentTurnPlayerId,
+                            DeckSize = newState.Deck.Count,
+                            CardLimit = newState.CardLimit,
+                            Players = newState.PlayerIds,
+                            HandSizes = matchManager.GetPlayerHandSizes(lobbyId)
+                        };
 
                         foreach (var player in players)
                         {
@@ -136,38 +146,61 @@ public class MessageRouter
                         // If the move was valid, broadcast the result to EVERYONE in the game
 
 
-                        List <string> specialCards = new List <string> {"goto", "vibe", "inf", "nocom"};
+                        List<string> specialCards = new List<string> { "goto", "vibe", "inf", "nocom" };
 
                         var action = "CARD_PLAYED";
 
                         response = MakeMessage(action, playerId, responseData);
-                        if (responseData.CardId == "imp") {
+                        if (responseData.CardId == "imp" && !matchManager.GetPlayerHand(lobbyId, playerId).Contains("imp"))
+                        {
                             await Next_player(lobbyId, playerId, "0", connectionManager, matchManager);
+                        }
+                        else if (responseData.CardId == "imp")
+                        {
+                            break;
                         }
                         else if (responseData.IsPrivate == true)
                         {
                             await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         }
-
-                        if (specialCards.Contains(responseData.CardId)) {
-                            var dataBroad = new DataInfo {
+                        else if (responseData.CardId == "os" && !string.IsNullOrEmpty(responseData.Target) && !responseData.Cards.Contains("imp"))
+                        {
+                            if (!responseData.Cards.Contains("imp"))
+                            {
+                                await Next_player(lobbyId, playerId, false, connectionManager, matchManager);
+                            }
+                            else
+                            {
+                                break;
+                            }
+                            responseData.Cards = [];
+                            response = MakeMessage(action, playerId, responseData);
+                        }
+                        if (specialCards.Contains(responseData.CardId))
+                        {
+                            var dataBroad = new DataInfo
+                            {
                                 CardId = responseData.CardId,
                                 Target = responseData.Target,
                                 Cards = [responseData.Cards[0], responseData.Cards[1]]
                             };
-                            var broadMessage = MakeMessage(action,playerId, dataBroad);
-                            await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
-                            await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
-                        } else if (responseData.CardId == "trojan") {
-                            var dataBroad = new DataInfo {
-                                CardId = responseData.CardId,
-                                Target = responseData.Target
-                            };
-                            var broadMessage = MakeMessage(action,playerId, dataBroad);
+                            var broadMessage = MakeMessage(action, playerId, dataBroad);
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
                             await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
                         }
-                         else if (responseData.IsPrivate == false) {
+                        else if (responseData.CardId == "trojan")
+                        {
+                            var dataBroad = new DataInfo
+                            {
+                                CardId = responseData.CardId,
+                                Target = responseData.Target
+                            };
+                            var broadMessage = MakeMessage(action, playerId, dataBroad);
+                            await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
+                            await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
+                        }
+                        else if (responseData.IsPrivate == false)
+                        {
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
 
@@ -194,7 +227,7 @@ public class MessageRouter
                     // Check for Improved Hardware
                     if (matchManager.GetPlayerHand(lobbyId, playerId).Contains("imp"))
                     {
-                        responseData = new DataInfo { Error = "Hand contains imp, cannot draw!"};
+                        responseData = new DataInfo { Error = "Hand contains imp, cannot draw!" };
                         response = MakeMessage("ERROR", playerId, responseData);
                         await connectionManager.SendMessageAsync(playerId, SerializeMsg(response));
                         break;
@@ -268,17 +301,20 @@ public class MessageRouter
             await connectionManager.SendMessageAsync(playerId, SerializeMsg(errorMessage));
         }
 
-        if(newLimit == "1") {
+        if (newLimit == "1")
+        {
             var deck_size = matchManager.GetDeckSize(lobbyId);
-            var message = new DataInfo {
+            var message = new DataInfo
+            {
                 Message = $"{deck_size}"
-                };
-            var limitMessage = MakeMessage("DECK_SIZE", playerId,message);
+            };
+            var limitMessage = MakeMessage("DECK_SIZE", playerId, message);
             //broadcast remove player
             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(limitMessage));
         }
 
-        if (end.Message == "Removed") {
+        if (end.Message == "Removed")
+        {
             var endPlayerMessage = MakeMessage("CARD_LIMIT", playerId, end);
             //broadcast remove player
             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(endPlayerMessage));
@@ -290,8 +326,7 @@ public class MessageRouter
                 var winnerData = new DataInfo { NextPlayer = winnerId };
                 var gameOverMessage = MakeMessage("GAME_OVER", winnerId, winnerData);
                 await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(gameOverMessage));
-                matchManager.EndMatch(lobbyId);
-                botService.CleanUpLobby(lobbyId);
+                connectionManager.RemoveLobby(playerId);
                 return; // Stop broadcasting NEXT_TURN
             }
         }
@@ -305,6 +340,11 @@ public class MessageRouter
 
     private bool lobbyHasHuman(string lobbyId, ConnectionManager connectionManager, MatchManager matchManager)
     {
+        if (!connectionManager.cont(lobbyId))
+        {
+            Log.Information("player won or sum");
+            return false;
+        }
         bool hasHuman = connectionManager.GetPlayers(lobbyId).Any(p => !botService.IsBot(p, lobbyId));
         if (!hasHuman)
         {

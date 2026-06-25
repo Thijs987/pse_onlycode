@@ -2,11 +2,12 @@
 
 [ext_resource type="Script" uid="uid://bhv02iytie5b3" path="res://Scripts/Menus/MultiLobby.gd" id="1_tj0e8"]
 [ext_resource type="PackedScene" uid="uid://by3u2iwo87g6x" path="res://Scenes/LobbySettings.tscn" id="2_jlkr6"]
+[ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Background/BackgroundPattern.png" id="3_e2wr0"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_q72hu"]
 font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
 
-[node name="MultiLobby" type="Control" unique_id=1520286451 node_paths=PackedStringArray("create_lobby_button", "join_lobby_button", "start_lobby_button", "card_setting_button", "multi_lobby_container", "lobby_settings")]
+[node name="MultiLobby" type="Control" unique_id=1520286451 node_paths=PackedStringArray("create_lobby_button", "join_lobby_button", "start_lobby_button", "card_setting_button", "leave_lobby_button", "multi_lobby_container", "lobby_settings")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -17,19 +18,28 @@ script = ExtResource("1_tj0e8")
 game_scene = &"uid://qekpyka670e2"
 create_lobby_button = NodePath("MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer/CreateLobby")
 join_lobby_button = NodePath("MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer4/JoinLobby")
-start_lobby_button = NodePath("MultiLobbyContainer/InLobbyView/HBoxContainer5/StartLobby")
-card_setting_button = NodePath("MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer2/CardSettingButton")
+start_lobby_button = NodePath("MultiLobbyContainer/InLobbyView/VBoxContainer/HBoxContainer5/StartLobby")
+card_setting_button = NodePath("MultiLobbyContainer/InLobbyView/VBoxContainer/CardSettingsBox/CardSettingButton")
+leave_lobby_button = NodePath("MultiLobbyContainer/InLobbyView/VBoxContainer/HBoxContainer6/LeaveLobby")
 multi_lobby_container = NodePath("MultiLobbyContainer")
 lobby_settings = NodePath("LobbySettings")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=107720524]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.9217038, 0.9217038, 0.9217038, 1)
+[node name="Background" type="Control" parent="." unique_id=1331400674]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="Background" unique_id=773271127]
+layer = -1
+
+[node name="Background" type="TextureRect" parent="Background/CanvasLayer" unique_id=299963968]
+z_index = -1
+offset_left = -222.0
+offset_top = -257.0
+offset_right = 1410.0
+offset_bottom = 901.0
+texture = ExtResource("3_e2wr0")
+stretch_mode = 1
 
 [node name="MultiLobbyContainer" type="Control" parent="." unique_id=1790962249]
 layout_mode = 1
@@ -88,17 +98,6 @@ size_flags_vertical = 4
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Create lobby"
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=1361923008]
-layout_mode = 2
-size_flags_horizontal = 4
-
-[node name="CardSettingButton" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer2" unique_id=204939168]
-custom_minimum_size = Vector2(200, 50)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-text = "Card Settings"
 
 [node name="HBoxContainer5" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=1290916625]
 layout_mode = 2
@@ -171,27 +170,6 @@ text = "Not in lobby"
 label_settings = SubResource("LabelSettings_q72hu")
 horizontal_alignment = 1
 
-[node name="HBoxContainer5" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView" unique_id=1721904728]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = 50.0
-offset_right = 100.0
-offset_bottom = 100.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-
-[node name="StartLobby" type="Button" parent="MultiLobbyContainer/InLobbyView/HBoxContainer5" unique_id=1364728254]
-custom_minimum_size = Vector2(200, 50)
-layout_mode = 2
-text = "Start"
-
 [node name="PlayerList" type="Label" parent="MultiLobbyContainer/InLobbyView" unique_id=1657817890]
 layout_mode = 0
 offset_left = 842.0
@@ -202,23 +180,40 @@ text = "current players"
 label_settings = SubResource("LabelSettings_q72hu")
 horizontal_alignment = 1
 
-[node name="HBoxContainer6" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView" unique_id=474319475]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = 120.0
-offset_right = 100.0
-offset_bottom = 170.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="VBoxContainer" type="VBoxContainer" parent="MultiLobbyContainer/InLobbyView" unique_id=138058150]
+layout_mode = 0
+offset_left = 476.0
+offset_top = 374.0
+offset_right = 516.0
+offset_bottom = 414.0
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView/VBoxContainer" unique_id=1721904728]
+layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="LeaveLobby" type="Button" parent="MultiLobbyContainer/InLobbyView/HBoxContainer6" unique_id=613134272]
+[node name="StartLobby" type="Button" parent="MultiLobbyContainer/InLobbyView/VBoxContainer/HBoxContainer5" unique_id=1364728254]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Start"
+
+[node name="CardSettingsBox" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView/VBoxContainer" unique_id=199627811]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="CardSettingButton" type="Button" parent="MultiLobbyContainer/InLobbyView/VBoxContainer/CardSettingsBox" unique_id=1226144401]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Card Settings"
+
+[node name="HBoxContainer6" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView/VBoxContainer" unique_id=474319475]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="LeaveLobby" type="Button" parent="MultiLobbyContainer/InLobbyView/VBoxContainer/HBoxContainer6" unique_id=613134272]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Back"
