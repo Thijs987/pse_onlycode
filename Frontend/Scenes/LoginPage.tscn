@@ -156,10 +156,12 @@ custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 text = "Not registered?"
 
-[node name="LoginStatusLabel" type="Label" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=2001705787]
-layout_mode = 2
-
 [node name="ResetPasswordButton" type="Button" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=1055973285]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+text = "Reset password?"
+
+[node name="LoginStatusLabel" type="Label" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=2001705787]
 layout_mode = 2
 
 [node name="ResetPanel" type="MarginContainer" parent="HBoxContainer" unique_id=1782666267]
@@ -217,16 +219,6 @@ text = "Submit"
 [node name="ResetPasswordStatusLabel" type="Label" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=1569233994]
 modulate = Color(0, 0, 0, 1)
 layout_mode = 2
-
-[node name="HBoxContainer_RightLoginPanel_LoginVBox#ForgotPasswordButton" type="LinkButton" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=851965596]
-modulate = Color(0, 0, 0, 1)
-layout_mode = 2
-text = "Reset Password?"
-
-[node name="HBoxContainer_RightLoginPanel_LoginVBox#ResetTokenButton" type="LinkButton" parent="HBoxContainer/ResetPanel/ResetVBox" unique_id=2028961301]
-modulate = Color(0, 0, 0, 1)
-layout_mode = 2
-text = "Enter reset token"
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=342874477]
 layout_mode = 0

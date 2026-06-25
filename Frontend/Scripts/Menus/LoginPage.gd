@@ -14,31 +14,30 @@ const RESET_PASSWORD_ENDPOINT = "/api/auth/reset-password"
 const MOCK_FILE_PATH = "user://mock_database.json"
 
 # UI REFERENCES - REGISTER
-@onready var register_panel: MarginContainer = $"HBoxContainer/RegisterPanel"
+@onready var register_panel: MarginContainer = $HBoxContainer/RegisterPanel
 @onready var reg_email_input: LineEdit = $HBoxContainer/RegisterPanel/RegisterVBox/RegEmailInput
 @onready var reg_username_input: LineEdit = $HBoxContainer/RegisterPanel/RegisterVBox/RegUserInput
 @onready var reg_password_input: LineEdit = $HBoxContainer/RegisterPanel/RegisterVBox/RegPasswordInput
 @onready var register_button: Button = $HBoxContainer/RegisterPanel/RegisterVBox/RegisterButton
-@onready var switch_to_login_button: Button = $"HBoxContainer/RegisterPanel/RegisterVBox/SwitchLoginButton"
+@onready var switch_to_login_button: Button = $HBoxContainer/RegisterPanel/RegisterVBox/SwitchLoginButton
 @onready var register_status: Label = $HBoxContainer/RegisterPanel/RegisterVBox/RegisterStatusLabel
 
 # UI REFERENCES - LOGIN
-@onready var login_panel: MarginContainer = $"HBoxContainer/LoginPanel"
+@onready var login_panel: MarginContainer = $HBoxContainer/LoginPanel
 @onready var login_identifier_input: LineEdit = $HBoxContainer/LoginPanel/LoginVBox/LoginIdentifierInput
 @onready var login_password_input: LineEdit = $HBoxContainer/LoginPanel/LoginVBox/LoginPasswordInput
 @onready var login_button: Button = $HBoxContainer/LoginPanel/LoginVBox/LoginButton
 @onready var switch_to_register_button: Button = $"HBoxContainer/LoginPanel/LoginVBox/SwitchRegisterButton"
 @onready var login_status: Label = $HBoxContainer/LoginPanel/LoginVBox/LoginStatusLabel
-@onready var forgot_password_link: LinkButton = $HBoxContainer/LoginPanel/LoginVBox/ForgotPasswordButton
-@onready var reset_token_button: LinkButton = $HBoxContainer/LoginPanel/LoginVBox/ResetTokenButton
+@onready var reset_button: Button = $HBoxContainer/LoginPanel/LoginVBox/ResetPasswordButton
 
 # Reset token UI
-@onready var reset_password_popup: WindowDialog = $ResetPasswordPopup
-@onready var reset_email_input: LineEdit = $ResetPasswordPopup/VBoxContainer/ResetEmailInput
-@onready var reset_token_input: LineEdit = $ResetPasswordPopup/VBoxContainer/ResetTokenInput
-@onready var reset_new_password_input: LineEdit = $ResetPasswordPopup/VBoxContainer/ResetPasswordInput
-@onready var reset_password_submit_button: Button = $ResetPasswordPopup/VBoxContainer/ResetPasswordSubmitButton
-@onready var reset_password_status_label: Label = $ResetPasswordPopup/VBoxContainer/ResetPasswordStatusLabel
+@onready var reset_panel: MarginContainer = $HBoxContainer/ResetPanel
+@onready var reset_email_input: LineEdit = $HBoxContainer/ResetPanel/ResetVBox/ResetEmailInput
+@onready var reset_token_input: LineEdit = $HBoxContainer/ResetPanel/ResetVBox/ResetTokenInput
+@onready var reset_new_password_input: LineEdit = $HBoxContainer/ResetPanel/ResetVBox/ResetPasswordInput
+@onready var reset_password_submit_button: Button = $HBoxContainer/ResetPanel/ResetVBox/ResetPasswordSubmitButton
+@onready var reset_password_status_label: Label = $HBoxContainer/ResetPanel/ResetVBox/ResetPasswordStatusLabel
 
 # GENERAL NODES
 @onready var return_button: Button = $MarginContainer/ReturnButton
@@ -54,8 +53,7 @@ func _ready() -> void:
 	return_button.pressed.connect(_on_return_button_pressed)
 	switch_to_login_button.pressed.connect(_switch_to_login)
 	switch_to_register_button.pressed.connect(_switch_to_register)
-	forgot_password_link.pressed.connect(_on_forgot_password_link_pressed)
-	reset_token_button.pressed.connect(_on_reset_token_button_pressed)
+	reset_button.pressed.connect(_on_forgot_password_button)
 	reset_password_submit_button.pressed.connect(_on_reset_password_submit_pressed)
 
 	login_password_input.secret = true
@@ -103,7 +101,7 @@ func _on_login_button_pressed() -> void:
 		SceneLoader.load_scene("uid://ctined7qq8dh2")
 
 # Forgot password
-func _on_forgot_password_link_pressed() -> void:
+func _on_forgot_password_button() -> void:
 	if is_submitting: return
 	
 	var email = login_identifier_input.text.strip_edges()
@@ -141,6 +139,8 @@ func _on_forgot_password_link_pressed() -> void:
 		
 		if response_code == 200:
 			login_status.text = "Reset instructions sent to your email!"
+			login_panel.visible = false
+			reset_panel.visible = true
 		elif response_code == 404:
 			login_status.text = "Server route not found (404). Endpoint pending on backend."
 		else:
@@ -194,7 +194,6 @@ func _on_reset_token_button_pressed() -> void:
 	reset_token_input.text = ""
 	reset_new_password_input.text = ""
 	reset_password_status_label.text = ""
-	reset_password_popup.popup_centered()
 
 func _on_reset_password_submit_pressed() -> void:
 	if is_submitting: return
@@ -221,7 +220,6 @@ func _on_reset_password_submit_pressed() -> void:
 
 	if success:
 		reset_password_status_label.text = "Password reset successfully! You can now log in."
-		reset_password_popup.hide()
 
 # --- SWITCH TO LOGIN SCREEN ---
 func _switch_to_login():
@@ -327,8 +325,6 @@ func set_loading_state(busy: bool, mode: String) -> void:
 	register_button.disabled = busy
 	login_button.disabled = busy
 	return_button.disabled = busy
-	forgot_password_link.disabled = busy
-	reset_token_button.disabled = busy
 	reset_password_submit_button.disabled = busy
 	
 	if busy:
