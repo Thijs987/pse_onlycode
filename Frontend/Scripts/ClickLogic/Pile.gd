@@ -3,6 +3,7 @@ extends Node2D
 @onready var counter_label: Label = $PileArea/CounterLabel
 @onready var hand_reference = $"../PlayerHand"
 @onready var CardLogic = $"../CardLogic"
+@onready var draw_sound := AudioStreamPlayer.new()
 # Deze aanpassen voor het goeie aantal kaarten
 @export var card_count: int = 40
 var visual_cards = []
@@ -21,6 +22,9 @@ func _ready() -> void:
 			card_count = int(new_size)
 	update_card_text()
 	create_visual_pile()
+
+	add_child(draw_sound)
+	draw_sound.stream = preload("res://Sounds/PlayCard.mp3")
 
 	hand_reference.next_turn.connect(_newturn)
 	controller.message_updated.connect(_on_message)
@@ -139,6 +143,7 @@ func _on_message(msg):
 			update_card_text()
 			update_visual_pile()
 	elif msg.get("action") == "CARD_DRAWN":
+		draw_sound.play()
 		if card_count > 0:
 			card_count -= 1
 			update_card_text()
