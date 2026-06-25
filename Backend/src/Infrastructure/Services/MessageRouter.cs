@@ -153,6 +153,7 @@ public class MessageRouter
                         response = MakeMessage(action, playerId, responseData);
                         if (responseData.CardId == "imp" && !matchManager.GetPlayerHand(lobbyId, playerId).Contains("imp"))
                         {
+                            await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                             await Next_player(lobbyId, playerId, false, connectionManager, matchManager);
                         }
                         else if (responseData.CardId == "imp")
@@ -200,7 +201,7 @@ public class MessageRouter
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(broadMessage), responseData.Target);
                             await connectionManager.SendMessageAsync(responseData.Target, SerializeMsg(response));
                         }
-                        else if (responseData.IsPrivate == false)
+                        else if (responseData.IsPrivate == false && !(responseData.CardId == "imp" && !matchManager.GetPlayerHand(lobbyId, playerId).Contains("imp")))
                         {
                             await connectionManager.BroadcastToLobbyAsync(lobbyId, SerializeMsg(response));
                         }
