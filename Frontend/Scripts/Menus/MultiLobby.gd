@@ -311,8 +311,10 @@ func update_views() -> void:
 	browser_view.visible = not in_lobby_state
 	if in_lobby_state == true:
 		if created_lobby == false:
+			card_setting_box.visible = false
 			card_setting_button.visible = false
 		else:
+			card_setting_box.visible = true
 			card_setting_button.visible = true
 	in_lobby_view.visible = in_lobby_state
 

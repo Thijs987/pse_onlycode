@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://bkjjiqdqugih7" path="res://Scripts/ClickLogic/Pile.gd" id="2_dahhg"]
 [ext_resource type="Script" uid="uid://cruuh8gf08k8f" path="res://Scripts/Background/ControlBackground.gd" id="3_wxwew"]
 [ext_resource type="Script" uid="uid://uchns3vel8n1" path="res://Scripts/ClickLogic/DiscardPile.gd" id="4_3cx6b"]
+[ext_resource type="Texture2D" uid="uid://bj0vvdvkubq5f" path="res://Sprites/Background/table.png" id="4_acvyw"]
 [ext_resource type="Script" uid="uid://dvtv7qrga8tg7" path="res://Scripts/Cards/CardLogic.gd" id="5_wxwew"]
 [ext_resource type="Script" uid="uid://ci0dswu4sau8w" path="res://Scripts/Cards/PlayerHand.gd" id="6_acvyw"]
 [ext_resource type="Script" uid="uid://dis0yyp8e3chk" path="res://Scripts/ClickLogic/InputManager.gd" id="7_alh3a"]
@@ -35,7 +36,7 @@ size = Vector2(421.5, 218)
 layer = -1
 
 [node name="Background" type="TextureRect" parent="Background/CanvasLayer2" unique_id=504285544]
-z_index = -1
+z_index = -3
 offset_left = -222.0
 offset_top = -257.0
 offset_right = 1410.0
@@ -54,6 +55,14 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("3_wxwew")
+
+[node name="Table" type="TextureRect" parent="Background/CanvasLayer2" unique_id=866686410]
+z_index = -2
+offset_left = 138.0
+offset_top = 110.0
+offset_right = 1054.0
+offset_bottom = 568.0
+texture = ExtResource("4_acvyw")
 
 [node name="TurnLabel" type="Label" parent="Background" unique_id=110888612]
 offset_left = 534.0
@@ -127,7 +136,7 @@ script = ExtResource("9_x3xnh")
 script = ExtResource("10_8r6kd")
 
 [node name="GameUI" type="Node2D" parent="." unique_id=1410065407]
-z_index = 1
+z_index = 2
 script = ExtResource("11_gameui")
 
 [node name="TurnTimer" type="Timer" parent="." unique_id=2082152117]
