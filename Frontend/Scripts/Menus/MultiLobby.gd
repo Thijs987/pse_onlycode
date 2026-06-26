@@ -246,7 +246,10 @@ func update_lobby_list() -> void:
 		var lbl = Label.new()
 		lbl.text = pid
 		var settings = LabelSettings.new()
-		settings.font_color = Color(0, 0, 0, 1)
+		settings.font_size = 30
+		settings.font_color = Color(253, 253, 253, 1.0)
+		settings.outline_size = 1
+		settings.outline_color = Color(0, 0, 0, 1)
 		lbl.label_settings = settings
 		row.add_child(lbl)
 
@@ -259,6 +262,10 @@ func update_lobby_list() -> void:
 		list_container.add_child(row)
 
 	list_container.move_child(add_bot_btn, -1)
+	if player_count == 4:
+		add_bot_btn.visible = false
+	else:
+		add_bot_btn.visible = true
 
 func _on_refresh_lobbies() -> void:
 	controller.Get_Lobbies()

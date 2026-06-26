@@ -52,6 +52,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="BrowserView" type="Control" parent="MultiLobbyContainer" unique_id=138882944]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -166,7 +167,6 @@ theme_override_font_sizes/font_size = 20
 text = "Refresh Lobbies"
 
 [node name="InLobbyView" type="Control" parent="MultiLobbyContainer" unique_id=2000424944]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -185,11 +185,18 @@ label_settings = SubResource("LabelSettings_q72hu")
 horizontal_alignment = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MultiLobbyContainer/InLobbyView" unique_id=138058150]
-layout_mode = 0
-offset_left = 476.0
-offset_top = 374.0
-offset_right = 516.0
-offset_bottom = 414.0
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -99.5
+offset_right = 100.0
+offset_bottom = 99.5
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="CurrentlyInLobby" type="Label" parent="MultiLobbyContainer/InLobbyView/VBoxContainer" unique_id=931800321]
 layout_mode = 2

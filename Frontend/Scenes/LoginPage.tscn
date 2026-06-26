@@ -40,9 +40,6 @@ region_rect = Rect2(0, 120, 200, 59)
 texture = ExtResource("3_x3lit")
 region_rect = Rect2(2, -2, 198, 61)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kjdre"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_86001"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
@@ -82,9 +79,6 @@ region_rect = Rect2(2, 361, 196, 58)
 texture = ExtResource("3_x3lit")
 region_rect = Rect2(6, 240, 187, 59)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o136v"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_r67tb"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3744d"]
@@ -113,9 +107,6 @@ region_rect = Rect2(-2, 58, 205, 62)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_q3u1h"]
 texture = ExtResource("4_3gsyq")
 region_rect = Rect2(2, 0, 195, 57)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d5dr1"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [node name="LoginPage" type="Control" unique_id=884357330]
 layout_mode = 3
@@ -233,7 +224,7 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxTexture_3gsyq")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_o136v")
 theme_override_styles/hover = SubResource("StyleBoxTexture_d5dr1")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_kjdre")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_3gsyq")
 
 [node name="SwitchLoginButton" type="Button" parent="HBoxContainer/RegisterPanel/RegisterVBox" unique_id=2055691338]
 custom_minimum_size = Vector2(200, 50)
@@ -306,7 +297,7 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxTexture_x3lit")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_kjdre")
 theme_override_styles/hover = SubResource("StyleBoxTexture_3744d")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_o136v")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_x3lit")
 
 [node name="SwitchRegisterButton" type="Button" parent="HBoxContainer/LoginPanel/LoginVBox" unique_id=2038771003]
 custom_minimum_size = Vector2(200, 50)
@@ -347,4 +338,4 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxTexture_h6kmm")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_86001")
 theme_override_styles/hover = SubResource("StyleBoxTexture_q3u1h")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_d5dr1")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_h6kmm")
