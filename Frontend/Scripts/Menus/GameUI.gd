@@ -179,4 +179,5 @@ func _on_return_pressed():
 	if gscws.socket.get_ready_state() == WebSocketPeer.STATE_OPEN:
 		gscws.socket.close()
 	controller.Reset_Lobby_State()
+	MusicPlayer.play_menu_music()
 	SceneLoader.load_scene("uid://ctined7qq8dh2")
