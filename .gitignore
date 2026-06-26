@@ -13,10 +13,14 @@ obj/
 # Godot 4+ specific ignores
 .godot/
 /android/
-builds/
+[Bb]uilds/
 exports/
 
 # Logs
 *.log
 logs/
 StableBuilds/
+
+# Test Results
+[Tt]est[Rr]esults/
+*.trx

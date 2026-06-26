@@ -2,41 +2,128 @@ name: Backend CI/CD
 
 on:
   push:
-    branches: [ "main", "78-cicd" ]
+    branches: [ "main" ]
+    paths:
+      - 'Backend/**'
+  pull_request:
+    branches: [ "main" ]
     paths:
       - 'Backend/**'
   workflow_dispatch:
+
+# Prevent concurrent deploys on the same ref, cancel in-progress CI on new pushes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 defaults:
   run:
     working-directory: ./Backend
 
 jobs:
-  build_test_deploy:
-    name: Build, Test, and Deploy
+  # CI
+  build_and_test:
+    name: Build & Test
     runs-on: self-hosted
+    timeout-minutes: 15
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Restore dependencies
-      run: |
-        dotnet restore src/CodeGreen.csproj
-        dotnet restore tests/Backend.Tests/Backend.Tests.csproj
+      # Cache packages to avoid full restore every run
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
-    - name: Build
-      run: |
-        dotnet build src/CodeGreen.csproj --no-restore --configuration Release
-        dotnet build tests/Backend.Tests/Backend.Tests.csproj --no-restore --configuration Release
+      - name: Restore Dependencies
+        run: |
+          dotnet restore src/CodeGreen.csproj
+          dotnet restore tests/Backend.Tests/Backend.Tests.csproj
 
-    - name: Run Unit Tests
-      run: dotnet test tests/Backend.Tests/Backend.Tests.csproj --no-build --verbosity normal --configuration Release
+      - name: Build
+        run: |
+          dotnet build src/CodeGreen.csproj --no-restore --configuration Release
+          dotnet build tests/Backend.Tests/Backend.Tests.csproj --no-restore --configuration Release
 
-    - name: Publish Artifacts
-      run: dotnet publish src/CodeGreen.csproj -c Release -o /var/www/code-green-backend
+      # Emit report + collect code coverage in a single pass
+      - name: Run Unit Tests
+        run: |
+          dotnet test tests/Backend.Tests/Backend.Tests.csproj \
+            --no-build \
+            --configuration Release \
+            --verbosity normal \
+            --logger "trx;LogFileName=test-results.trx" \
+            --collect:"XPlat Code Coverage"
 
-    - name: Restart Application
-      run: |
-        echo "Restarting the backend service..."
-        sudo systemctl restart codegreen
+      # Always upload test results so failures are visible in the Actions UI
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: Backend/tests/Backend.Tests/TestResults/
+          retention-days: 14
+
+      # Publish the compiled app to a temp directory
+      - name: Publish Build
+        run: dotnet publish src/CodeGreen.csproj -c Release -o publish-output
+
+      # Store the published artifact for the deploy job
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-app
+          path: publish-output
+          retention-days: 7
+
+  # CD (only runs on pushes to main, never on PRs)
+  deploy:
+    name: Deploy to Production
+    needs: build_and_test
+    runs-on: self-hosted
+    # skip deploy for pull_request events
+    if: github.event_name != 'pull_request'
+    environment: production
+    timeout-minutes: 10
+
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: published-app
+          path: publish-output
+
+      - name: Deploy Files
+        run: |
+          echo "Syncing build to /var/www/code-green-backend..."
+          rsync -a --delete publish-output/ /var/www/code-green-backend/
+
+      - name: Restart Application
+        run: |
+          echo "Restarting codegreen service..."
+          sudo systemctl restart codegreen
+
+      # Poll until the service is confirmed active, or fail fast after 30s
+      - name: Health Check
+        run: |
+          echo "Waiting for service to become active..."
+          for i in {1..6}; do
+            if systemctl is-active --quiet codegreen; then
+              echo "Service is running."
+              exit 0
+            fi
+            echo "Attempt $i/6 – not ready yet, retrying in 5 s..."
+            sleep 5
+          done
+          echo "Service failed to start after 30s."
+          sudo journalctl -u codegreen --since "1 min ago" --no-pager
+          exit 1
+
+      - name: Clean Up
+        if: always()
+        run: rm -rf publish-output
