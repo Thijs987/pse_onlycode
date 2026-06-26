@@ -31,6 +31,7 @@ func _process(_delta: float) -> void:
 	if card_logic and card_logic.dragging_card != null:
 		sort_hand()
 
+#Add new card to player player_numbers hand
 func add_new_card(card_id, player_number):
 	var card_scene = preload(CARD_SCENE_PATH)
 	var new_card = card_scene.instantiate()
@@ -50,8 +51,8 @@ func add_new_card(card_id, player_number):
 
 	animate_draw_card(new_card)
 
+#Animate the visual of drawing a card
 func animate_draw_card(card):
-
 	card.scale = Vector2(0.5, 0.5)
 
 	var tween = get_tree().create_tween()
@@ -60,6 +61,7 @@ func animate_draw_card(card):
 	tween.tween_property(card, "global_position", card.hand_position, 0.4)
 	tween.tween_property(card, "scale", Vector2.ONE, 0.4)
 
+#Return card to player hand
 func add_card_to_hand(card, player_number):
 	if card not in player_hands[player_number]:
 		player_hands[player_number].insert(0, card)
@@ -70,6 +72,7 @@ func add_card_to_hand(card, player_number):
 		update_card_hand_position(player_number)
 		move_to_position(card, card.hand_position)
 
+#Removes the card from a players hand
 func remove_card_from_hand(card, player_number):
 	if card in player_hands[player_number]:
 		card_logic.dragging_card = null
@@ -77,6 +80,7 @@ func remove_card_from_hand(card, player_number):
 		card.queue_free()
 		update_card_hand_position(player_number)
 
+#Updates the ingame visual positions of the cards in the players hand
 func update_card_hand_position(player_number):
 	for i in range(player_hands[player_number].size()):
 		var new_position = Vector2(calculate_card_x_position(i, player_number), calculate_card_y_position(i, player_number))
@@ -93,6 +97,7 @@ func update_card_hand_position(player_number):
 				moving_card.z_index = basis_z
 				move_to_position(moving_card, new_position)
 
+#Makes it able to sort your own hand
 func sort_hand():
 	var mouse_pos = get_global_mouse_position()
 	if mouse_pos.y < 250: # Card too high
@@ -118,17 +123,20 @@ func sort_hand():
 			update_card_hand_position(0)
 			return
 
+#Calculate the x position for the place where the cards are shown
 func calculate_card_x_position(position, player_number):
 	var total_width = (player_hands[player_number].size() - 1) * CARD_WIDTH
 	var x_offset = center_screen_x + position * CARD_WIDTH - total_width / 2
 	return x_offset
 
+#Calculate the y position for the place where the cards are shown
 func calculate_card_y_position(position, player_number):
 	if player_number == 0:
 		return center_screen_y * 2 - CARD_HEIGHT * 0.1
 	else:
 		return 0 + CARD_HEIGHT * 0.1
 
+#Animation for moving card
 func move_to_position(card, position):
 	var tween = get_tree().create_tween()
 	tween.tween_property(card, "position", position, 0.2)
