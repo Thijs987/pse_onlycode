@@ -29,6 +29,7 @@ signal next_turn(player)
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	if controller.Last_Message.has("action") and (controller.Last_Message["action"] == "MATCH_STARTED" or controller.Last_Message["action"] == "HAND"):
+		MusicPlayer.play_game_music()
 		var player = controller.Last_Message.get("data", {}).get("nextPlayer")
 		if player != null:
 			next_turn.emit(player)

@@ -6,6 +6,7 @@ var card_limit_label: Label
 var player_labels = {}
 
 var player_list_container: VBoxContainer
+var turns = 1
 
 func _ready() -> void:
 	controller.message_updated.connect(_on_message)
@@ -56,6 +57,7 @@ func _on_message(msg):
 	# Both MATCH_STARTED and DECK_SIZE carry the current card limit. The limit starts
 	# at 5 and the backend drops it by 1 each time the draw pile is emptied.
 	if action == "MATCH_STARTED" or action == "DECK_SIZE":
+		turns = msg.get("data", {}).get("turns")
 		var sent = msg.get("data", {}).get("cardLimit")
 		if sent != null:
 			_update_card_limit(int(sent))
@@ -68,6 +70,7 @@ func _on_message(msg):
 		_set_player_reconnected(rejoined_player)
 
 	if action == "NEXT_TURN" or action == "CARD_PLAYED":
+		turns = msg.get("data", {}).get("turns")
 		var current_turn_player = msg.get("data", {}).get("nextPlayer")
 		if current_turn_player != null:
 			_highlight_turn(current_turn_player)
@@ -111,11 +114,15 @@ func _highlight_turn(current_player_id: String):
 		lbl.add_theme_color_override("font_color", Color(1, 1, 1))
 		lbl.text = lbl.text.replace(">> ", "")
 
+		var index = lbl.text.find(" | Turns: ")
+		if index != -1:
+			lbl.text = lbl.text.substr(0, index)
+
 	if player_labels.has(current_player_id):
 		print(current_player_id)
 		var active_lbl = player_labels[current_player_id]
 		active_lbl.add_theme_color_override("font_color", Color(1.0, 0.845, 0.392, 1.0))
-		active_lbl.text = ">> " + active_lbl.text
+		active_lbl.text = ">> " + active_lbl.text + " | Turns: " + str(turns)
 
 func _set_player_disconnected(player_id: String):
 	if player_labels.has(player_id):
@@ -179,4 +186,5 @@ func _on_return_pressed():
 	if gscws.socket.get_ready_state() == WebSocketPeer.STATE_OPEN:
 		gscws.socket.close()
 	controller.Reset_Lobby_State()
+	MusicPlayer.play_menu_music()
 	SceneLoader.load_scene("uid://ctined7qq8dh2")

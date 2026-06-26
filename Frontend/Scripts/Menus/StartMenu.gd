@@ -3,8 +3,9 @@ extends Control
 # UI elements
 @onready var login_button: Button = $ButtonContainer/LoginContainer/LoginLayout/LoginButton
 @onready var welcome_label: Label = $ButtonContainer/LoginContainer/LoginLayout/WelcomeLabel
-@onready var mute_button: Button = $ButtonContainer/MuteButtonContainer/HBoxContainer/MuteButton
+@onready var mute_button: Button = $ButtonContainer/VolumeContainer/VBoxContainer/HBoxContainer3/MuteButton
 @onready var background: TextureRect = $Background
+@onready var volume_slider: Slider = $ButtonContainer/VolumeContainer/VBoxContainer/HBoxContainer/HSlider
 @onready var press_start_sound := AudioStreamPlayer.new()
 
 @export var multi_lobby: StringName = &""
@@ -32,6 +33,7 @@ func _ready() -> void:
 	add_child(press_start_sound)
 	press_start_sound.stream = preload("res://Sounds/menu.mp3")
 	
+	volume_slider.value = MusicPlayer.get_volume()
 	login_button.pressed.connect(_on_login_pressed)
 	mute_button.pressed.connect(_on_mute_pressed)
 	var master_bus_index = AudioServer.get_bus_index("Master")
@@ -129,3 +131,7 @@ func _on_mute_pressed() -> void:
 	#controller.Get_Lobbies()
 	#await get_tree().create_timer(1.0).timeout
 	#print(controller.Active_Lobbies)
+
+
+func _on_h_slider_value_changed(volume: float) -> void:
+	MusicPlayer.set_volume(volume)

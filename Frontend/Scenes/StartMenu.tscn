@@ -8,7 +8,9 @@
 [ext_resource type="Texture2D" uid="uid://cddmfc44v2cvs" path="res://Sprites/Menu/MainMenuButtons.png" id="3_h303d"]
 [ext_resource type="StyleBox" uid="uid://cga7y6hxvdm4a" path="res://Sprites/Menu/Mute_on_hover.tres" id="4_o6asp"]
 [ext_resource type="StyleBox" uid="uid://vkj0axgyyvn" path="res://Sprites/Menu/Mute_off_hover.tres" id="5_o42a4"]
+[ext_resource type="Texture2D" uid="uid://ccvfgufqqekm1" path="res://Sprites/Menu/slider_active.png" id="8_0qo7l"]
 [ext_resource type="FontFile" uid="uid://dnxdqkdiptw0l" path="res://COMIC.TTF" id="8_o42a4"]
+[ext_resource type="Texture2D" uid="uid://1o4w1fit56k5" path="res://Sprites/Menu/slider_inactive.png" id="9_b3loq"]
 
 [sub_resource type="Curve" id="Curve_dl0pg"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.26602563, 0.26193547), 1.5700641, 1.5700641, 0, 0, Vector2(0.5769231, 0.90774196), 0.6886246, 0.6886246, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
@@ -54,6 +56,12 @@ region_rect = Rect2(510, 78.75, 182, 81.5)
 font = ExtResource("8_o42a4")
 font_size = 47
 outline_size = 6
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_b3loq"]
+font = ExtResource("8_o42a4")
+font_size = 50
+outline_size = 7
 outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_dl0pg"]
@@ -203,23 +211,6 @@ theme_override_styles/hover = SubResource("StyleBoxTexture_o42a4")
 custom_minimum_size = Vector2(0, 99.695)
 layout_mode = 2
 
-[node name="MuteButtonContainer" type="MarginContainer" parent="ButtonContainer" unique_id=1005440339]
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 0
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-
-[node name="HBoxContainer" type="HBoxContainer" parent="ButtonContainer/MuteButtonContainer" unique_id=2090880296]
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 0
-
-[node name="MuteButton" type="Button" parent="ButtonContainer/MuteButtonContainer/HBoxContainer" unique_id=2100532035]
-custom_minimum_size = Vector2(200, 60)
-layout_mode = 2
-theme_override_styles/normal = ExtResource("3_dibtv")
-
 [node name="LoginContainer" type="MarginContainer" parent="ButtonContainer" unique_id=1055664539]
 layout_mode = 2
 size_flags_horizontal = 0
@@ -240,6 +231,48 @@ theme_override_styles/hover = SubResource("StyleBoxTexture_ypme4")
 [node name="WelcomeLabel" type="Label" parent="ButtonContainer/LoginContainer/LoginLayout" unique_id=830985289]
 layout_mode = 2
 label_settings = SubResource("LabelSettings_0qo7l")
+
+[node name="VolumeContainer" type="MarginContainer" parent="ButtonContainer" unique_id=1705869464]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ButtonContainer/VolumeContainer" unique_id=1811787451]
+layout_mode = 2
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="ButtonContainer/VolumeContainer/VBoxContainer" unique_id=2090880296]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+
+[node name="MuteButton" type="Button" parent="ButtonContainer/VolumeContainer/VBoxContainer/HBoxContainer3" unique_id=2100532035]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+theme_override_styles/normal = ExtResource("3_dibtv")
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="ButtonContainer/VolumeContainer/VBoxContainer" unique_id=515169119]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ButtonContainer/VolumeContainer/VBoxContainer/HBoxContainer2" unique_id=1084760992]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "Volume"
+label_settings = SubResource("LabelSettings_b3loq")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ButtonContainer/VolumeContainer/VBoxContainer" unique_id=799542413]
+layout_mode = 2
+
+[node name="HSlider" type="HSlider" parent="ButtonContainer/VolumeContainer/VBoxContainer/HBoxContainer" unique_id=235076479]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_icons/grabber = ExtResource("8_0qo7l")
+theme_override_icons/grabber_highlight = ExtResource("9_b3loq")
+min_value = -80.0
+max_value = 24.0
+step = 0.001
 
 [node name="TitleCardContainer" type="MarginContainer" parent="." unique_id=116503845]
 layout_mode = 1
@@ -279,4 +312,5 @@ libraries/ = SubResource("AnimationLibrary_ql1sk")
 
 [connection signal="pressed" from="ButtonContainer/PlayButtonsContainer/MainMenuButtons/PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="ButtonContainer/PlayButtonsContainer/MainMenuButtons/QuitButton" to="." method="_on_quit_button_pressed"]
-[connection signal="pressed" from="ButtonContainer/MuteButtonContainer/HBoxContainer/MuteButton" to="." method="_on_mute_button_pressed"]
+[connection signal="pressed" from="ButtonContainer/VolumeContainer/VBoxContainer/HBoxContainer3/MuteButton" to="." method="_on_mute_button_pressed"]
+[connection signal="value_changed" from="ButtonContainer/VolumeContainer/VBoxContainer/HBoxContainer/HSlider" to="." method="_on_h_slider_value_changed"]
