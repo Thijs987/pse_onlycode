@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 @onready var label: Label = $Panel/Label
+@onready var panel: Panel = $Panel
 
 func _ready() -> void:
 	layer = 100
@@ -12,6 +13,7 @@ func display_message(new_text: String) -> void:
 		return
 
 	label.text = new_text
+
 	if new_text.is_empty():
 		visible = false
 	else:

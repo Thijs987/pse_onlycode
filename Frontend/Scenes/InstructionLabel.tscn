@@ -2,7 +2,21 @@
 
 [ext_resource type="Script" uid="uid://dsp4sgqrsgcdf" path="res://Scripts/Cards/Instruction.gd" id="1_2mcqc"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2mcqc"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2mcqc"]
+bg_color = Color(0, 0, 0, 0.60784316)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 1, 0, 0.8509804)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+expand_margin_left = 8.0
+expand_margin_top = 4.0
+expand_margin_right = 8.0
+expand_margin_bottom = 4.0
 
 [node name="InstructionLabel" type="CanvasLayer" unique_id=439611559]
 script = ExtResource("1_2mcqc")
@@ -17,7 +31,7 @@ offset_right = 304.0
 offset_bottom = 255.0
 grow_horizontal = 2
 size_flags_horizontal = 0
-theme_override_styles/panel = SubResource("StyleBoxEmpty_2mcqc")
+theme_override_styles/panel = SubResource("StyleBoxFlat_2mcqc")
 metadata/_edit_use_anchors_ = true
 
 [node name="Label" type="Label" parent="Panel" unique_id=1530545542]
@@ -33,7 +47,8 @@ offset_right = 300.0
 offset_bottom = 40.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 14
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3

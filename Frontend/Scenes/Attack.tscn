@@ -17,6 +17,7 @@ color = Color(0.24705882, 0.24705882, 0.24705882, 0.39215687)
 [node name="Label" type="Label" parent="." unique_id=647703600]
 offset_right = 1151.0
 offset_bottom = 55.0
+theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 40
 text = "Choose your target"
 horizontal_alignment = 1

@@ -136,7 +136,6 @@ func update_visual_pile():
 		pending_update = false
 		update_visual_pile()
 
-
 func _on_message(msg):
 	if msg.get("action") == "MATCH_STARTED":
 		var new_size = msg.get("data", {}).get("deckSize")

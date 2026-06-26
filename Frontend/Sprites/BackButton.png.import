@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bhn6kdtyq673j"
-path="res://.godot/imported/sql.png-83f4494ce4e40ff2610df939265f3495.ctex"
+uid="uid://bufvc1f3aqotc"
+path="res://.godot/imported/BackButton.png-c57dd1475b049d15627e12a1bb928fb5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Sprites/CardIcons/sql.png"
-dest_files=["res://.godot/imported/sql.png-83f4494ce4e40ff2610df939265f3495.ctex"]
+source_file="res://Sprites/BackButton.png"
+dest_files=["res://.godot/imported/BackButton.png-c57dd1475b049d15627e12a1bb928fb5.ctex"]
 
 [params]
 
