@@ -5,7 +5,9 @@
 [ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Background/BackgroundPattern.png" id="3_e2wr0"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_q72hu"]
-font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
+font_size = 26
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
 
 [node name="MultiLobby" type="Control" unique_id=1520286451 node_paths=PackedStringArray("create_lobby_button", "join_lobby_button", "start_lobby_button", "card_setting_button", "leave_lobby_button", "multi_lobby_container", "lobby_settings")]
 layout_mode = 3
@@ -83,6 +85,8 @@ size_flags_vertical = 4
 [node name="LineEdit" type="LineEdit" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer3" unique_id=1274674973]
 custom_minimum_size = Vector2(200, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
 placeholder_text = "Lobby id"
 alignment = 1
 
@@ -94,6 +98,8 @@ size_flags_vertical = 4
 [node name="JoinLobby" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer4" unique_id=189700080]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 20
 text = "Join lobby"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=711806622]
@@ -104,6 +110,8 @@ size_flags_vertical = 4
 [node name="CreateLobby" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer" unique_id=1151753198]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 20
 text = "Create lobby"
 
 [node name="HBoxContainer5" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=1290916625]
@@ -115,6 +123,8 @@ custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 20
 text = "Tutorial"
 
 [node name="MainMenuHBox" type="HBoxContainer" parent="MultiLobbyContainer/BrowserView/VBoxContainer" unique_id=2043749616]
@@ -125,6 +135,8 @@ size_flags_vertical = 4
 [node name="MainMenuButton" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox" unique_id=360365469]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 20
 text = "Back"
 
 [node name="LobbyItemList" type="ItemList" parent="MultiLobbyContainer/BrowserView" unique_id=1164717918]
@@ -136,6 +148,8 @@ offset_top = 50.0
 offset_right = 350.0
 offset_bottom = -150.0
 grow_vertical = 2
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 20
 
 [node name="RefreshButton" type="Button" parent="MultiLobbyContainer/BrowserView" unique_id=517875870]
 layout_mode = 1
@@ -147,6 +161,8 @@ offset_top = -100.0
 offset_right = 350.0
 offset_bottom = -50.0
 grow_vertical = 0
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 20
 text = "Refresh Lobbies"
 
 [node name="InLobbyView" type="Control" parent="MultiLobbyContainer" unique_id=2000424944]
@@ -157,25 +173,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView" unique_id=445475636]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -100.0
-offset_top = 50.0
-offset_right = 100.0
-offset_bottom = 100.0
-grow_horizontal = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-
-[node name="CurrentlyInLobby" type="Label" parent="MultiLobbyContainer/InLobbyView/HBoxContainer2" unique_id=931800321]
-layout_mode = 2
-text = "Not in lobby"
-label_settings = SubResource("LabelSettings_q72hu")
-horizontal_alignment = 1
 
 [node name="PlayerList" type="Label" parent="MultiLobbyContainer/InLobbyView" unique_id=1657817890]
 layout_mode = 0
@@ -194,6 +191,12 @@ offset_top = 374.0
 offset_right = 516.0
 offset_bottom = 414.0
 
+[node name="CurrentlyInLobby" type="Label" parent="MultiLobbyContainer/InLobbyView/VBoxContainer" unique_id=931800321]
+layout_mode = 2
+text = "Not in lobby"
+label_settings = SubResource("LabelSettings_q72hu")
+horizontal_alignment = 1
+
 [node name="HBoxContainer5" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView/VBoxContainer" unique_id=1721904728]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -202,6 +205,8 @@ size_flags_vertical = 4
 [node name="StartLobby" type="Button" parent="MultiLobbyContainer/InLobbyView/VBoxContainer/HBoxContainer5" unique_id=1364728254]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 20
 text = "Start"
 
 [node name="CardSettingsBox" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView/VBoxContainer" unique_id=199627811]
@@ -213,6 +218,8 @@ custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 20
 text = "Card Settings"
 
 [node name="HBoxContainer6" type="HBoxContainer" parent="MultiLobbyContainer/InLobbyView/VBoxContainer" unique_id=474319475]
@@ -223,6 +230,8 @@ size_flags_vertical = 4
 [node name="LeaveLobby" type="Button" parent="MultiLobbyContainer/InLobbyView/VBoxContainer/HBoxContainer6" unique_id=613134272]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 20
 text = "Back"
 
 [node name="LobbySettings" parent="." unique_id=1787609362 instance=ExtResource("2_jlkr6")]

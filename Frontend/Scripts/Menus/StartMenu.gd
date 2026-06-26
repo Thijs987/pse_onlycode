@@ -92,7 +92,7 @@ func _on_quit_button_pressed() -> void:
 func check_login_status() -> void:
 	if auth_manager.is_authenticated:
 		login_button.visible = false
-		welcome_label.text = "Welcome " + auth_manager.username
+		welcome_label.text = "Welcome\n" + auth_manager.username
 		welcome_label.visible = true
 	else:
 		login_button.visible = true

@@ -1,7 +1,7 @@
 extends Control
 
 @onready var lobby_input: LineEdit = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer3/LineEdit
-@onready var in_lobby: Label = $MultiLobbyContainer/InLobbyView/HBoxContainer2/CurrentlyInLobby
+@onready var in_lobby: Label = $MultiLobbyContainer/InLobbyView/VBoxContainer/CurrentlyInLobby
 @onready var player_list_label: Label = $MultiLobbyContainer/InLobbyView/PlayerList
 @onready var lobby_item_list: ItemList = $MultiLobbyContainer/BrowserView/LobbyItemList
 @onready var refresh_button: Button = $MultiLobbyContainer/BrowserView/RefreshButton
