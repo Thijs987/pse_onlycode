@@ -16,6 +16,7 @@ config/features=PackedStringArray("4.6", "Forward Plus")
 
 [autoload]
 
+MusicPlayer="*uid://c8n4in2w62omo"
 SceneLoader="*uid://1f6ldvtpwwgq"
 gschttp="*uid://br3mo8m8v4kiw"
 gscws="*uid://dg8okmsqxxyxb"

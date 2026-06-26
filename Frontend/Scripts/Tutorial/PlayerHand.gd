@@ -22,8 +22,8 @@ var center_screen_x
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	center_screen_x = get_viewport().size.x / 2
-	center_screen_y = get_viewport().size.y / 2
+	center_screen_x = 576
+	center_screen_y = 324
 	add_new_card("achterkant", 1)
 	add_new_card("achterkant", 1)
 
