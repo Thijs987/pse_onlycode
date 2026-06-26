@@ -140,7 +140,6 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="BrowserView" type="Control" parent="MultiLobbyContainer" unique_id=138882944]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -196,7 +195,7 @@ size_flags_vertical = 4
 [node name="JoinLobby" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer4" unique_id=189700080]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-theme_override_constants/outline_size = 1
+theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_7pf85")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_udp1n")
@@ -213,7 +212,7 @@ size_flags_vertical = 4
 [node name="CreateLobby" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer" unique_id=1151753198]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-theme_override_constants/outline_size = 1
+theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_4wyck")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_hhe5v")
@@ -229,7 +228,7 @@ size_flags_horizontal = 4
 [node name="TutorialButton" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer5" unique_id=369702215]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-theme_override_constants/outline_size = 1
+theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_2faxi")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_dj6pe")
@@ -246,7 +245,7 @@ size_flags_vertical = 4
 [node name="MainMenuButton" type="Button" parent="MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox" unique_id=360365469]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-theme_override_constants/outline_size = 1
+theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_u4hgr")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_m56os")
@@ -281,6 +280,7 @@ theme_override_font_sizes/font_size = 20
 text = "Refresh Lobbies"
 
 [node name="InLobbyView" type="Control" parent="MultiLobbyContainer" unique_id=2000424944]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
