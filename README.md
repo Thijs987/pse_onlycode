@@ -1,65 +1,33 @@
-### Code Green
+# Code Green
 
+## Rules:
 
+Each player starts the game with 3 cards their hand. During a turn, players can play as many cards as they like.
+A player's turn ends when they draw a card from the draw pile, or an effect of a card they played ends their turn.
+A player loses when at the end of their turn, there are more cards in their hand than the limit allows.
+The limit starts at 5, and reduces by 1 every time the drawpile is empty.
+When the drawpile is empty, the cards on the discard pile are shuffled and are placed on the draw pile.
+To see the effects of each individual card, see the project wiki.
 
-## Spelregels:
+## Technical information:
 
-Elke speler start het spel met 3 kaarten. In een beurt mogen spelers zoveel kaarten
-neerleggen als ze willen maar aan het einde van elke beurt moet de speler een kaart van
-de pakstapel trekken tenzij er een kaart is opgelegd die dat voorkomt. Nadat een kaart
-is gepakt eindigt de beurt van de speler meteen. Een speler valt af als ze aan het einde
-van hun beurt meer kaarten hebben dan de limiet. De limiet start op 5 maar gaat met 1
-omlaag elke keer dat de pakstapel op is.
+If you download the game from a release, you need an eduVPN connection to the University of Amsterdam in order to play the game.
+The game will will connect to the servers of the UvA, where you can play globally with other players.
+If you download the project from a branch, you can localhost it. When run as debug in the Godot editor, it will automatically localhost.
+To localhost, you need to run the backend. First, you need to download the .env file and place it in the root folder of the project.
+Then, you need to run the set-user-secrets.sh script in the folder Backend/scripts to get access to the database and mailserver.
+You need to do these steps only once when downloading a new project.
+Finally, you can run the localhost server using ```dotnet run``` in the folder Backend/src. This will run the localhost server with HTTPS.
+If you want to run it with HTTP, use ```--launch-profiles "http"```. Launching with HTTPS uses port 6969 and HTTP uses port 6767.
+These ports are selected in Backend/src/Properties/launchSettings.json
 
+Note:
+When running the localhost server, it will give this warning:\
+"The ASP.NET Core developer certificate is not trusted. For information about trusting the ASP.NET Core developer certificate, see https://aka.ms/aspnet/https-trust-dev-cert"\
+This is because we made the certificate ourselves instead of downloading a real one, so it is not trusted according to ASP.NET
 
-## Kaarten:
-
-Aanval (Ddos/SQL Injection (targetted)):
--forceert volgende speler om 2 beurten te spelen
--Aanval op een aanval stackt de beurten
--Bij doelgerichte aanval kan je een speler kiezen die 2 beurten speelt
-
-Skip (Clean Merge):
--Je beurt eindigt zonder dat je een kaart hoeft te pakken
-
-Blank: 4 soorten
-(Go-To, Vibecoding, Infinite for-loop, No comments)
--Hiervan heb je 4 soorten
--Met twee dezelfde van deze kaarten kan je de bovenste kaart van de pakstapel aan een
-speler naar keuze geven
--Wilde kat kan je inzetten als een andere blank card
-
-Helse Heibel (Open Source):
--Bekijk de onderste kaart, kies vervolgens of je hem pakt of bovenaan de stapel legt.
-Hierna eindigt de beurt.
-
-Bekijk de toekomst (Pop the stack): !Lastig te implementeren!
--Bekijk de bovenste drie kaarten van de pakstapel en deel ze uit aan de volgende drie
-spelers
--Maximaal 1 per persoon
--Als er 3 personen over zijn geef je beide spelers 1 kaart en leg je de laatste bovenop de
-pakstapel terug
--Als er 2 personen over zijn geef je de speler 1 kaart en leg je de andere 2 kaarten terug
-op de stapel
-
-## Trojan Horse:
--Geef een van de kaarten in je hand aan een andere speler na keuze
-
-
-
-Nope (Garbage collector): !Lastig te Implementeren!
--Als een andere speler een kaart oplegt kan je deze kaart gebruiken om deze actie te
-voorkomen
--De gespeelde kaart gaat terug naar de speler zijn hand en kan pas een beurt later weer
-gespeeld worden
-
-
-Defuse (Blue Screen, Error, Merge Conflict):
--Deze kaart kan je op geen enkele manier spelen
-
-Shuffle (Miracle sort):
--of Schud de kaarten
--of Wissel de kaarten van alle spelers
-
-Bom (Improved Hardware):
--Leg een van je kaarten op de aflegstapel zonder dat hij activeert
+## Tech Stack:
+Godot 4.6.3\
+C#.Net\
+SMTP\
+Postgresql
