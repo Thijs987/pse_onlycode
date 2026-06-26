@@ -19,3 +19,4 @@ exports/
 # Logs
 *.log
 logs/
+StableBuilds/
