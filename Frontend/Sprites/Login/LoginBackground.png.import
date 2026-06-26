@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bhn6kdtyq673j"
-path="res://.godot/imported/sql.png-83f4494ce4e40ff2610df939265f3495.ctex"
+uid="uid://davr8ph0ymqbb"
+path="res://.godot/imported/LoginBackground.png-5fe4975df9823e33fed80738a677893a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Sprites/CardIcons/sql.png"
-dest_files=["res://.godot/imported/sql.png-83f4494ce4e40ff2610df939265f3495.ctex"]
+source_file="res://Sprites/Login/LoginBackground.png"
+dest_files=["res://.godot/imported/LoginBackground.png-5fe4975df9823e33fed80738a677893a.ctex"]
 
 [params]
 

@@ -32,6 +32,10 @@ window/stretch/mode="viewport"
 
 project/assembly_name="Frontend"
 
+[gui]
+
+theme/custom_font="uid://dnxdqkdiptw0l"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

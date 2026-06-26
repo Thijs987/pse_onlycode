@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://clkc0y2w4i6u2" path="res://Scripts/Tutorial/CardLogic.gd" id="7_vv0ms"]
 [ext_resource type="Script" uid="uid://ccxvg0uo4vgo2" path="res://Scripts/Tutorial/InputManager.gd" id="8_vv0ms"]
 [ext_resource type="Script" uid="uid://bki53kmrqcrjb" path="res://Scripts/Tutorial/Leader.gd" id="9_hxa32"]
+[ext_resource type="Texture2D" uid="uid://cddmfc44v2cvs" path="res://Sprites/Menu/MainMenuButtons.png" id="11_m35rq"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_5gw1s"]
 shader = ExtResource("2_m35rq")
@@ -23,6 +24,18 @@ size = Vector2(89, 88)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rlm2d"]
 size = Vector2(421.5, 218)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_m35rq"]
+texture = ExtResource("11_m35rq")
+region_rect = Rect2(100, 240.25, 207.5, 78.5)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5gw1s"]
+texture = ExtResource("11_m35rq")
+region_rect = Rect2(102, 315.75, 200, 93)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_brn58"]
+texture = ExtResource("11_m35rq")
+region_rect = Rect2(113.5, 240.25, 177.5, 78.5)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hxa32"]
 bg_color = Color(0, 0, 0, 0.60784316)
@@ -127,7 +140,9 @@ offset_left = 951.0
 offset_top = 29.0
 offset_right = 1110.0
 offset_bottom = 81.0
-text = "Exit"
+theme_override_styles/normal = SubResource("StyleBoxTexture_m35rq")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5gw1s")
+theme_override_styles/hover = SubResource("StyleBoxTexture_brn58")
 
 [node name="TutorialPanel" type="Panel" parent="Leader" unique_id=262777299]
 offset_right = 40.0
@@ -139,6 +154,9 @@ layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 18
 
 [node name="TurnTimer" type="Timer" parent="." unique_id=663342367]
 wait_time = 30.0

@@ -1,11 +1,11 @@
 extends Control
 
 @onready var lobby_input: LineEdit = $MultiLobbyContainer/BrowserView/VBoxContainer/HBoxContainer3/LineEdit
-@onready var in_lobby: Label = $MultiLobbyContainer/InLobbyView/HBoxContainer2/CurrentlyInLobby
+@onready var in_lobby: Label = $MultiLobbyContainer/InLobbyView/VBoxContainer/CurrentlyInLobby
 @onready var player_list_label: Label = $MultiLobbyContainer/InLobbyView/PlayerList
 @onready var lobby_item_list: ItemList = $MultiLobbyContainer/BrowserView/LobbyItemList
 @onready var refresh_button: Button = $MultiLobbyContainer/BrowserView/RefreshButton
-@onready var error_dialog: AcceptDialog = $MultiLobbyContainer/BrowserView/ErrorDialog
+@onready var error_dialog: Label = $MultiLobbyContainer/BrowserView/HBoxContainer2/ErrorLabel
 @onready var browser_view: Control = $MultiLobbyContainer/BrowserView
 @onready var in_lobby_view: Control = $MultiLobbyContainer/InLobbyView
 @onready var main_menu_button: Button = $MultiLobbyContainer/BrowserView/VBoxContainer/MainMenuHBox/MainMenuButton
@@ -246,7 +246,10 @@ func update_lobby_list() -> void:
 		var lbl = Label.new()
 		lbl.text = pid
 		var settings = LabelSettings.new()
-		settings.font_color = Color(0, 0, 0, 1)
+		settings.font_size = 30
+		settings.font_color = Color(253, 253, 253, 1.0)
+		settings.outline_size = 1
+		settings.outline_color = Color(0, 0, 0, 1)
 		lbl.label_settings = settings
 		row.add_child(lbl)
 
@@ -259,6 +262,10 @@ func update_lobby_list() -> void:
 		list_container.add_child(row)
 
 	list_container.move_child(add_bot_btn, -1)
+	if player_count == 4:
+		add_bot_btn.visible = false
+	else:
+		add_bot_btn.visible = true
 
 func _on_refresh_lobbies() -> void:
 	controller.Get_Lobbies()
@@ -280,8 +287,7 @@ func _on_lobby_selected(index: int) -> void:
 	lobby_input.text = lobby_id
 
 func _on_lobby_join_failed() -> void:
-	error_dialog.dialog_text = "Failed to join lobby. It might be full or already started."
-	error_dialog.popup_centered()
+	error_dialog.text = "Failed to join lobby. It might be full or already started."
 
 func _on_leave_lobby() -> void:
 	controller.Leave_Lobby()

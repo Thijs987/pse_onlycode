@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bhn6kdtyq673j"
-path="res://.godot/imported/sql.png-83f4494ce4e40ff2610df939265f3495.ctex"
+uid="uid://chbtysc0spb4n"
+path="res://.godot/imported/TextBox.png-f6718cb7d604722e4d78c9c1ce5b0bfc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Sprites/CardIcons/sql.png"
-dest_files=["res://.godot/imported/sql.png-83f4494ce4e40ff2610df939265f3495.ctex"]
+source_file="res://Sprites/TextBox.png"
+dest_files=["res://.godot/imported/TextBox.png-f6718cb7d604722e4d78c9c1ce5b0bfc.ctex"]
 
 [params]
 

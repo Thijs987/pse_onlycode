@@ -10,6 +10,7 @@
 [ext_resource type="StyleBox" uid="uid://vkj0axgyyvn" path="res://Sprites/Menu/Mute_off_hover.tres" id="5_o42a4"]
 [ext_resource type="Texture2D" uid="uid://ccvfgufqqekm1" path="res://Sprites/Menu/slider_active.png" id="8_0qo7l"]
 [ext_resource type="Texture2D" uid="uid://1o4w1fit56k5" path="res://Sprites/Menu/slider_inactive.png" id="9_b3loq"]
+[ext_resource type="FontFile" uid="uid://dnxdqkdiptw0l" path="res://COMIC.TTF" id="8_o42a4"]
 
 [sub_resource type="Curve" id="Curve_dl0pg"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.26602563, 0.26193547), 1.5700641, 1.5700641, 0, 0, Vector2(0.5769231, 0.90774196), 0.6886246, 0.6886246, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
@@ -21,11 +22,11 @@ region_rect = Rect2(92, 83, 223, 70)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o7rkd"]
 texture = ExtResource("3_h303d")
-region_rect = Rect2(98.5, 154.25, 208, 86.75)
+region_rect = Rect2(108, 154, 192, 90)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_x3sen"]
 texture = ExtResource("3_h303d")
-region_rect = Rect2(113, 78, 179, 80)
+region_rect = Rect2(116, 82, 178, 72)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dibtv"]
 texture = ExtResource("3_h303d")
@@ -50,6 +51,12 @@ region_rect = Rect2(498.5, 154.25, 208, 91.5)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ypme4"]
 texture = ExtResource("3_h303d")
 region_rect = Rect2(510, 78.75, 182, 81.5)
+
+[sub_resource type="LabelSettings" id="LabelSettings_0qo7l"]
+font = ExtResource("8_o42a4")
+font_size = 47
+outline_size = 6
+outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_dl0pg"]
 load_path = "res://.godot/imported/PressToStart.png-9d0c41c3b543a4dccf84ee832e0800b9.ctex"
@@ -184,6 +191,7 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxTexture_ujd4t")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_o7rkd")
 theme_override_styles/hover = SubResource("StyleBoxTexture_x3sen")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_ujd4t")
 
 [node name="QuitButton" type="Button" parent="ButtonContainer/PlayButtonsContainer/MainMenuButtons" unique_id=1923007763]
 custom_minimum_size = Vector2(0, 70)
@@ -215,6 +223,7 @@ theme_override_styles/hover = SubResource("StyleBoxTexture_ypme4")
 
 [node name="WelcomeLabel" type="Label" parent="ButtonContainer/LoginContainer/LoginLayout" unique_id=830985289]
 layout_mode = 2
+label_settings = SubResource("LabelSettings_0qo7l")
 
 [node name="VolumeContainer" type="MarginContainer" parent="ButtonContainer" unique_id=1705869464]
 custom_minimum_size = Vector2(100, 0)

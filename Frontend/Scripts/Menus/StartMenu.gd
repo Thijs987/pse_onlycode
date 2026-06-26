@@ -22,9 +22,8 @@ extends Control
 var bg_start_pos
 var in_main_menu: bool = false
 
-# TEMP FOR TESTING
 var is_logged_in: bool = false
-var is_muted: bool = false
+var is_muted
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -37,10 +36,18 @@ func _ready() -> void:
 	volume_slider.value = MusicPlayer.get_volume()
 	login_button.pressed.connect(_on_login_pressed)
 	mute_button.pressed.connect(_on_mute_pressed)
-	mute_button.add_theme_stylebox_override("normal", mute_off_style)
-	mute_button.add_theme_stylebox_override("hover", mute_off_style_hover_off)
-	mute_button.add_theme_stylebox_override("pressed", mute_off_style_hover_off)
-	mute_button.add_theme_stylebox_override("focus", mute_off_style_hover_off)
+	var master_bus_index = AudioServer.get_bus_index("Master")
+	is_muted = AudioServer.is_bus_mute(master_bus_index)
+	if is_muted:
+		mute_button.add_theme_stylebox_override("normal", mute_on_style)
+		mute_button.add_theme_stylebox_override("hover", mute_on_style_hover)
+		mute_button.add_theme_stylebox_override("pressed", mute_on_style_hover)
+		mute_button.add_theme_stylebox_override("focus", mute_on_style_hover)
+	else:
+		mute_button.add_theme_stylebox_override("normal", mute_off_style)
+		mute_button.add_theme_stylebox_override("hover", mute_off_style_hover_off)
+		mute_button.add_theme_stylebox_override("pressed", mute_off_style_hover_off)
+		mute_button.add_theme_stylebox_override("focus", mute_off_style_hover_off)
 	check_login_status()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -87,7 +94,7 @@ func _on_quit_button_pressed() -> void:
 func check_login_status() -> void:
 	if auth_manager.is_authenticated:
 		login_button.visible = false
-		welcome_label.text = "Welcome " + auth_manager.username
+		welcome_label.text = "Welcome\n" + auth_manager.username
 		welcome_label.visible = true
 	else:
 		login_button.visible = true
