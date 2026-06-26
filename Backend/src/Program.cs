@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Http.Features;
 using Api;
 using Serilog;
+using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -419,9 +420,17 @@ app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManage
 
         if (!isRejoining && !connectionManager.IsLobbyAvailable(lobbyId))
         {
+            if (!connectionManager.IsLobbyAvailable(lobbyId)){
             Log.Warning("Rejected {PlayerId}: Lobby {LobbyId} is full or doesn't exist.", playerId, lobbyId);
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
+            }
+            if (matchManager.IsMatchActive(lobbyId))
+            {
+            Log.Warning("Rejected {PlayerId}: Lobby {LobbyId} game has already started", playerId, lobbyId);
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return;
+            }
         }
 
         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
