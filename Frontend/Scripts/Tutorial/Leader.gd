@@ -25,6 +25,7 @@ var card_to_draw
 signal next_step(action)
 
 func _ready() -> void:
+	controller.interaction_disabled = false
 	player_list = [controller.PId, "bot"]
 	turns = player_list[0]
 	turn_timer.timeout.connect(_on_timeout)

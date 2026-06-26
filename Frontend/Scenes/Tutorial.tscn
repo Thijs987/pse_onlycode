@@ -67,6 +67,7 @@ offset_left = -222.0
 offset_top = -257.0
 offset_right = 1410.0
 offset_bottom = 901.0
+mouse_filter = 2
 texture = ExtResource("1_8i65c")
 stretch_mode = 1
 
@@ -88,6 +89,7 @@ offset_left = 138.0
 offset_top = 110.0
 offset_right = 1054.0
 offset_bottom = 568.0
+mouse_filter = 2
 texture = ExtResource("4_sgy12")
 
 [node name="TimeLabel" type="Label" parent="Background" unique_id=1515514116]

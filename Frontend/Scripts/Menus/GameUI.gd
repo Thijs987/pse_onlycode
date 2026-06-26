@@ -107,6 +107,7 @@ func _update_player_list():
 
 			player_list_container.add_child(new_label)
 			player_labels[p_id] = new_label
+			new_label.add_theme_constant_override("outline_size", 10)
 
 func _highlight_turn(current_player_id: String):
 	for p_id in player_labels:
