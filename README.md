@@ -21,10 +21,8 @@ Finally, you can run the localhost server using ```dotnet run``` in the folder B
 If you want to run it with HTTP, use ```--launch-profiles "http"```. Launching with HTTPS uses port 6969 and HTTP uses port 6767.
 These ports are selected in Backend/src/Properties/launchSettings.json
 
-Note:
-When running the localhost server, it will give this warning:\
-"The ASP.NET Core developer certificate is not trusted. For information about trusting the ASP.NET Core developer certificate, see https://aka.ms/aspnet/https-trust-dev-cert"\
-This is because we made the certificate ourselves instead of downloading a real one, so it is not trusted according to ASP.NET
+Note on HTTPS/SSL Warnings:
+When running the server, you may see a warning stating that the ASP.NET Core developer certificate is not trusted. This happens because .NET automatically generates a local self-signed certificate for development. Because it was not issued by a public Certificate Authority, it gets flagged it as untrusted until you explicitly trust it. The reason for doing this was that we couldn’t reach any public certificate authorities on our server. 
 
 ## Tech Stack:
 Godot 4.6.3\
