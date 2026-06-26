@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://x45d2qtogg0g" path="res://Scripts/Menus/LoginPage.gd" id="1_v0vm3"]
 [ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Background/BackgroundPattern.png" id="2_o136v"]
+[ext_resource type="Texture2D" uid="uid://ccl2ihi8rbpyo" path="res://Sprites/Background/bober.png" id="3_kjdre"]
 [ext_resource type="Texture2D" uid="uid://chbtysc0spb4n" path="res://Sprites/TextBox.png" id="3_o136v"]
 [ext_resource type="Texture2D" uid="uid://c2p5pse03r8ie" path="res://Sprites/Login/LoginButtons.png" id="3_x3lit"]
 [ext_resource type="Texture2D" uid="uid://bufvc1f3aqotc" path="res://Sprites/BackButton.png" id="4_3gsyq"]
@@ -133,6 +134,29 @@ offset_right = 1410.0
 offset_bottom = 901.0
 texture = ExtResource("2_o136v")
 stretch_mode = 1
+
+[node name="BoberR" type="TextureRect" parent="Background/CanvasLayer" unique_id=132221608]
+offset_left = 676.0
+offset_top = 332.0
+offset_right = 732.0
+offset_bottom = 391.0
+rotation = 0.15707964
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("3_kjdre")
+
+[node name="BoberL" type="TextureRect" parent="Background/CanvasLayer" unique_id=872455227]
+offset_left = 420.0
+offset_top = 340.0
+offset_right = 476.0
+offset_bottom = 399.0
+rotation = -0.15707964
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("3_kjdre")
+flip_h = true
 
 [node name="HTTPRequest" type="HTTPRequest" parent="." unique_id=1737097880]
 
