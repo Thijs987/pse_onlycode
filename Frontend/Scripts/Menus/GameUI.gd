@@ -32,6 +32,7 @@ func _setup_card_limit_label() -> void:
 	card_limit_label.add_theme_font_size_override("font_size", 24)
 	card_limit_label.position = Vector2(20, 20)
 	card_limit_label.z_index = 1000
+	card_limit_label.add_theme_constant_override("outline_size", 10)
 	add_child(card_limit_label)
 
 	# MATCH_STARTED is received before this scene loads, so the signal has already

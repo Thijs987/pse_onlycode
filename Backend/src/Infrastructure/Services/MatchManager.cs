@@ -360,7 +360,7 @@ public class MatchManager
             return responseData;
         }
 
-        if (match.Deck.Count <= 0)
+        if (match.Deck.Count <= 1)
         {
             // Refill deck
             Log.Warning("Deck empty for match {MatchId}, regenerating.", match.MatchId);
@@ -369,7 +369,7 @@ public class MatchManager
         }
 
         // No top card, not possible
-        if (match.Deck.Count <= 0)
+        if (match.Deck.Count <= 1)
         {
             return new DataInfo { Error = "Deck could not be generated" };
         }
