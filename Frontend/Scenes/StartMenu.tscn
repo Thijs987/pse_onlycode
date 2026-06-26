@@ -58,6 +58,12 @@ font_size = 47
 outline_size = 6
 outline_color = Color(0, 0, 0, 1)
 
+[sub_resource type="LabelSettings" id="LabelSettings_b3loq"]
+font = ExtResource("8_o42a4")
+font_size = 50
+outline_size = 7
+outline_color = Color(0, 0, 0, 1)
+
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_dl0pg"]
 load_path = "res://.godot/imported/PressToStart.png-9d0c41c3b543a4dccf84ee832e0800b9.ctex"
 
@@ -252,7 +258,9 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="ButtonContainer/VolumeContainer/VBoxContainer/HBoxContainer2" unique_id=1084760992]
 layout_mode = 2
+size_flags_horizontal = 6
 text = "Volume"
+label_settings = SubResource("LabelSettings_b3loq")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="ButtonContainer/VolumeContainer/VBoxContainer" unique_id=799542413]
 layout_mode = 2
