@@ -418,7 +418,7 @@ app.Map("/lobby", async (HttpContext context, ConnectionManager connectionManage
         }
         catch { }
 
-        if (!isRejoining && !connectionManager.IsLobbyAvailable(lobbyId))
+        if (!isRejoining)
         {
             if (!connectionManager.IsLobbyAvailable(lobbyId)){
             Log.Warning("Rejected {PlayerId}: Lobby {LobbyId} is full or doesn't exist.", playerId, lobbyId);
