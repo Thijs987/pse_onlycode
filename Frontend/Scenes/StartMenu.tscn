@@ -8,6 +8,8 @@
 [ext_resource type="Texture2D" uid="uid://cddmfc44v2cvs" path="res://Sprites/Menu/MainMenuButtons.png" id="3_h303d"]
 [ext_resource type="StyleBox" uid="uid://cga7y6hxvdm4a" path="res://Sprites/Menu/Mute_on_hover.tres" id="4_o6asp"]
 [ext_resource type="StyleBox" uid="uid://vkj0axgyyvn" path="res://Sprites/Menu/Mute_off_hover.tres" id="5_o42a4"]
+[ext_resource type="Texture2D" uid="uid://ccvfgufqqekm1" path="res://Sprites/Menu/slider_active.png" id="8_0qo7l"]
+[ext_resource type="Texture2D" uid="uid://1o4w1fit56k5" path="res://Sprites/Menu/slider_inactive.png" id="9_b3loq"]
 
 [sub_resource type="Curve" id="Curve_dl0pg"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.26602563, 0.26193547), 1.5700641, 1.5700641, 0, 0, Vector2(0.5769231, 0.90774196), 0.6886246, 0.6886246, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
@@ -248,6 +250,8 @@ layout_mode = 2
 [node name="HSlider" type="HSlider" parent="ButtonContainer/VolumeContainer/VBoxContainer/HBoxContainer" unique_id=235076479]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
+theme_override_icons/grabber = ExtResource("8_0qo7l")
+theme_override_icons/grabber_highlight = ExtResource("9_b3loq")
 min_value = -80.0
 max_value = 24.0
 step = 0.001
