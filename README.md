@@ -16,6 +16,7 @@ The game will will connect to the servers of the UvA, where you can play globall
 If you download the project from a branch, you can localhost it. When run as debug in the Godot editor, it will automatically localhost.
 To localhost, you need to run the backend. First, you need to download the .env file and place it in the root folder of the project.
 However, some critical information is missing which you should create yourself, otherwise it would be a security issue for us.
+What you need to add is explained in env.md, where the code for the .env is also stored.
 Then, you need to run the set-user-secrets.sh script in the folder Backend/scripts to get access to the database and mailserver.
 You need to do these steps only once when downloading a new project.
 Finally, you can run the localhost server using ```dotnet run``` in the folder Backend/src. This will run the localhost server with HTTPS.
