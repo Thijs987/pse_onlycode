@@ -23,9 +23,18 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         _factory = factory;
     }
 
+    private static bool HasIntegrationConnection() =>
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ConnectionStrings__Integration")) ||
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ConnectionStrings__Default"));
+
     [Fact]
     public async Task RegisterEndpoint_GeneratesVerificationLink_AndVerifyEmailEndpoint_CanBeClicked()
     {
+        if (!HasIntegrationConnection())
+        {
+            return;
+        }
+
         var email = $"linktest+{Guid.NewGuid():N}@example.com";
         var username = $"linktest{Guid.NewGuid():N}"[..30];
         var recordingEmail = new RecordingEmailService();
@@ -48,7 +57,6 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
                 {
                     services.Remove(emailDescriptor);
                 }
-
                 services.AddSingleton<IEmailService>(recordingEmail);
             });
         });
@@ -63,6 +71,11 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         };
 
         var registerResponse = await client.PostAsJsonAsync("/api/auth/register", registerPayload);
+        if (!registerResponse.IsSuccessStatusCode)
+        {
+            var content = await registerResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Register failed: {registerResponse.StatusCode} - {content}");
+        }
         registerResponse.EnsureSuccessStatusCode();
 
         Assert.Equal(1, recordingEmail.VerificationEmailCount);
@@ -72,6 +85,11 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 
         var verificationUri = new Uri(recordingEmail.LastLink!);
         var verifyResponse = await client.GetAsync(verificationUri.PathAndQuery);
+        if (!verifyResponse.IsSuccessStatusCode)
+        {
+            var content = await verifyResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Verification failed: {verifyResponse.StatusCode} - {content}");
+        }
         verifyResponse.EnsureSuccessStatusCode();
 
         var payload = await verifyResponse.Content.ReadFromJsonAsync<VerifyEmailResponse>();
