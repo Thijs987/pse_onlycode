@@ -27,4 +27,4 @@ AppSettings__RateLimit__WindowSeconds=60
 # JWT
 Jwt__Key=''
 Jwt__Issuer=PSE-Green
-Jwt__Audience=PSE-Green-Clients```
+Jwt__Audience=PSE-Green-Clients
