@@ -11,6 +11,7 @@ func _ready():
 	draw_sound.stream = preload("res://Sounds/PlayCard.mp3")
 	card_logic.card_played.connect(_on_card_played)
 
+#Received when a card is played
 func _on_card_played(player_id, card_id):
 	draw_sound.play()
 	if card_id is String:
@@ -18,6 +19,7 @@ func _on_card_played(player_id, card_id):
 	for id in card_id:
 		play_card(player_id, id)
 
+#Code foor the card to be played
 func play_card(player_id, card_id):
 	var card_scene = preload("uid://dlb3crw3qdkv2")
 	var card = card_scene.instantiate()
@@ -31,6 +33,7 @@ func play_card(player_id, card_id):
 
 	Add_Card(card)
 
+#Add card on top of the discard pile
 func Add_Card(card):
 	discarded_cards.append(card)
 

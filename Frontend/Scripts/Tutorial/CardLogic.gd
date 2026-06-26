@@ -33,7 +33,7 @@ func _process(_delta: float) -> void:
 		dragging_card.position = Vector2(clamp(mouse_pos.x + card_offsetx, 0, screen_size.x),
 			clamp(mouse_pos.y + card_offsety, 0, screen_size.y))
 
-### HIER DE LOGICA VOOR HET SPELEN VAN EEN KAART
+# Logic for playing card
 func play_card(card):
 	if leader.can_play == false:
 		return
@@ -81,6 +81,7 @@ func play_card(card):
 
 					first_combo_card = null # Reset combo flag
 
+# Logic for sql attack
 func sql_attack() -> String:
 	var attack_screen = ATTACK_SCENE.instantiate()
 	get_tree().root.add_child(attack_screen)
@@ -96,6 +97,7 @@ func sql_attack() -> String:
 	get_tree().paused = false
 	return gekozen_id
 
+# Called when the bot playes a card instead of the player
 func bot_play_card(card, card_id):
 	if leader.turns == leader.player_list[1]:
 		card_played.emit(leader.player_list[1], card_id)
