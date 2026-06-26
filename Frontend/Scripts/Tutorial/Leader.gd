@@ -4,10 +4,7 @@ extends Node2D
 @onready var tutorial_panel: Panel = $"TutorialPanel"
 @onready var tutorial_label: Label = $TutorialPanel/TutorialLabel
 @onready var turn_timer: Timer = $"../TurnTimer"
-<<<<<<< HEAD
-=======
 @onready var turn_label: Label = $"../Background/TurnLabel"
->>>>>>> Development
 @onready var exit_button = $"ExitButton"
 #References other scripts
 @onready var hand_reference = $"../PlayerHand"
@@ -159,10 +156,7 @@ func run_tutorial():
 	await next_step
 	can_play = false
 	hand_reference.add_new_card("achterkant", 1)
-<<<<<<< HEAD
-=======
 	await get_tree().create_timer(0.5).timeout
->>>>>>> Development
 	set_tutorial_text("Congratulations, you won\nNow go play an entire match")
 	exit_button.visible = false
 	show_game_over()

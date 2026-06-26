@@ -10,7 +10,7 @@ signal lobbies_updated(lobbies)
 signal lobby_join_failed()
 signal lobby_left()
 
-var PId := "KEVINWHOOH"
+var PId := ""
 var player_list = ["", "", "", ""]
 var eliminated_players := []
 

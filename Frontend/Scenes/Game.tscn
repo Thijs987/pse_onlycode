@@ -21,12 +21,6 @@ shader_parameter/alpha = 0.5
 shader_parameter/inner_radius = 0.0
 shader_parameter/outer_radius = 1.0
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_wxwew"]
-shader = ExtResource("2_3cx6b")
-shader_parameter/alpha = 0.5
-shader_parameter/inner_radius = 0.0
-shader_parameter/outer_radius = 1.0
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1bvp3"]
 size = Vector2(89, 88)
 
