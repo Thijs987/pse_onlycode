@@ -140,6 +140,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="BrowserView" type="Control" parent="MultiLobbyContainer" unique_id=138882944]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -280,7 +281,6 @@ theme_override_font_sizes/font_size = 20
 text = "Refresh Lobbies"
 
 [node name="InLobbyView" type="Control" parent="MultiLobbyContainer" unique_id=2000424944]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -305,6 +305,7 @@ offset_left = 842.0
 offset_top = 164.0
 offset_right = 1053.0
 offset_bottom = 187.0
+theme_override_constants/outline_size = 5
 text = "current players"
 label_settings = SubResource("LabelSettings_q72hu")
 horizontal_alignment = 1
@@ -325,6 +326,7 @@ grow_vertical = 2
 
 [node name="CurrentlyInLobby" type="Label" parent="MultiLobbyContainer/InLobbyView/VBoxContainer" unique_id=931800321]
 layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 text = "Not in lobby"
 label_settings = SubResource("LabelSettings_q72hu")
 horizontal_alignment = 1
@@ -338,7 +340,7 @@ size_flags_vertical = 4
 [node name="StartLobby" type="Button" parent="MultiLobbyContainer/InLobbyView/VBoxContainer/HBoxContainer5" unique_id=1364728254]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-theme_override_constants/outline_size = 1
+theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_sbkco")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_0ark7")
@@ -355,7 +357,7 @@ size_flags_vertical = 4
 [node name="CardSettingButton" type="Button" parent="MultiLobbyContainer/InLobbyView/VBoxContainer/CardSettingsBox" unique_id=1226144401]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-theme_override_constants/outline_size = 1
+theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_kbg2r")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_yj5nb")
@@ -372,7 +374,7 @@ size_flags_vertical = 4
 [node name="LeaveLobby" type="Button" parent="MultiLobbyContainer/InLobbyView/VBoxContainer/HBoxContainer6" unique_id=613134272]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-theme_override_constants/outline_size = 1
+theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_5deb5")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_x06vt")

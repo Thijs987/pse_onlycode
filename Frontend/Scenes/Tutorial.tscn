@@ -105,6 +105,7 @@ position = Vector2(576, 324)
 collision_mask = 2
 
 [node name="Pile" type="Sprite2D" parent="Pile/PileArea" unique_id=1461804171]
+visible = false
 scale = Vector2(0.08100327, 0.08100327)
 texture = ExtResource("3_5gw1s")
 
