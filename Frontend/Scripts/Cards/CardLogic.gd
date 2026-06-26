@@ -78,7 +78,6 @@ func play_card(card):
 	if controller.interaction_disabled:
 		return
 	if discard_pile == null:
-		print("Error: DiscardPile node not found!")
 		return
 		
 	if controller.PId == turns:
@@ -104,19 +103,12 @@ func play_card(card):
 
 		for card1 in my_hand:
 			if card1.own_card_id == "imp" and current_id != "imp":
-				print("Hand contains imp, play it")
 				card.movable = true
 				return false
 
-		#if current_id == "err":
-			#card.movable = true
-			#return false
-
-		print("Card: " + current_id)
 		if current_id in blanco:
 			if first_combo_card == null: # First blanco card played
 				if has_another_blanco(current_id):
-					print("Eerste combo-kaart geselecteerd: ", current_id)
 					first_combo_card = card
 
 					# Place the card visually
@@ -127,14 +119,12 @@ func play_card(card):
 
 					return true
 				else:
-					print("You dont have a second blanco card")
 					card.movable = true
 					return false
 			else: # Second blanco card
 				# Checks if type matches or at least 1 card is a goto
 				if current_id == first_combo_card.own_card_id or current_id == "goto" or first_combo_card.own_card_id == "goto":
 					played_cards = [first_combo_card.own_card_id, current_id]
-					print("Geldige combo gemaakt! Versturen naar server: ", played_cards)
 					target_id = await sql_attack()
 					data = {cardId = first_combo_card.own_card_id,
 							target = target_id,
@@ -150,7 +140,6 @@ func play_card(card):
 					first_combo_card = null # Reset combo flag
 					
 				else:
-					print("Bad combo, cards need to be of same type or 1 has to be goto")
 					card.movable = true
 					return false
 
@@ -164,7 +153,6 @@ func play_card(card):
 		
 		elif current_id == "trojan":
 			if my_hand.size() < 2: # Need to have a card to give
-				print("You dont have a card to give")
 				card.movable = true
 				return false
 			pending_trojan_card = card
@@ -174,23 +162,19 @@ func play_card(card):
 			card.visible = false
 			card.movable = false
 
-			print("Choose a card to give to player")
 			trojan_selecting_gift = true
 			update_instruction_text()
 
 			return true
 
 		elif current_id == "imp":
-			print("Playcard")
 			hand_reference.remove_card_from_hand(card, 0)
 			card.queue_free()
 
 			if my_hand.size() == 0:
-				print("No other cards in hand, play only improved hardware")
 				data = {cardId = current_id}
 				controller.Play_Card(controller.PId, data)
 			else: # Choose another card
-				print("Chose card to play without effect")
 				imp_hardware_active = true
 				update_instruction_text()
 
@@ -198,7 +182,6 @@ func play_card(card):
 
 		elif current_id == "os":
 			if pile_node != null and pile_node.card_count <= 0: # Pile empty?
-				print("Cant play card with empty drawpile")
 				card.movable = true
 				return false
 			
@@ -358,19 +341,12 @@ func start_dragging(card):
 	if controller.interaction_disabled:
 		return
 
-	if "is_playable" in card and not card.is_playable:
-		# Uitzondering: Als je een Trojan gift aan het kiezen bent, of een IMP sacrifice, 
-		# mag je de kaart wél oppakken/klikken!
-		if not (trojan_selecting_gift or imp_hardware_active):
-			print("Deze kaart mag je nu niet spelen!")
-
-		# TROJAN HORSE
+	# TROJAN HORSE
 	if trojan_selecting_gift:
 		trojan_selecting_gift = false # Reset status
 		update_hand_playability()
 		
 		var gift_card_id = card.own_card_id
-		print("Chosen card: ", gift_card_id)
 		
 		# Delete card from your hand
 		pending_trojan_gift_id = card.own_card_id
@@ -416,7 +392,6 @@ func start_dragging(card):
 		update_instruction_text()
 		
 		var sacrifice_card_id = card.own_card_id
-		print("Chosen card: ", sacrifice_card_id)
 
 		# Delete card from your hand
 		hand_reference.remove_card_from_hand(card, 0)
@@ -432,7 +407,6 @@ func start_dragging(card):
 	if first_combo_card != null: # Player played a blanco card
 		var blanco = ["nocom", "goto", "inf", "vibe"]
 		if not card.own_card_id in blanco:
-			print("Play a blanco card!")
 			return
 
 	card.scale = Vector2(1.0, 1.0)
@@ -449,7 +423,6 @@ func stop_dragging():
 	if dragging_card and dragging_card.movable == true:
 		var discard_area = discard_pile.get_node_or_null("DiscardPileArea")
 		if discard_area == null:
-			print("Error: DiscardPileArea node not found!")
 			return
 		# Als play_card true teruggeeft, stoppen we HIER direct!
 		if discard_area.overlaps_area(dragging_card.get_node("Area2D")):

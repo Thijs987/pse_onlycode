@@ -176,7 +176,6 @@ func _on_message(msg):
 			player_count += 1
 			update_lobby_list()
 		else:
-			print("Another player joined")
 			controller.player_list[player_count] = p_id
 			player_count += 1
 			update_lobby_list()
@@ -207,13 +206,9 @@ func _on_message(msg):
 		player_count = idx
 		update_lobby_list()
 		SceneLoader.load_scene(game_scene)
-	elif msg["action"] == "ERROR":
-		if msg.get("playerId", msg.get("PlayerId", "")) == controller.PId:
-			print("ERROR: ", msg.get("data", {}).get("error", "Unknown error"))
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _on_create_lobby() -> void:
-	print("Create Lobby button pressed! in_lobby_state: ", in_lobby_state)
 	if in_lobby_state == false:
 		controller.Create_Lobby(controller.PId)
 		created_lobby = true
@@ -272,7 +267,6 @@ func _on_refresh_lobbies() -> void:
 	controller.Get_Lobbies()
 
 func _on_lobbies_updated(lobbies: Array) -> void:
-	print("Received lobbies: ", lobbies)
 	lobby_item_list.clear()
 	for lobby in lobbies:
 		var lobby_id = lobby.get("lobbyId", lobby.get("LobbyId", ""))
@@ -320,5 +314,4 @@ func update_views() -> void:
 	in_lobby_view.visible = in_lobby_state
 
 func _on_main_menu_pressed() -> void:
-	print("Main Menu button pressed!")
 	SceneLoader.load_scene("uid://ctined7qq8dh2")

@@ -19,8 +19,6 @@ func set_auth(token: String, user_data: Dictionary) -> void:
 	user_id = str(user_data.get("id", ""))
 	username = str(user_data.get("username", ""))
 	email = str(user_data.get("email", ""))
-	print("[AuthManager] Authenticated as: ", username, " (", user_id, ")")
-
 
 func set_token_expires(expires: String) -> void:
 	token_expires = expires
@@ -52,4 +50,3 @@ func clear_auth() -> void:
 	username = ""
 	email = ""
 	token_expires = ""
-	print("[AuthManager] Session cleared.")

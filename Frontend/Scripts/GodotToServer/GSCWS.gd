@@ -14,10 +14,6 @@ var is_connecting := false
 var BASE_URL: String = "wss://localhost:6969" if OS.has_feature("editor") else "wss://codegreen-uva.ddns.net"
 
 
-func _on_lobby_joined():
-	print("Connected!")
-
-
 # Updates the websocket and checks for incoming messages
 func _process(_delta):
 	socket.poll()
@@ -139,7 +135,6 @@ func _Make_Message(action: String, data: Dictionary = {}):
 # Helper function to send data
 func _Send(data: Dictionary):
 	if socket.get_ready_state() != WebSocketPeer.STATE_OPEN:
-		print("Socket is not connected.")
 		return
 
 	socket.send_text(JSON.stringify(data))
@@ -154,15 +149,12 @@ func _handle_message(text: String):
 
 	match msg["action"]:
 		"PLAYER_JOINED":
-			#print("PJ")
 			pass
 
 		"MATCH_STARTED":
-			#print("MS")
 			pass
 
 		"ERROR":
-			#print("ERR")
 			pass
 
 		"CARD_PLAYED":
@@ -173,22 +165,13 @@ func _handle_message(text: String):
 				# might bug for trojan, be wary
 				if (data.has("cards") && data.get("cards").size() >= 2):
 					var cards = data.get("cards")
-					print("extra emit %s", cards[0])
 					card_played.emit(player, cards[0])
 					card = cards[1]
-				print("normal emit" + card)
 				card_played.emit(player, card)
-			#print("CP")
-			#card_drawn.emit(
-				#msg["data"]["target"],
-				#1
-			#)
 			pass
 
 		"CARD_DRAWN":
-			#print("CD")
 			pass
 
 		"NEXT_TURN":
-			#print("NT")
 			pass

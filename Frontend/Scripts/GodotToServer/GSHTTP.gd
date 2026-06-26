@@ -11,6 +11,7 @@ var BASE_URL: String = "https://localhost:6969" if OS.has_feature("editor") else
 
 var P_Name := ""
 
+signal Rejoin_Lobbies_Received(data) # Signal for passing a list of rejoinable lobbies
 
 # Returns the active Lobbies
 func Get_Lobbies():
@@ -27,16 +28,8 @@ func Get_Lobbies():
 		"%s/api/lobbies/active" % BASE_URL,
 		headers
 	)
-	if err != OK:
-		print("HTTPRequest failed to start in Get_Lobbies: ", err)
-	else:
-		print("Get_Lobbies request started successfully!")
-
-
-signal Rejoin_Lobbies_Received(data) # Signal for passing a list of rejoinable lobbies
 
 func Get_Rejoin_Lobbies(PId: String):
-	print("Getting rejoin lobbies")
 	P_Name = PId
 	var request = HTTPRequest.new()
 	add_child(request)
@@ -51,13 +44,8 @@ func Get_Rejoin_Lobbies(PId: String):
 		"%s/api/lobbies/rejoin?playerId=%s" % [BASE_URL, PId],
 		headers
 	)
-	if err != OK:
-		print("HTTPRequest failed to start in Get_Rejoin_Lobbies: ", err)
-	else:
-		print("Get_Rejoin_Lobbies request started successfully!")
 
 func Abandon_Lobby(LobbyId: String, PId: String):
-	print("Abandoning lobby ", LobbyId)
 	var request = HTTPRequest.new()
 	add_child(request)
 
@@ -71,13 +59,9 @@ func Abandon_Lobby(LobbyId: String, PId: String):
 		HTTPClient.METHOD_POST,
 		""
 	)
-	if err != OK:
-		print("HTTPRequest failed to start in Abandon_Lobby: ", err)
 
 func _On_Rejoin_Lobbies_Received(result, response_code, headers, body):
-	print("_On_Rejoin_Lobbies_Received called. Result: ", result, ", Response Code: ", response_code)
 	if response_code != 200:
-		print("Failed to get rejoin lobbies. Error code: ", response_code)
 		return
 
 	var lobbies = JSON.parse_string(
@@ -89,9 +73,7 @@ func _On_Rejoin_Lobbies_Received(result, response_code, headers, body):
 
 # Emits the data received from the server.
 func _On_Lobbies_Received(result, response_code, headers, body):
-	print("_On_Lobbies_Received called. Result: ", result, ", Response Code: ", response_code)
 	if response_code != 200:
-		print("Failed to get lobbies. Error code: ", response_code)
 		return
 
 	var lobbies = JSON.parse_string(
@@ -104,7 +86,6 @@ func _On_Lobbies_Received(result, response_code, headers, body):
 
 # Creates a game with as host "PId" and connects "PId" to that game
 func Create_Lobby(PId: String):
-	print("Creating lobby")
 	P_Name = PId
 	var request = HTTPRequest.new()
 	add_child(request)
@@ -123,23 +104,17 @@ func Create_Lobby(PId: String):
 		HTTPClient.METHOD_POST,
 		json
 	)
-	print("HTTPRequest.request returned: ", err)
-
 
 # Emits the data received from the server
 func _On_Game_Created(result, response_code, headers, body):
 	if response_code != 200:
-		print("Failed to create lobby. Error code: ", response_code)
 		return
 	var json = JSON.parse_string(
 		body.get_string_from_utf8()
 	)
 
 	if json == null or not json.has("lobbyId"):
-		print("Invalid JSON response when creating lobby")
 		return
 
 	var lobby_id = json["lobbyId"]
-
-	print("Created lobby:", lobby_id)
 	gscws.Join_Lobby(lobby_id, P_Name)

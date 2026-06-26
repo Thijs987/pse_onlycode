@@ -107,7 +107,6 @@ func Gift_Card(Opponent_Id: String, CardId: String, From_Hand: bool):
 # or Controller.Last_Message["data"]["cardId"]
 func Update_From_Server(msg: Dictionary):
 	Last_Message = msg
-	print("Player: " + str(PId) + ", " + str(Last_Message))
 	Last_Data = msg.get("data", {})
 
 	if Last_Message.get("action") == "PLAYER_JOINED" or Last_Message.get("action") == "PLAYER_REJOINED":

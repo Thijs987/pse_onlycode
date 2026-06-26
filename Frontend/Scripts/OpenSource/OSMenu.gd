@@ -14,12 +14,10 @@ func _ready() -> void:
 
 
 func _on_grab_pressed():
-	print("Putting card in your hand")
 	choice_selected.emit("take")
 	queue_free()
 	
 func _on_top_pressed():
-	print("Putting card on top of your pile and ending turn")
 	choice_selected.emit("top")
 	queue_free()
 	

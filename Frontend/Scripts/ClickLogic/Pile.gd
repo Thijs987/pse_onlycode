@@ -172,10 +172,8 @@ func decrease_counter():
 		return
 
 	if CardLogic.first_combo_card != null or CardLogic.trojan_selecting_gift == true:
-		print("Cant draw card when playing cards")
 		return
 	elif CardLogic.imp_hardware_active == true or CardLogic.os_active == true:
-		print("Cant draw card when playing cards")
 		return
 
 	if turns == controller.PId:
