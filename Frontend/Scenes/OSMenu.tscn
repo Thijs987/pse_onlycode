@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://b0mflnw4l6q3l"]
 
 [ext_resource type="Script" uid="uid://dxsw7q44de3sl" path="res://Scripts/OpenSource/OSMenu.gd" id="1_t0qmp"]
-[ext_resource type="Texture2D" uid="uid://dsraw4aeh8oml" path="res://Sprites/image(1).jpeg" id="2_g71pt"]
+[ext_resource type="Texture2D" uid="uid://cr3o0o407pphw" path="res://Sprites/Buttons/Log.png" id="2_t0qmp"]
 
 [node name="OsMenu" type="CanvasLayer" unique_id=221909982]
 process_mode = 3
@@ -38,9 +38,9 @@ theme_override_constants/separation = 100
 metadata/_edit_use_anchors_ = true
 
 [node name="GrabCard" type="TextureButton" parent="VBoxContainer" unique_id=388081030]
-custom_minimum_size = Vector2(603, 138)
+custom_minimum_size = Vector2(603, 180)
 layout_mode = 2
-texture_normal = ExtResource("2_g71pt")
+texture_normal = ExtResource("2_t0qmp")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -61,9 +61,9 @@ theme_override_font_sizes/font_size = 20
 text = "Grab the card"
 
 [node name="PlaceOnTop" type="TextureButton" parent="VBoxContainer" unique_id=364182259]
-custom_minimum_size = Vector2(603, 138)
+custom_minimum_size = Vector2(603, 180)
 layout_mode = 2
-texture_normal = ExtResource("2_g71pt")
+texture_normal = ExtResource("2_t0qmp")
 ignore_texture_size = true
 stretch_mode = 0
 
