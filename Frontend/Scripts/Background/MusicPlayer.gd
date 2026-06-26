@@ -15,12 +15,16 @@ func play_game_music() -> void:
 	if stream == game:
 		return
 	stream = game
-	volume_db = 0.0
 	play()
 
 func play_menu_music() -> void:
 	if stream == menu:
 		return
 	stream = menu
-	volume_db = 0.0
 	play()
+	
+func set_volume(volume: float) -> void:
+	volume_db = volume
+	
+func get_volume() -> float:
+	return volume_db
