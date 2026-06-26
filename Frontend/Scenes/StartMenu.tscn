@@ -9,8 +9,8 @@
 [ext_resource type="StyleBox" uid="uid://cga7y6hxvdm4a" path="res://Sprites/Menu/Mute_on_hover.tres" id="4_o6asp"]
 [ext_resource type="StyleBox" uid="uid://vkj0axgyyvn" path="res://Sprites/Menu/Mute_off_hover.tres" id="5_o42a4"]
 [ext_resource type="Texture2D" uid="uid://ccvfgufqqekm1" path="res://Sprites/Menu/slider_active.png" id="8_0qo7l"]
-[ext_resource type="Texture2D" uid="uid://1o4w1fit56k5" path="res://Sprites/Menu/slider_inactive.png" id="9_b3loq"]
 [ext_resource type="FontFile" uid="uid://dnxdqkdiptw0l" path="res://COMIC.TTF" id="8_o42a4"]
+[ext_resource type="Texture2D" uid="uid://1o4w1fit56k5" path="res://Sprites/Menu/slider_inactive.png" id="9_b3loq"]
 
 [sub_resource type="Curve" id="Curve_dl0pg"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.26602563, 0.26193547), 1.5700641, 1.5700641, 0, 0, Vector2(0.5769231, 0.90774196), 0.6886246, 0.6886246, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
@@ -171,6 +171,7 @@ texture = ExtResource("2_dl0pg")
 stretch_mode = 1
 
 [node name="ButtonContainer" type="MarginContainer" parent="." unique_id=599292621]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
