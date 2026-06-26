@@ -1,4 +1,6 @@
-This is the code for the .env file you need. You should create your own accounts for the email and JWT.
+This is the code for the .env file you need.
+You can copy the code, put it in a new file called .env, and complete the information.
+To complete your infomration, you need to create your own account for the smtp email server and your own JSON Web Token.
 Your final .env file should be in the root folder of the project
 ```# Environment configuration for PSE-Green-Code
 # Keep this file secure and do NOT commit it to version control.
