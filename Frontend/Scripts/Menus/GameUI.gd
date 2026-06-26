@@ -121,7 +121,6 @@ func _highlight_turn(current_player_id: String):
 			lbl.text = lbl.text.substr(0, index)
 
 	if player_labels.has(current_player_id):
-		print(current_player_id)
 		var active_lbl = player_labels[current_player_id]
 		active_lbl.add_theme_color_override("font_color", Color(1.0, 0.845, 0.392, 1.0))
 		active_lbl.text = ">> " + active_lbl.text + " | Turns: " + str(turns)

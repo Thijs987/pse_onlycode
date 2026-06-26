@@ -126,12 +126,6 @@ func _on_mute_pressed() -> void:
 		mute_button.add_theme_stylebox_override("hover", mute_off_style_hover_off)
 		mute_button.add_theme_stylebox_override("pressed", mute_off_style_hover_off)
 		mute_button.add_theme_stylebox_override("focus", mute_off_style_hover_off)
-	
-	##THIS IS TO GET THE LOBBIES. SHOULD CREATE ANOTHER BUTTON FOR THIS
-	#controller.Get_Lobbies()
-	#await get_tree().create_timer(1.0).timeout
-	#print(controller.Active_Lobbies)
-
 
 func _on_h_slider_value_changed(volume: float) -> void:
 	MusicPlayer.set_volume(volume)

@@ -111,7 +111,6 @@ func _on_message(msg):
 				#Remove card from the other player that played a card
 				var cardId = msg.get("data", {}).get("cardId")
 				var player_number = controller.player_list.find(msg.get("playerId"))
-				print(player_number)
 				if player_number != -1:
 					if cardId in blanco or cardId == "trojan":
 						var target = msg.get("data", {}).get("target")
@@ -181,23 +180,17 @@ func _on_timeout():
 				card_logic.play_card(card)
 				break
 		if imp or card_logic.imp_hardware_active:
-			print("TIMER OUT: No card chosen for automatic selection. Automatic choice")
 			for card in player_hands[0]:
 				if card != null and card.own_card_id != "imp":
 					card_logic.start_dragging(card)
-					print("Forced card for Improved Hardware: ", card.own_card_id)
 		else:
 			controller.Draw_Card(controller.PId)
-	print("TIMEOUT")
-	print("trojan_selecting_gift = ", card_logic.trojan_selecting_gift)
-	print("trojan_selecting_target = ", card_logic.trojan_selecting_target)
 	if card_logic == null:
 		controller.Draw_Card(controller.PId)
 		return
 
 	# If a blanco card is played
 	if card_logic.first_combo_card != null:
-		print("TIMER OUT: Didnt finish combo, take card(s) back.")
 		var card_to_reset = card_logic.first_combo_card
 		card_logic.first_combo_card = null
 		
@@ -209,8 +202,6 @@ func _on_timeout():
 
 	# Trojan horse
 	if card_logic.trojan_selecting_gift:
-		print("TIMER OUT: Trojan gift not selected -> rollback")
-
 		card_logic.trojan_selecting_gift = false
 
 		if card_logic.pending_trojan_card:
@@ -240,8 +231,6 @@ func _on_timeout():
 		controller.Draw_Card(controller.PId)
 		return
 	if card_logic.trojan_selecting_target:
-		print("TIMER OUT: Closing Attack screen (Trojan cancelled)")
-
 		card_logic.trojan_selecting_target = false
 
 		# FORCE CLOSE ATTACK SCREEN
@@ -271,13 +260,11 @@ func _on_timeout():
 
 	# Open source
 	if card_logic.os_active:
-		print("TIMER OUT: No choice make. Closing menu")
 		card_logic.os_active = false
 		
 		# Searche and delete os screen
 		var os_node = get_tree().root.get_node_or_null("OSMenu")
 		if os_node:
-			print("OSMenu found and deleted")
 			if os_node.has_signal("choice_selected"):
 				os_node.choice_selected.emit("keep") 
 			os_node.queue_free()
@@ -292,7 +279,6 @@ func _on_timeout():
 		get_tree().paused = false
 
 	# Default
-	print("TIMER OUT: End turn.")
 	controller.Draw_Card(controller.PId)
 
 func add_new_card(card_id, player_number):

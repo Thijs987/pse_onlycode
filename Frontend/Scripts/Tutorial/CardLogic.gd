@@ -38,11 +38,9 @@ func play_card(card):
 	if leader.can_play == false:
 		return
 	if discard_pile == null:
-		print("Error: DiscardPile node not found!")
 		return
 	var discard_area = discard_pile.get_node_or_null("DiscardPileArea")
 	if discard_area == null:
-		print("Error: DiscardPileArea node not found!")
 		return
 
 	if discard_area.overlaps_area(card.get_node("Area2D")):
@@ -56,7 +54,6 @@ func play_card(card):
 			hand_reference.remove_card_from_hand(card, 0)
 		else:
 			if first_combo_card == null: # First blanco card played
-				print("Eerste combo-kaart geselecteerd: ", current_id)
 				first_combo_card = card
 
 				# Place the card visually
@@ -68,7 +65,6 @@ func play_card(card):
 				# Checks if type matches or at least 1 card is a goto
 				if current_id == first_combo_card.own_card_id or current_id == "goto" or first_combo_card.own_card_id == "goto":
 					var played_cards = [first_combo_card.own_card_id, current_id]
-					print("Geldige combo gemaakt! Versturen naar server: ", played_cards)
 					await sql_attack()
 					card_played.emit(controller.PId, played_cards)
 
