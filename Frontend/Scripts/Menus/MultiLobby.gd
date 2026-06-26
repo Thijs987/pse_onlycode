@@ -41,6 +41,7 @@ func _ready() -> void:
 	list_container = VBoxContainer.new()
 	list_container.position = Vector2(842, 200)
 	in_lobby_view.add_child(list_container)
+	lobby_settings.visible = false
 
 	add_bot_btn = Button.new()
 	add_bot_btn.text = "Add Bot"

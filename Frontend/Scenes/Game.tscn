@@ -57,6 +57,7 @@ mouse_filter = 2
 script = ExtResource("3_wxwew")
 
 [node name="Table" type="TextureRect" parent="Background/CanvasLayer2" unique_id=866686410]
+visible = false
 z_index = -2
 offset_left = 138.0
 offset_top = 110.0

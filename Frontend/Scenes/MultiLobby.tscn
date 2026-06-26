@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://xis1ttmbnkj8" path="res://Sprites/Background/BackgroundPattern.png" id="3_e2wr0"]
 [ext_resource type="Texture2D" uid="uid://cr3o0o407pphw" path="res://Sprites/Buttons/Log.png" id="4_8i1ja"]
 [ext_resource type="Texture2D" uid="uid://brcpr6l283oor" path="res://Sprites/Background/sign.png" id="4_sbkco"]
+[ext_resource type="Texture2D" uid="uid://ccfn556m5nnv0" path="res://Sprites/Background/settings.png" id="7_0ark7"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7pf85"]
 texture = ExtResource("4_8i1ja")
@@ -139,7 +140,6 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="BrowserView" type="Control" parent="MultiLobbyContainer" unique_id=138882944]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -280,6 +280,7 @@ theme_override_font_sizes/font_size = 20
 text = "Refresh Lobbies"
 
 [node name="InLobbyView" type="Control" parent="MultiLobbyContainer" unique_id=2000424944]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -382,3 +383,13 @@ text = "Back"
 [node name="LobbySettings" parent="." unique_id=1787609362 instance=ExtResource("2_jlkr6")]
 visible = false
 layout_mode = 1
+
+[node name="TextureRect" type="TextureRect" parent="LobbySettings" unique_id=2084242993]
+z_index = -1
+layout_mode = 0
+offset_left = 24.458
+offset_top = 41.0
+offset_right = 1149.93
+offset_bottom = 594.0
+mouse_filter = 2
+texture = ExtResource("7_0ark7")
