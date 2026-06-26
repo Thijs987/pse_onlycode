@@ -17,7 +17,7 @@ func _ready():
 	draw_sound.stream = preload("res://Sounds/PlayCard.mp3")
 	create_visual_pile()
 
-# Haalt 1 kaart van de counter
+# Draws a card
 func draw_card():
 	if controller.interaction_disabled:
 		return
@@ -25,6 +25,7 @@ func draw_card():
 	update_visual_pile()
 	card_drawn.emit()
 
+#Create the visual cards at the top of the pile
 func create_visual_pile():
 	# Remove old cards
 	for card in visual_cards:
@@ -52,6 +53,7 @@ func create_visual_pile():
 
 		visual_cards.append(card)
 
+#Set the cards in the correct position
 func setup_draw_pile_card(card, index):
 	var card_size = card.get_node("Sprite2D").texture.get_size()
 
@@ -73,8 +75,8 @@ func setup_draw_pile_card(card, index):
 
 	card.z_index = index
 
+#Update how the pile looks. Adds the new card visual on the bottom
 func update_visual_pile():
-
 	if updating_pile:
 		return
 

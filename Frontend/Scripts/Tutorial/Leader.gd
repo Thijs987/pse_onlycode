@@ -47,6 +47,7 @@ func _ready() -> void:
 func _on_timeout():
 	pass
 
+### Functions for updates from events ###
 func _on_card_played(player_id, card_id):
 	if player_id == player_list[0]:
 		turns = player_list[1]
@@ -67,10 +68,12 @@ func _input(event):
 
 func _on_exit_button():
 	SceneLoader.load_scene("uid://ctined7qq8dh2") #StartMenu.tscn uid
-	
+
+#Play the card
 func do_play_card(card_id):
 	card_logic.play_card(card_id)
 
+#Set the tutorial label text
 func set_tutorial_text(text):
 	tutorial_label.text = text
 	tutorial_label.reset_size()
@@ -78,6 +81,7 @@ func set_tutorial_text(text):
 	tutorial_panel.size = tutorial_label.size
 	tutorial_panel.show()
 
+#Shows the game over screen
 func show_game_over():
 	var panel = ColorRect.new()
 	panel.color = Color(0, 0, 0, 0.8)
@@ -101,9 +105,13 @@ func show_game_over():
 	panel.add_child(btn)
 	btn.pressed.connect(_on_return_pressed)
 
+#Return to start menu
 func _on_return_pressed():
 	SceneLoader.load_scene("uid://ctined7qq8dh2")
 
+#Run the tutorial.
+#It set the tutorial text, and says which action it wants to see,
+#and waits for that action to be completed
 func run_tutorial():
 	set_tutorial_text("Welcome to the tutorial\nClick to continue...")
 	wait_for_mouse_click = true
